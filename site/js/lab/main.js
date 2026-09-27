@@ -8,6 +8,8 @@ import { renderLabResults, isCompleted, resultTitle, runSummary } from './result
 import { registryEntries, enabled, parameterField, same, stable } from './fields.js';
 import { readWorkspace, writeWorkspace, participantKey } from './storage.js';
 import { copy, localized } from './copy.js';
+import { renderPolicyLibrary } from './policies.js';
+import { policyOptions, policyCatalogueVersion } from './policy-data.js';
 
 const clone=structuredClone;
 const configOf=run=>run?.config || run?.resolved_config;
@@ -23,7 +25,7 @@ async function json(url,hash) {
   return JSON.parse(new TextDecoder().decode(bytes));
 }
 export async function initLab(app,{isCurrent=()=>true}={}) {
-  stylesheet('lab.css');stylesheet('lab-results.css');
+  stylesheet('lab.css');stylesheet('lab-results.css');stylesheet('lab-policies.css');
   const release=app.R;
   if(!release.bundle.lab)throw new Error('ชุดเผยแพร่นี้ยังไม่มี Workforce Lab กรุณาเปิดชุดเผยแพร่ปัจจุบัน');
   const releaseURL=new URL(`../../data/releases/${encodeURIComponent(release.id)}/`,import.meta.url);
@@ -39,7 +41,8 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
   const presets=Array.isArray(lab.presets)?lab.presets:Object.entries(lab.presets || {}).map(([id,p])=>({id,...p}));
   const key=participantKey(release.id),persisted=await readWorkspace(key);
   let draft=clone(defaultConfig),selected=baseline,pins=[],archivedRuns=[],batch=[],lastRuntime=null,savedStatus=true,failedRun=null,comparisonAnalysis=null,experimentSummary=null;
-  let alive=true,busy=false,cancelBatch=false,status='ready',statusDetail='',progressDetail={},resultController=null,saveTimer,newReleaseTimer;
+  let alive=true,busy=false,cancelBatch=false,status='ready',statusDetail='',progressDetail={},resultController=null,policyController=null,saveTimer,newReleaseTimer;
+  const policyState={query:'',group:'all',readiness:'all',selectedId:app.state.labPolicy || 'P07'};
   let lang=app.state.lang || 'th',T=copy(lang),advanced=false,root,form,results,feedback,actions,changeList,pinsBox,storageNote,batchBox;
   const entryContext=app.labEntryContext;
   app.labEntryContext=null;
@@ -107,12 +110,17 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
   function button(text,onclick,attrs={}){return h('button',{type:'button',class:'btn',text,onclick,...attrs});}
   function render(){
     resultController?.destroy?.();resultController=null;
+    policyController?.destroy?.();policyController=null;
     T=copy(lang);initText(release.bundle,{overrides:lang==='en'?lab.ui_en||{}:{}});
     document.documentElement.lang=lang;
     document.body.classList.toggle('lab-presenting',app.state.labView==='present');
-    clear(app.main);root=h('div',{class:'lab','data-lang':lang});app.main.append(root);
+    const policyView=app.state.labView==='policies';
+    clear(app.main);root=h('div',{class:`lab${policyView?' lab--policies':''}`,'data-lang':lang});app.main.append(root);
     const language=h('select',{'aria-label':'Language / ภาษา',onchange:async e=>{lang=e.target.value;app.state.lang=lang;app.persist();clearTimeout(saveTimer);await save();if(alive)render();}},h('option',{value:'th',selected:lang==='th',text:'ไทย'}),h('option',{value:'en',selected:lang==='en',text:'English'}));
-    root.append(h('header',{class:'lab-header'},h('div',{},h('p',{class:'lab-eyebrow',text:'WORKFORCE LAB'}),h('h1',{text:T('title')}),h('p',{text:T('subtitle')})),h('div',{class:'lab-header__actions'},language,button(T('back'),app.returnFromLab))));
+    root.append(h('header',{class:'lab-header'},h('div',{},h('p',{class:'lab-eyebrow',text:'WORKFORCE LAB'}),
+      h('h1',{text:policyView?(lang==='en'?'Workforce policy options':'ทางเลือกนโยบายกำลังคน'):T('title')}),
+      h('p',{text:policyView?(lang==='en'?'Explore 20 options, their evidence and the assumptions needed to evaluate them.':'สำรวจ 20 ทางเลือก พร้อมหลักฐานและสมมติฐานที่ต้องใช้ประเมินผล'):T('subtitle')})),
+      h('div',{class:'lab-header__actions'},language,button(T('back'),app.returnFromLab))));
     root.append(h('p',{class:'lab-scope',text:T('scope'),title:T('provisional')}),h('details',{class:'lab-scope-note'},h('summary',{text:lang==='en'?'Provisional MOPH / OPS scope':'ขอบเขตชั่วคราว: ใช้จำนวนแพทย์ สธ. เป็นตัวแทน สป.สธ.'}),h('p',{class:'lab-scope--detail',text:T('provisional')})));
     const origin=draft.origin?.source_scene_id;if(origin)root.append(h('p',{class:'lab-origin',text:`${T('source')} ${origin} · ${release.scene(origin)?.title || ''}`}));
     const update=h('div',{class:'lab-release-update',hidden:true});root.append(update);
@@ -121,9 +129,26 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
       root.append(h('div',{class:'lab-present-actions'},h('span',{class:'badge',text:T('experimentLabel')}),button(T('backControls'),()=>present(false)),button(T('back'),app.returnFromLab),button(lang==='en'?'Fullscreen':'เต็มหน้าจอ',app.toggleFullscreen)));
       results=h('div',{class:'lab-output'});root.append(results);showResults();return;
     }
+    root.append(h('nav',{class:'lab-section-nav','aria-label':lang==='en'?'Lab sections':'ส่วนต่าง ๆ ของ Lab'},
+      button(lang==='en'?'Model controls and results':'สมมติฐานและผลคำนวณ',()=>openPolicies(false),{'data-action':'lab-controls','aria-pressed':String(app.state.labView!=='policies'),disabled:busy}),
+      button(lang==='en'?'20 policy options':'ทางเลือกนโยบาย 20 ข้อ',()=>openPolicies(true),{'data-action':'policies','aria-pressed':String(app.state.labView==='policies'),disabled:busy})));
+    if(app.state.labView==='policies'){
+      const host=h('section');root.append(host);
+      policyController=renderPolicyLibrary(host,{lang,compactHeader:true,state:policyState,onState:patch=>{
+        Object.assign(policyState,patch);app.state.labPolicy=policyState.selectedId;app.persist();
+      },onUse:usePolicy});return;
+    }
     const grid=h('div',{class:'lab-grid'}),sidebar=h('aside',{class:'lab-sidebar'}),output=h('section',{class:'lab-output'});root.append(grid);grid.append(sidebar,output);
     form=h('form',{class:'lab-form',onsubmit:e=>{e.preventDefault();runDraft();}});sidebar.append(form);
     form.append(h('h2',{text:T('controls')}));
+    const policy=policyOptions.find(p=>p.id===draft.origin?.policy_option_id);
+    if(policy)form.append(h('section',{class:'lab-policy-context','data-policy-context':policy.id},
+      h('strong',{text:`${policy.id} · ${localized(policy,'title',lang)}`}),
+      h('p',{text:lang==='en'?'Set a model response as your own assumption. Research estimates have not been applied to these controls. The charts retain the last completed result until you run again.':'กำหนดผลต่อแบบจำลองเป็นสมมติฐานของคุณเอง ยังไม่ได้ใส่ค่าผลจากงานวิจัยลงในตัวควบคุม กราฟยังแสดงผลที่คำนวณแล้วจนกว่าจะคำนวณใหม่'}),
+      h('p',{text:localized(policy,'mapping',lang)}),
+      h('p',{text:localized(policy,'limitation',lang)}),
+      h('div',{class:'lab-actions'},button(lang==='en'?'Read evidence':'อ่านหลักฐาน',()=>{policyState.selectedId=policy.id;openPolicies(true);}),
+        button(lang==='en'?'Clear policy context':'ล้างชื่อนโยบาย',()=>{delete draft.origin.policy_option_id;delete draft.origin.policy_catalog_version;render();saveSoon();},{'data-action':'policy-clear'}))));
     form.append(h('label',{class:'lab-field'},h('span',{text:T('name')}),h('input',{type:'text',value:draft.name||draft.title||'',maxLength:120,oninput:e=>{draft.name=e.target.value;saveSoon();}})));
     const select=h('select',{'aria-label':T('preset'),onchange:e=>{if(e.target.value)loadEntry(e.target.value).catch(showError);}},h('option',{value:'',text:T('preset')}));
     for(const p of presets)select.append(h('option',{value:p.id,text:localized(p,'label',lang)||p.id}));
@@ -139,7 +164,7 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
       const box=h('fieldset',{class:'lab-group'},h('legend',{text:groupLabel(group)}));
       for(const p of allAdvanced.filter(p=>p.group===group))box.append(parameterField(p,draft,{lang,onChange:edited,baseline:defaultConfig}));extra.append(box);
     }form.append(extra);
-    const reset=button(T('reset'),()=>{draft=clone(defaultConfig);status='dirty';render();saveSoon();},{title:T('resetHelp')});
+    const reset=button(T('reset'),()=>{draft=clone(defaultConfig);status='dirty';render();saveSoon();},{title:T('resetHelp'),'data-action':'reset'});
     const importer=h('input',{type:'file',accept:'.json,application/json',hidden:true,onchange:async e=>{
       try{const file=e.target.files[0];if(!file)return;if(file.size>5e6)throw new Error(T('unknown'));const raw=JSON.parse(await file.text()),cfg=raw.config||raw.scenario||raw;
         if(!cfg.parameters||Object.keys(cfg.parameters).some(k=>!entryById.has(k))||cfg.schema_version&&cfg.schema_version!=='workforce-lab.scenario/1')throw new Error(T('unknown'));
@@ -167,6 +192,22 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
     output.append(methodsPanel());
     showChanges();showStatus();showPins();showResults();showBatch();
   }
+  function openPolicies(yes){
+    if(busy)return;
+    app.state.labView=yes?'policies':null;
+    if(yes)app.state.labPolicy=policyState.selectedId;
+    app.persist();render();root.scrollIntoView({block:'start',behavior:'instant'});
+  }
+  function usePolicy(policy){
+    if(busy||!policy.route)return;
+    // A catalogue choice is provenance only. No coefficient, parameter, mode,
+    // coverage or completed result is changed without participant input.
+    draft.origin={...(draft.origin||{}),policy_option_id:policy.id,policy_catalog_version:policyCatalogueVersion};
+    const targets={retention:'retention.resignation_reduction',supply:'supply.input_mode',training:'supply.input_mode',mobility:'mobility.enabled',reentry:'departures.reentry_multiplier'};
+    advanced=true;openPolicies(false);saveSoon();
+    const field=form?.querySelector(`[data-parameter="${targets[policy.route]}"]`);
+    if(field){field.classList.add('lab-policy-target');field.scrollIntoView({block:'center',behavior:'instant'});field.querySelector('input,select,textarea')?.focus({preventScroll:true});}
+  }
   function groupLabel(group){
     const map={targets:'allocation',departures:'attrition',retention:'attrition',demography:'future',morbidity:'future',services:'future',resources:'future',feedback:'analytical',solver:'analytical',planning:'analytical',uncertainty:'analytical'};
     const translated=T(map[group]||group);return translated===group?localized({label_th:group,label_en:group},'label',lang):translated;
@@ -183,6 +224,7 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
     if(!busy&&failedRun&&['failed','infeasible'].includes(status))feedback.append(button(lang==='en'?'Download configuration and diagnostics':'ดาวน์โหลดสมมติฐานและข้อจำกัด',()=>downloadJSON('diagnostics',failedRun)));
     const run=actions?.querySelector('[data-action="run"]'),cancel=actions?.querySelector('[data-action="cancel"]');
     if(run)run.disabled=busy;if(cancel)cancel.hidden=!busy;
+    for(const nav of root.querySelectorAll('.lab-section-nav button'))nav.disabled=busy;
     for(const field of form?.querySelectorAll('input,select,textarea,button')||[])field.disabled=busy;
     for(const exportButton of root.querySelectorAll('[data-export]')){exportButton.disabled=!isCompleted(selected);exportButton.title=dirty()?T('lastCompleted'):'';}
     const workload=root.querySelector('.lab-run-workload');
@@ -212,6 +254,10 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
     if(!results?.isConnected)return;resultController?.destroy?.();
     if(constrainComparisons())showPins();
     resultController=renderLabResults(results,selected,options());
+    const policy=policyOptions.find(p=>p.id===configOf(selected)?.origin?.policy_option_id);
+    if(policy)results.prepend(h('p',{class:'lab-policy-result-context','data-result-policy':policy.id,text:lang==='en'
+      ?`${policy.id} · ${localized(policy,'title',lang)} — conditional on the participant's assumptions; policy effectiveness and efficiency are not established by this result.`
+      :`${policy.id} · ${localized(policy,'title',lang)} — ผลภายใต้สมมติฐานที่ผู้ทดลองกำหนด ยังไม่ยืนยันประสิทธิผลหรือประสิทธิภาพของนโยบาย`}));
   }
   function pinSelected(){if(!isCompleted(selected))return;if(pins.some(p=>p.run_id===selected.run_id))return;constrainComparisons();pins.push(selected);comparisonAnalysis=null;showPins();showResults();saveSoon();}
   function showPins(){if(!pinsBox)return;
@@ -318,5 +364,5 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
     if(alive)newReleaseTimer=setTimeout(()=>checkNewRelease(box),60000);
   }
   return {get draft(){return clone(draft);},get result(){return clone(selected);},get lab(){return lab;},get client(){return client;},
-    destroy(){alive=false;clearTimeout(saveTimer);clearTimeout(newReleaseTimer);save();client.dispose();resultController?.destroy?.();document.body.classList.remove('lab-presenting');}};
+    destroy(){alive=false;clearTimeout(saveTimer);clearTimeout(newReleaseTimer);save();client.dispose();resultController?.destroy?.();policyController?.destroy?.();document.body.classList.remove('lab-presenting');}};
 }

@@ -1,6 +1,6 @@
 {
-  "current": "20260927T170441Z-518d6356eddd",
-  "latest": "20260927T170441Z-518d6356eddd",
+  "current": "20260927T175719Z-e277e21429dc",
+  "latest": "20260927T175719Z-e277e21429dc",
   "releases": [
     {
       "id": "20260927T145547Z-c1c8c26dd98f",
@@ -17,6 +17,14 @@
       "freshness": "unknown",
       "validation_ok": true,
       "promoted_at": "2026-09-27T17:09:26+00:00"
+    },
+    {
+      "id": "20260927T175719Z-e277e21429dc",
+      "generated_at": "2026-09-27T17:57:19+00:00",
+      "status": "promoted",
+      "freshness": "unknown",
+      "validation_ok": true,
+      "promoted_at": "2026-09-27T18:00:08+00:00"
     }
   ]
 }

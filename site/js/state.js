@@ -15,7 +15,8 @@ export function readState(search = location.search) {
     step: Math.max(1, parseInt(q.get("step") || "1", 10) || 1),
     lang: q.get("lang") === "en" ? "en" : "th",
     labPreset: q.get("preset") || null,
-    labView: q.get("labview") === "present" ? "present" : null,
+    labView: ["present", "policies"].includes(q.get("labview")) ? q.get("labview") : null,
+    labPolicy: /^P(?:0[1-9]|1[0-9]|20)$/.test(q.get("policy") || "") ? q.get("policy") : null,
     ov: {},
   };
   for (const k of OVERRIDES) if (q.get(k)) st.ov[k] = q.get(k);
@@ -31,6 +32,7 @@ export function toQuery(st, { includeOverrides = true } = {}) {
   if (st.lang === "en") q.set("lang", "en");
   if (st.mode === "lab" && st.labPreset) q.set("preset", st.labPreset);
   if (st.mode === "lab" && st.labView) q.set("labview", st.labView);
+  if (st.mode === "lab" && st.labView === "policies" && st.labPolicy) q.set("policy", st.labPolicy);
   if (includeOverrides) for (const [k, v] of Object.entries(st.ov || {})) if (v != null && v !== "") q.set(k, v);
   return "?" + q.toString();
 }
