@@ -153,11 +153,11 @@ export class PlanCompare {
   scatter(plot, rows, byPlan) {
     const st = this.state;
     const decimals = st.metric.startsWith("attainment") ? 2 : 0;
-    plot.append(h("div", { class: "compare__axes" }, h("span", { text: t("compare.x_axis", { label: st.base }) }),
-      h("span", { text: t("compare.y_axis", { label: st.compare }) })));
     const max = Math.max(1, ...[...byPlan.values()].flatMap(m => [...m.values()].map(r => r[st.metric])));
     const domain = nice([0, max * 1.08], 5);
-    const graph = this.plotAxes(plot, domain, decimals);
+    const graph = this.plotAxes(plot, domain, decimals, {
+      x: t("compare.x_axis", { label: st.base }), y: t("compare.y_axis", { label: st.compare }),
+    });
     const { svg, x, y, W, H } = graph;
     svg.append(s("line", { class: "ref-line", x1: x(domain[0]), y1: y(domain[0]), x2: x(domain[1]), y2: y(domain[1]) }));
     for (const row of rows) {
@@ -172,10 +172,16 @@ export class PlanCompare {
     }
   }
 
-  plotAxes(plot, domain, decimals) {
-    const box = h("div", { class: "compare__svgbox" }); plot.append(box);
-    const { width, height } = box.getBoundingClientRect(), W = Math.max(300, width), H = Math.max(270, height);
+  plotAxes(plot, domain, decimals, labels) {
     const margin = { l: decimals ? 64 : 80, r: 30, t: 24, b: 44 };
+    plot.style.setProperty("--compare-axis-left", `${margin.l}px`);
+    plot.style.setProperty("--compare-axis-right", `${margin.r}px`);
+    const box = h("div", { class: "compare__svgbox" });
+    // Reserve both captions before measuring the plot. The x caption is
+    // centred on the plotting area, below its tick labels, in every mode.
+    plot.append(h("p", { class: "compare__axis compare__axis--y", text: labels.y }), box,
+      h("p", { class: "compare__axis compare__axis--x", text: labels.x }));
+    const { width, height } = box.getBoundingClientRect(), W = Math.max(300, width), H = Math.max(270, height);
     const x = linear(domain, [margin.l, W - margin.r]), y = linear(domain, [H - margin.b, margin.t]);
     const svg = s("svg", { class: "compare__scatter", viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": metricLabel(this.state.metric) });
     box.append(svg);
@@ -226,9 +232,10 @@ export class PlanCompare {
     const rows = this.ctx.release.rows("c5_gini_final");
     const body = h("div", { class: "compare__body" }), plot = h("div", { class: "compare__plot" }), side = h("div", { class: "compare__side" });
     body.append(plot, side); wrap.append(body, h("p", { class: "compare__note", text: t("compare.gini_note") }));
-    plot.append(h("div", { class: "compare__axes" }, h("span", { text: t("compare.gini_x") }), h("span", { text: t("compare.gini_y") })));
     const max = Math.max(...rows.flatMap(r => [r.gini_p, r.gini_s]));
-    const { svg, x, y } = this.plotAxes(plot, nice([0, max * 1.18], 5), 2);
+    const { svg, x, y } = this.plotAxes(plot, nice([0, max * 1.18], 5), 2, {
+      x: t("compare.gini_x"), y: t("compare.gini_y"),
+    });
     const labelOffsets = { "P-R": [-14, -21, "end"], "N-R": [0, -34, "start"],
       "NFB0.5-R": [-16, 40, "end"], "NFB1-R": [16, -12, "start"], "S-R": [13, 24, "start"], "SQ-C": [14, -16, "start"] };
     for (const row of rows) {

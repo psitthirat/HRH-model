@@ -29,8 +29,9 @@
 .compare__selection { margin:0; font-size:16px; line-height:1.6; color:var(--text-secondary); }
 .compare--positive { color:var(--div-p3); }.compare--negative { color:var(--div-n3); }
 .compare__note { margin:0; font-size:14px; color:var(--text-secondary); line-height:1.5; }
-.compare__axes { display:flex; gap:20px; justify-content:space-between; font-size:17px; }
-.compare__axes span { max-width:48%; }
+.compare__axis { flex:none; margin:0; padding-inline:var(--compare-axis-left) var(--compare-axis-right); font-size:17px; line-height:1.5; color:var(--text-secondary); }
+.compare__axis--y { text-align:left; }
+.compare__axis--x { text-align:center; }
 .compare__dot { stroke:var(--page-bg); stroke-width:1.2px; opacity:.85; }
 .compare__point { cursor:pointer; }.compare__point:hover .compare__dot,.compare__point.is-selected .compare__dot { stroke:var(--text-primary); stroke-width:2; opacity:1; }
 .compare__scatter .tick { font-size:17px; }.compare__scatter .map-label { font-size:18px; }

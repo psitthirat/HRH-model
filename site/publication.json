@@ -1,6 +1,6 @@
 {
  "generator": "hrh-publication/1",
- "generated_at": "2026-09-27T15:03:22+00:00",
+ "generated_at": "2026-09-27T15:25:21+00:00",
  "release_id": "20260927T145547Z-c1c8c26dd98f",
  "publication": {
   "audience": "public",
@@ -52,8 +52,8 @@
    "bytes": 11029
   },
   "css/plancompare.css": {
-   "sha256": "2f0b86bdf43083e1ebfafaddbf37de93966576a9f25859ee75c5a060a502a216",
-   "bytes": 11404
+   "sha256": "d42c50eff73d207a0c252abd610c640263fb6114a5af4c0ff1da17e31f3cf399",
+   "bytes": 11524
   },
   "css/presentation.css": {
    "sha256": "188109d315fa44461eefc8d807ece39c7b2f53d3502496e23842f0328f339847",
@@ -164,8 +164,8 @@
    "bytes": 8619
   },
   "js/charts/plancompare.js": {
-   "sha256": "af980fa5384415c772434077be3f5e4d6cfceda5a32b9778ca4cc9fc790dc6bc",
-   "bytes": 17577
+   "sha256": "b5c0aa8416d7ab168cce49a98b3dd62cfa1914898e9cc950a1bf75e35ddb05a0",
+   "bytes": 17860
   },
   "js/charts/provinces.js": {
    "sha256": "6346e0575d8777d4048868a3afbbe619124a8735fc6b2d37c759dee6c953732c",
