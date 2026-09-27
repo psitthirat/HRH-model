@@ -1,0 +1,117 @@
+/* Print: the same tokens re-pointed to ink on paper, so the mapping from colour
+ * to meaning is identical on screen and on paper. Light-mode data colours were
+ * validated against white (cadres: PASS). */
+:root {
+  color-scheme: light;
+  --page-bg: #ffffff; --surface: #f4f5f7; --surface-2: #f4f5f7; --surface-3: #e3e6ea;
+  --surface-glass-strong: #ffffff; --border-hairline: #d7dbe0; --border-strong: #9aa3ad;
+  --grid: #e3e6ea; --axis: #6b7682;
+  --text-primary: #111418; --text-secondary: #2c3136; --text-muted: #5b636b; --text-inverse: #ffffff;
+  --map-ocean: #ffffff; --map-land: #dfe4e9; --map-border: #8a96a3; --map-border-strong: #4d5864;
+  --map-excluded: #ffffff; --map-hatch: #7a8591;
+  --accent: #1d6fd1; --accent-soft: #b0309a; --focus: #1d6fd1;
+  --member: #6a55d3; --member-strong: #3b2aa0; --member-soft: #c9c0f2;
+  --seq-0: #daeefe; --seq-1: #afd7f6; --seq-2: #83bbea; --seq-3: #579edf; --seq-4: #347ec4; --seq-5: #175fa4; --seq-6: #10427b;
+  --div-n3: #a05000; --div-n2: #c77f3e; --div-n1: #e2b487; --div-0: #e2e5e8; --div-p1: #98c3e8; --div-p2: #5198d8; --div-p3: #1364b0;
+  --n-neutral: #6b7682;
+}
+@page { size: A4 landscape; margin: 12mm; }
+body { background: #fff !important; color: var(--text-secondary); font-size: 10.5pt; }
+.topbar, .present__nav, .no-print, .drawer, .tooltip, .skip, .ribbon__actions, .story__cta { display: none !important; }
+.print { max-width: none; padding: 0; }
+.print-scene { break-inside: avoid; page-break-inside: avoid; border-bottom: 1px solid #ccc; }
+.print__stage { height: 115mm; }
+/* The province matrix is an HTML table with all provinces, so it must take
+   part in normal print flow and continue across pages with repeated headers.
+   Keep the map separate: a taller table must not stretch its projection. */
+.print-scene:has(.pstage.has-matrix) {
+  break-before: page;
+  break-inside: auto;
+  page-break-inside: auto;
+}
+.print-scene:has(.pstage.has-matrix) + .print-scene { break-before: page; }
+.print-scene:has(.pstage.has-matrix) .meta-src { margin: 2mm 0 0; line-height: 1.35; }
+.print__stage:has(.pstage.has-matrix) { height: auto; min-height: 0; overflow: visible; }
+.print__stage .pstage.has-matrix,
+.print__stage .pstage.has-matrix .pstage__body { display: block; height: auto; overflow: visible; }
+.print__stage .pstage.has-matrix .pstage__legend { break-inside: avoid; }
+.print__stage .pstage.has-matrix .pstage__maps {
+  display: flex;
+  height: auto;
+  margin-bottom: 5mm;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+.print__stage .pstage.has-matrix .pstage__map { align-items: center; max-width: 100%; }
+.print__stage .pstage.has-matrix .map-svg { width: auto; height: auto; max-width: 100%; max-height: 90mm; }
+.print__stage .pstage.has-matrix .pstage__side {
+  display: block;
+  width: 100% !important;
+  height: auto;
+  max-height: none;
+  overflow: visible;
+  break-before: page;
+}
+.print__stage .pstage.has-matrix .side-note { font-size: 11pt; break-after: avoid; }
+.print__stage .matrix-scroll { height: auto; max-height: none; overflow: visible; border: 0; }
+.print__stage .matrix-table { min-width: 0; font-size: 11pt; line-height: 1.4; }
+.print__stage .matrix-table th, .print__stage .matrix-table td { padding: 1px 3px; }
+.print__stage .matrix-table thead { display: table-header-group; }
+.print__stage .matrix-table thead th { height: auto; padding: 2mm 1mm; }
+.print__stage .matrix-table tr { break-inside: avoid; page-break-inside: avoid; }
+.print__stage .matrix-table .mx-name { padding: 1px 0; }
+.print__stage .matrix-table .mx-cell { height: 4mm; }
+.chart-svg text { fill: #2c3136; }
+.map-label { stroke: #fff; }
+a { color: inherit; text-decoration: none; }
+
+/* New province context, change rankings and discordance tables participate in
+   page flow. The map keeps its own bounded, proportional drawing above them. */
+.print-scene:has(.pstage.has-context),
+.print-scene:has(.pstage.has-change),
+.print-scene:has(.pstage.has-discordance) {
+  break-before: page; break-inside: auto; page-break-inside: auto;
+}
+.print-scene:has(.pstage.has-context) + .print-scene,
+.print-scene:has(.pstage.has-change) + .print-scene,
+.print-scene:has(.pstage.has-discordance) + .print-scene { break-before: page; }
+.print__stage:has(.pstage.has-context),
+.print__stage:has(.pstage.has-change),
+.print__stage:has(.pstage.has-discordance) { height: auto; min-height: 0; overflow: visible; }
+.print__stage .pstage:is(.has-context,.has-change,.has-discordance),
+.print__stage .pstage:is(.has-context,.has-change,.has-discordance) .pstage__body { display: block; height: auto; overflow: visible; }
+.print__stage .pstage:is(.has-context,.has-change,.has-discordance) .pstage__maps {
+  display: flex; flex-direction: row; height: auto; margin: 4mm 0; break-inside: avoid;
+}
+.print__stage .pstage:is(.has-context,.has-change,.has-discordance) .pstage__map { flex: 1; align-items: center; min-width: 0; }
+.print__stage .pstage:is(.has-context,.has-change,.has-discordance) .map-svg { width: auto; height: auto; max-width: 100%; max-height: 85mm; }
+.print__stage .pstage:is(.has-context,.has-change,.has-discordance) .pstage__side {
+  display: block; width: 100% !important; height: auto; max-height: none; min-height: 0; overflow: visible;
+}
+.print__stage .context-groups, .print__stage .province-table-scroll, .print__stage .discordance-scroll {
+  height: auto; max-height: none; overflow: visible; scrollbar-gutter: auto;
+}
+.print__stage .context-definition, .print__stage .context-group h3,
+.print__stage .context-representative, .print__stage .context-members { font-size: 11pt; }
+.print__stage .context-group { break-inside: avoid; }
+.print__stage .context-members summary, .print__stage .discordance-table summary { display: none; }
+.print__stage .context-members p { margin: 2mm 0 0; }
+.print__stage .province-table { width: 100%; font-size: 10pt; }
+.print__stage .province-table th, .print__stage .province-table td { padding: 1.3mm 2mm; }
+.print__stage .province-table thead { display: table-header-group; }
+.print__stage .province-table thead th { position: static; }
+.print__stage .province-table tr { break-inside: avoid; page-break-inside: avoid; }
+.print__stage .has-change .pstage__side { break-before: page; }
+.print__stage .discordance-table { font-size: 11pt; }
+.print__stage .discordance-table td { padding: 3mm; }
+.print__stage .discordance-table td strong { font-size: 22pt; }
+.print__stage .discordance-table details { font-size: 10pt; }
+.print__stage .discordance-table tr { break-inside: avoid; }
+.print__stage .province-verification { gap: 6mm; }
+.print__stage .verification-svg { width: 100%; height: 100%; overflow: visible; }
+.print__stage .verification-panel h3 { font-size: 13pt; }
+.print__stage .verification-x-label, .print__stage .verification-y-label { font-size: 10pt; }
+.print__stage .matrix-table thead th.is-active { background: #dceaf8; color: #111418; }
+.print__stage .province-verification { grid-template-columns: repeat(2,minmax(0,1fr)); grid-template-rows: 1fr; }
+.print-scene:has(.pstage:is(.has-context,.has-change,.has-matrix,.has-discordance)) .meta-src,
+.print-scene:has(.province-verification) .meta-src { margin-top: 2mm; font-size: 8pt; line-height: 1.3; overflow-wrap: anywhere; }

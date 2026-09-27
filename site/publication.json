@@ -1,0 +1,239 @@
+{
+ "generator": "hrh-publication/1",
+ "generated_at": "2026-09-27T14:02:31+00:00",
+ "release_id": "20260927T131223Z-d9cf7dc92a81",
+ "publication": {
+  "audience": "public",
+  "capabilities": {
+   "notes": false,
+   "appendix": true,
+   "authoring": false
+  }
+ },
+ "counts": {
+  "scenes": 33,
+  "datasets": 43,
+  "dataset_rows": 18589,
+  "facts": 684,
+  "appendix_entries": 13,
+  "appendix_tables": 35
+ },
+ "files": {
+  ".nojekyll": {
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0
+  },
+  "assets/logos/01_rama-hpsr.png": {
+   "sha256": "95b55c8c1c23336c6ee2990368b91840952dd4e74bcd4c812df42eadcb57993f",
+   "bytes": 3594141
+  },
+  "assets/logos/02_rama.png": {
+   "sha256": "a52c07be8761dd66e005695e7a69bdb243464e806dbb7e935ce0874ac53d4d53",
+   "bytes": 2142597
+  },
+  "assets/logos/03_moph.svg": {
+   "sha256": "3ea7f44660b902049bbfc3f8829a1c14eee24734270f37db3f67eb133f658b17",
+   "bytes": 212800
+  },
+  "assets/logos/04_WHO.png": {
+   "sha256": "1d98976dee085c3f453623f52f2009b392b1cdbaacbf33d1f66a8081f1723ece",
+   "bytes": 136402
+  },
+  "assets/logos/05_HSRI.svg": {
+   "sha256": "b6f54d17bc602f2fb1b24014b130378a5f43114b01a33fc3cc81a6c8f875df15",
+   "bytes": 5922
+  },
+  "css/app.css": {
+   "sha256": "ae93dcba4c864e43f619de236df6fe0032fd42e46058c5d996afbc6177627312",
+   "bytes": 42629
+  },
+  "css/presentation.css": {
+   "sha256": "188109d315fa44461eefc8d807ece39c7b2f53d3502496e23842f0328f339847",
+   "bytes": 8595
+  },
+  "css/print.css": {
+   "sha256": "04ebd63afd61c8cf902ebbea36682e2ffb563585339f113b3125d7a873f55fac",
+   "bytes": 7208
+  },
+  "css/provinces-review.css": {
+   "sha256": "feed2fd29dfcc0b8c18154e4f90423bf63918fb70fbbd19ca82942bfc5bd6433",
+   "bytes": 13786
+  },
+  "css/secondary-charts.css": {
+   "sha256": "2d4099e9262430f1b5bdd298d32008b5212ee83d3199e9f7dcca9d1ee5e8fec1",
+   "bytes": 5768
+  },
+  "css/titlecard.css": {
+   "sha256": "abaf170c156283a9b0409d8603a7aa7f1074c61359898c5b09a6c7ff760cbe52",
+   "bytes": 8672
+  },
+  "css/tokens.css": {
+   "sha256": "46a2365e5dce8fd6103002af13ce6c91c6fa0281573bf1352349e0b776b5c1b8",
+   "bytes": 4329
+  },
+  "data/releases/20260927T131223Z-d9cf7dc92a81/appendix.json": {
+   "sha256": "98b0dfd957c247dac0a680274701134b68a6e71c3285fea2fbb69772702a7ec7",
+   "bytes": 866098
+  },
+  "data/releases/20260927T131223Z-d9cf7dc92a81/bundle.json": {
+   "sha256": "0c16d0c3d191ccc3cd96082ec10b9b3570c9c51c39c97135a0ec2e50d27c6b1f",
+   "bytes": 3323095
+  },
+  "data/releases/20260927T131223Z-d9cf7dc92a81/geo.json": {
+   "sha256": "f6244a2deb14d91d9b39fccaaf19c7f35ead459b41acb632bd3992a829adbae7",
+   "bytes": 1006414
+  },
+  "data/releases/20260927T131223Z-d9cf7dc92a81/manifest.json": {
+   "sha256": "4b166f355c6a9e07fe14bfceea29c87cbeb25fc0087ce21638c48dc90008f393",
+   "bytes": 852
+  },
+  "data/releases.json": {
+   "sha256": "9e1144e46767ec49fe856174ff844f61352a6bdb2f274ff85779c7c3cc98c5ff",
+   "bytes": 331
+  },
+  "fonts/OFL.txt": {
+   "sha256": "1d08c63944e639bbfe8a1b81e3c6a63836806c126b3573b9cda0db83fd27ffe9",
+   "bytes": 4452
+  },
+  "fonts/Prompt-Light.ttf": {
+   "sha256": "79412cf5ef7f60d7f1dff4e178707b0bc662dd76608697a7a36b4769454f8b82",
+   "bytes": 161980
+  },
+  "fonts/Prompt-Medium.ttf": {
+   "sha256": "6a42451be692eba473c639f4bcdc6c6d9160a3d632319a64287e3ed1fae15d6b",
+   "bytes": 176444
+  },
+  "fonts/Prompt-Regular.ttf": {
+   "sha256": "dbd497803cec3caffbc6b7f599ca6fed8beea0ed7e0ad1e098130c5ebbc4fd42",
+   "bytes": 168932
+  },
+  "fonts/Prompt-SemiBold.ttf": {
+   "sha256": "3285c9e6a4ebc480a6476a1a26b44d6eb0f9874025fa96e42afd52172b7f02b9",
+   "bytes": 175300
+  },
+  "index.html": {
+   "sha256": "870afd1e191d0fe3f3708c93a9ab906aa0d67c6c271bf557d4f73a4f303d1f05",
+   "bytes": 1809
+  },
+  "js/charts/alloc.js": {
+   "sha256": "2a87eb0326f67cd809f1ca8868cd1c6cdd915dc363b08b8cd824be644cafae51",
+   "bytes": 14565
+  },
+  "js/charts/bars.js": {
+   "sha256": "21a3c38a862307a5885b7854d87b015835d18646d975d914c7e5382e927182c8",
+   "bytes": 10521
+  },
+  "js/charts/bridge.js": {
+   "sha256": "d080c74804b7da16a3ad623bd8536d7f37e399204f360ebf65e2ab7da07387e4",
+   "bytes": 5717
+  },
+  "js/charts/cards.js": {
+   "sha256": "b6e753db71df099b3ced9423fb3bb1be03dd45f08f996f05236aaf42bd0e2a7c",
+   "bytes": 5687
+  },
+  "js/charts/core.js": {
+   "sha256": "8de8111121e1bf616efcbb3ac84745a647b2b84f1c6d90ef514838234716d575",
+   "bytes": 7866
+  },
+  "js/charts/dots.js": {
+   "sha256": "c6f438a37f25244340bc94cd5a110dcb5d8d8609d9d2c4b8d7c98da03c38ba93",
+   "bytes": 10136
+  },
+  "js/charts/dumbbell.js": {
+   "sha256": "509bc89f07c1a72151b23c5af097ebdb0b8d99406bb0a64d57b8f01caa60b9c3",
+   "bytes": 6135
+  },
+  "js/charts/halflife.js": {
+   "sha256": "b981fbcc08020e0a033b33306f86ec79cf62860d38f936ec8777af02f70a85be",
+   "bytes": 5854
+  },
+  "js/charts/lines.js": {
+   "sha256": "3ffbd68fd7bcac0ddeb5c912c783678441f5e6727c3c542124544fd351fa726f",
+   "bytes": 21689
+  },
+  "js/charts/provinces.js": {
+   "sha256": "6346e0575d8777d4048868a3afbbe619124a8735fc6b2d37c759dee6c953732c",
+   "bytes": 47253
+  },
+  "js/charts/scatter.js": {
+   "sha256": "345bebc6214e8d1a877ab4e6bbb0d2008195b3baa7b98c3610466e8ce2accf21",
+   "bytes": 4297
+  },
+  "js/charts/stack.js": {
+   "sha256": "47008bfd43cd1384eeeab6a25656a95e17b9f989c541069ea6668f26449c746a",
+   "bytes": 4422
+  },
+  "js/charts/text.js": {
+   "sha256": "2211f72899b8f2163594367e90e19b6a672ed7add55257bf7c280276bd68e071",
+   "bytes": 2645
+  },
+  "js/charts/timebudget.js": {
+   "sha256": "cfa7923f28a9abd6a75b52e9a3c375848101fe14068a98f59c8e1c8d150f720c",
+   "bytes": 12431
+  },
+  "js/charts/titlecard.js": {
+   "sha256": "34138e729b3b91f485e9fcfdf9c9863059b4868c3e0d875568a7a3dd1880b592",
+   "bytes": 9390
+  },
+  "js/charts/waterfall.js": {
+   "sha256": "3d92a9a5329c3bd44f4c11d52424e15c2baeae7fdf6f89dfcb6ae32d5bfdc649",
+   "bytes": 3959
+  },
+  "js/data.js": {
+   "sha256": "a8f52a8e2c945bd5a165a41cfb967144dde12c569c82543f1b5179a16a49dd53",
+   "bytes": 5775
+  },
+  "js/engine.js": {
+   "sha256": "73d4498b82531da4fed0885b10c06788aa38b8d511bac01b5fd4bdc5fcd12c6c",
+   "bytes": 13154
+  },
+  "js/main.js": {
+   "sha256": "f84297fb8bad28b8db05e1230ae9fec77646199130241f6c2ceddf1ed725edb7",
+   "bytes": 7493
+  },
+  "js/modes/explore.js": {
+   "sha256": "4fc1b698faded5a5a80c9451d3d6a5a1aacb64556936736ccd0340dbdbadcd74",
+   "bytes": 8655
+  },
+  "js/modes/present.js": {
+   "sha256": "59892f54a191f91f374214212ed50fcd1400359af69f77bea2eaed8e6b491cc8",
+   "bytes": 5347
+  },
+  "js/modes/print.js": {
+   "sha256": "0962276099f2a11cbbe597de551fde736d2e237e1f8064c77d947c81c758813a",
+   "bytes": 4314
+  },
+  "js/modes/story.js": {
+   "sha256": "06b58c530be7c0828f9afc71f60499e4e37b34ce84d379d980d06bc9124541ce",
+   "bytes": 7406
+  },
+  "js/state.js": {
+   "sha256": "544834949f9351f9ee9b2a99f211cdd27fe9bb4f7dfda9508056a026ea41d863",
+   "bytes": 2111
+  },
+  "js/ui/drawer.js": {
+   "sha256": "65bf37ee104f0cc8d68675f426cdbaa05902c170c706a781bf9c9e7bee75dbe8",
+   "bytes": 9402
+  },
+  "js/ui/table.js": {
+   "sha256": "6263ed352e70af924fe91e5c8aa56215b5ad6e0aed11baf3133778ba118a60c8",
+   "bytes": 2230
+  },
+  "js/util/dom.js": {
+   "sha256": "0a88527fef591604fff9734af8230cf3e484c98977752688f6d954ff730c3901",
+   "bytes": 4098
+  },
+  "js/util/format.js": {
+   "sha256": "b4d92a6d70bd9814ae2e03a52f21b87da1f3b1cdceebf3ae8aa9e84d5faf77af",
+   "bytes": 2159
+  },
+  "js/util/i18n.js": {
+   "sha256": "92a51642944c84f1546ccf674b2f1e9f7c0b73cf60d2aea3ce421c1f1fcc19ce",
+   "bytes": 2528
+  },
+  "js/util/scale.js": {
+   "sha256": "09612a9962628bfd44f409d13b2bc4016b83972367c53616ca2e8852b5d39554",
+   "bytes": 2353
+  }
+ }
+}

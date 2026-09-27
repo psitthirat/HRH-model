@@ -1,0 +1,119 @@
+/* Cover and modelling interlude use the existing dark palette and Prompt font.
+   The supplied marks retain their original colour, content and proportions. */
+.scene[data-component="titlecard"] > .scene__text,
+.scene[data-component="titlecard"] > .ribbon { display: none !important; }
+.present .scene[data-component="titlecard"] {
+  display: block; padding: 0; min-height: 0; overflow: auto;
+}
+.present .scene[data-component="titlecard"] > .scene__stage { width: 100%; height: 100%; min-height: 0; }
+.titlecard {
+  position: relative; isolation: isolate; width: 100%; height: 100%; min-height: 580px;
+  display: flex; flex-direction: column; justify-content: center; gap: clamp(24px, 3vh, 40px);
+  padding: clamp(32px, 5vh, 64px) clamp(32px, 5.3vw, 110px) 66px;
+  overflow: hidden; background: var(--page-bg); color: var(--text-primary);
+}
+.titlecard__backdrop { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none;
+  background: radial-gradient(ellipse at 87% 40%, #1c345244, transparent 60%), radial-gradient(ellipse at 65% 88%, #7c6cff18, transparent 58%); }
+.titlecard__backdrop::after { content: ""; position: absolute; inset: 0;
+  background: linear-gradient(90deg, #0a0e14f0 0%, #0a0e14e6 32%, #0a0e1490 64%, #0a0e1430 100%); }
+.titlecard__galaxy { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .9; }
+.titlecard__orbit { --motion-duration: 180s; transform-origin: 0 0;
+  animation: titlecard-orbit var(--motion-duration) linear infinite; }
+.titlecard__stars--far { --motion-duration: 70s;
+  animation: titlecard-stars-far var(--motion-duration) ease-in-out -20s infinite alternate; }
+.titlecard__stars--near { --motion-duration: 35s;
+  animation: titlecard-stars-near var(--motion-duration) ease-in-out -10s infinite alternate; }
+.titlecard__video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; }
+.titlecard.has-video .titlecard__video { opacity: .38; }
+.titlecard.has-video .titlecard__galaxy { opacity: .22; }
+.titlecard.is-paused .titlecard__animated { animation-play-state: paused; }
+/* Reduced motion starts still; an explicit press of Play opts this card in. */
+.titlecard.has-motion-override .titlecard__animated { animation-duration: var(--motion-duration) !important; }
+.titlecard__content { position: relative; width: min(100%, 1510px); margin: 0 auto; }
+.titlecard__eyebrow { color: var(--accent); font-size: clamp(1rem, 1.35vw, 1.6rem); font-weight: 400; margin: 0 0 16px; }
+.titlecard__title { font-size: clamp(2.5rem, 4.05vw, 5.6rem); line-height: 1.32; font-weight: 500; letter-spacing: -.018em;
+  margin: 0; max-width: 24em; text-wrap: balance; }
+.titlecard__title-line { display: block; }
+.titlecard__title-line + .titlecard__title-line { color: #b9dafa; }
+.titlecard__project { color: var(--text-secondary); font-size: clamp(1.15rem, 1.55vw, 1.8rem); line-height: 1.65;
+  max-width: 54em; margin: 22px 0 0; text-wrap: pretty; }
+.titlecard__subtitle { color: var(--text-secondary); font-size: clamp(1.3rem, 1.65vw, 2rem); line-height: 1.65; max-width: 44em; margin: 24px 0 0; text-wrap: pretty; }
+.titlecard__speaker { margin-top: clamp(24px, 3.2vh, 40px); }
+.titlecard__author { font-size: clamp(1.25rem, 1.7vw, 2rem); font-weight: 400; margin: 0 0 7px; }
+.titlecard__affiliation { font-size: clamp(1rem, 1.4vw, 1.6rem); line-height: 1.6; margin: 0 0 5px; max-width: 52em; }
+.titlecard__email { display: inline-block; color: var(--accent); font-size: clamp(1rem, 1.25vw, 1.4rem); text-underline-offset: .22em; }
+.titlecard__logos { position: relative; width: min(100%, 1510px); margin: 0 auto; display: flex; align-items: center; gap: clamp(16px, 1.8vw, 32px); }
+.titlecard__logo { flex: 0 1 136px; height: clamp(82px, 10.8vh, 124px); padding: 0; display: flex; align-items: center; justify-content: center;
+  background: transparent; }
+.titlecard__logo--logo_rama { flex-basis: 158px; }
+.titlecard__logo img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.titlecard__topics { display: flex; flex-wrap: wrap; list-style: none; gap: 16px 36px; padding: 24px 0 0; margin: 30px 0 0;
+  border-top: 1px solid var(--border-strong); width: fit-content; max-width: 100%; color: var(--text-secondary); font-size: clamp(1.1rem, 1.4vw, 1.6rem); }
+.titlecard__topics li { display: flex; align-items: center; gap: 10px; }
+.titlecard__topics li::before { content: ""; display: block; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex: none; }
+.titlecard--divider .titlecard__title { max-width: 20em; }
+.titlecard--divider .titlecard__content { padding-block: 5vh; }
+.titlecard__motion { position: absolute; right: clamp(24px, 4vw, 64px); bottom: 64px; border: 1px solid var(--border-strong);
+  color: var(--text-secondary); background: #101722e6; border-radius: 999px; padding: 7px 14px; font: inherit; font-size: .8rem; cursor: pointer; }
+.titlecard__motion:hover { color: var(--text-primary); border-color: var(--accent); }
+.titlecard__credit { position: absolute; left: clamp(32px, 5.3vw, 110px); bottom: 20px; color: var(--text-muted); font-size: .7rem; max-width: calc(100% - 200px); }
+@keyframes titlecard-orbit { to { transform: rotate(360deg); } }
+@keyframes titlecard-stars-far {
+  from { transform: translate3d(-18px, 10px, 0); }
+  to { transform: translate3d(18px, -10px, 0); }
+}
+@keyframes titlecard-stars-near {
+  from { transform: translate3d(-38px, 24px, 0); }
+  to { transform: translate3d(38px, -24px, 0); }
+}
+
+/* Reading and exploration give this card less horizontal space. Container
+   queries keep it proportionate to its stage instead of the whole viewport. */
+[data-component="titlecard"] { container-type: inline-size; }
+:is(.story__inline, .explore__stage)[data-component="titlecard"] { height: auto; min-height: 0; }
+:is(.story__inline, .explore__stage)[data-component="titlecard"] > .titlecard { height: auto; }
+.story-scene:has(.story__inline .titlecard) > :is(.scene__text, .ribbon, .story-steps) { display: none !important; }
+@container (max-width: 1050px) {
+  .titlecard { padding: 36px 32px 72px; min-height: 550px; gap: 24px; }
+  .titlecard__title { font-size: clamp(2rem, 4.8cqw, 3.1rem); }
+  .titlecard__project { font-size: 1.12rem; }
+  .titlecard__author { font-size: 1.25rem; }
+  .titlecard__affiliation, .titlecard__email { font-size: 1rem; }
+  .titlecard__logos { gap: 12px; }
+  .titlecard__logo { height: 86px; flex-basis: 100px; }
+  .titlecard__logo--logo_rama { flex-basis: 118px; }
+  .titlecard__motion { right: 24px; bottom: 22px; }
+  .titlecard__credit { left: 32px; }
+}
+@media (max-width: 600px) {
+  .present .scene[data-component="titlecard"] { overflow: visible; }
+  .present .scene[data-component="titlecard"] > .scene__stage { height: auto; min-height: calc(100dvh - var(--topbar-h)); }
+  .titlecard { min-height: 0; padding: 40px 24px 84px; gap: 28px; justify-content: start; }
+  .titlecard__title { font-size: clamp(1.65rem, 7.7cqw, 2.7rem); line-height: 1.42; }
+  .titlecard__project { margin-top: 22px; font-size: 1.05rem; }
+  .titlecard__speaker { margin-top: 28px; }
+  .titlecard__author { font-size: 1.2rem; }
+  .titlecard__affiliation, .titlecard__email { font-size: .95rem; }
+  .titlecard__logos { flex-wrap: wrap; gap: 12px; }
+  .titlecard__logo, .titlecard__logo--logo_rama { flex: 0 0 calc((100% - 24px)/3); height: 92px; }
+  .titlecard__topics { font-size: 1.05rem; gap: 14px; flex-direction: column; }
+  .titlecard__motion { right: 24px; bottom: 32px; }
+  .titlecard__credit { left: 24px; bottom: 14px; max-width: calc(100% - 48px); font-size: .62rem; }
+  .titlecard--divider .titlecard__content { padding-block: 5vh 10vh; }
+}
+@media print {
+  .print-scene:has(.titlecard) { break-before: page; break-after: page; border: 0; padding: 0; }
+  .print-scene:has(.titlecard) > :not(.print__stage):not(.print__notes) { display: none !important; }
+  .print__stage:has(.titlecard) { height: 178mm; margin: 0; }
+  .titlecard { min-height: 0; height: 100%; padding: 10mm 8mm; gap: 9mm; background: #fff !important; color: #111418; }
+  .titlecard__backdrop, .titlecard__motion, .titlecard__credit { display: none !important; }
+  .titlecard__title { font-size: 30pt; line-height: 1.4; }
+  .titlecard__title-line + .titlecard__title-line { color: #1d6fd1; }
+  .titlecard__project, .titlecard__subtitle { color: #2c3136; font-size: 13pt; margin-top: 6mm; }
+  .titlecard__speaker { margin-top: 8mm; }
+  .titlecard__author { font-size: 15pt; }
+  .titlecard__affiliation, .titlecard__email { font-size: 12pt; }
+  .titlecard__logos { gap: 8mm; }
+  .titlecard__logo, .titlecard__logo--logo_rama { flex: 0 0 27mm; height: 25mm; }
+  .titlecard__topics { font-size: 13pt; }
+}

@@ -1,0 +1,113 @@
+/* Design tokens: the one place colours, type sizes and radii are defined.
+ *
+ * Page tones follow the OpenKnowledgeAtlas dark theme (checked from the live
+ * site's computed CSS). Data colours were stepped into the dark-mode lightness
+ * band and checked with the dataviz palette validator
+ * (lightness, chroma, CVD separation, contrast vs #101722):
+ *   cadres   #3e96ea #c87f2c #16a384 #a56cde  - PASS (worst CVD dE 10.7)
+ *   sectors  #796ce0 #13a5b2 #b38c15          - PASS
+ *   flows    #13a5b2 #d46568                  - PASS
+ * Namespaces never share a chart: a chart encodes cadre OR sector OR flow.
+ * Print re-points the same tokens to ink on paper (see print.css).
+ */
+@font-face { font-family: "Prompt"; font-weight: 300; font-display: swap; src: url("../fonts/Prompt-Light.ttf") format("truetype"); }
+@font-face { font-family: "Prompt"; font-weight: 400; font-display: swap; src: url("../fonts/Prompt-Regular.ttf") format("truetype"); }
+@font-face { font-family: "Prompt"; font-weight: 500; font-display: swap; src: url("../fonts/Prompt-Medium.ttf") format("truetype"); }
+@font-face { font-family: "Prompt"; font-weight: 600; font-display: swap; src: url("../fonts/Prompt-SemiBold.ttf") format("truetype"); }
+
+:root {
+  color-scheme: dark;
+  /* page and surfaces */
+  --page-bg: #0a0e14;
+  --surface: #101722;
+  --surface-2: #151e2b;
+  --surface-3: #1c2737;
+  --surface-glass: rgba(26, 27, 31, 0.55);
+  --surface-glass-strong: rgba(16, 20, 27, 0.86);
+  --border-hairline: rgba(255, 255, 255, 0.10);
+  --border-strong: rgba(255, 255, 255, 0.22);
+  --grid: rgba(255, 255, 255, 0.08);
+  --axis: rgba(255, 255, 255, 0.28);
+
+  /* text */
+  --text-primary: #ffffff;
+  --text-secondary: #d0cfc6;   /* reference #c3c2b7 lifted for projector legibility */
+  --text-muted: #9a988f;       /* reference #898781 lifted: 6.2:1 on --page-bg */
+  --text-inverse: #0a0e14;
+
+  /* map */
+  --map-ocean: #0e1720;
+  --map-land: #2c4256;
+  --map-border: #4a6a85;
+  --map-border-strong: #8fb0cc;
+  --map-excluded: #151c25;
+  --map-hatch: #6b7682;
+
+  /* UI accents (selection, focus, links) - reference accents, renamed */
+  --accent: #4ea5ff;
+  --accent-violet: #7c6cff;
+  --accent-soft: #e0a6ff;      /* case-study ring */
+  --focus: #9dd0ff;
+
+  /* data: cadres */
+  --c-physicians: #3e96ea;
+  --c-professional_nurses: #c87f2c;
+  --c-pharmacists: #16a384;
+  --c-dentists: #a56cde;
+  /* data: sectors */
+  --s-moph: #796ce0;
+  --s-other_public: #13a5b2;
+  --s-private: #b38c15;
+  /* data: flows */
+  --f-entries: #13a5b2;
+  --f-exits: #d46568;
+  /* data: generic nominal series, scenarios, neutral */
+  --n-1: #13a5b2;
+  --n-2: #796ce0;
+  --n-3: #b38c15;
+  --n-neutral: #8a93a0;
+  /* membership */
+  --member: #8771de;
+  --member-strong: #b9a8ff;
+  --member-soft: #4a4382;
+  /* sequential (dark: low = close to ground, high = bright) */
+  --seq-0: #1e3a56; --seq-1: #214f7c; --seq-2: #2266a4; --seq-3: #2b7ec9;
+  --seq-4: #3b9ce5; --seq-5: #62bbf5; --seq-6: #9ddafe;
+  /* diverging around a baseline (R = 1): warm below, cool above, grey middle */
+  --div-n3: #ffb95b; --div-n2: #dc9242; --div-n1: #ac713e; --div-0: #56585b;
+  --div-p1: #4886b8; --div-p2: #56acf0; --div-p3: #8cd4ff;
+  --div-neg: #e66767;
+  --div-pos: #3987e5;
+
+  /* shape and type */
+  --radius-lg: 20px;
+  --radius-md: 14px;
+  --radius-sm: 8px;
+  --font: "Prompt", "Noto Sans Thai", "Sukhumvit Set", "Thonburi", system-ui, sans-serif;
+  --fs-display: clamp(2rem, 1.2rem + 2.2vw, 3.25rem);
+  --fs-title: clamp(1.5rem, 1rem + 1.6vw, 2.6rem);
+  --fs-lead: clamp(1.15rem, 0.95rem + 0.8vw, 1.75rem);
+  --fs-body: clamp(1rem, 0.92rem + 0.35vw, 1.2rem);
+  --fs-label: clamp(0.82rem, 0.75rem + 0.3vw, 1.05rem);
+  --fs-small: clamp(0.76rem, 0.72rem + 0.18vw, 0.9rem);
+  --lh: 1.6;
+  --gutter: clamp(16px, 2.4vw, 40px);
+  --topbar-h: 52px;
+  --ribbon-h: 46px;
+  --dur: 600ms;
+  --ease: cubic-bezier(.3, .7, .2, 1);
+}
+
+/* Present mode on a 1920x1080 projector: larger type, opaque panels */
+.mode-present {
+  --fs-title: clamp(1.8rem, 1rem + 1.9vw, 3.1rem);
+  --fs-lead: clamp(1.3rem, 0.9rem + 1vw, 1.9rem);
+  --fs-body: clamp(1.1rem, 0.9rem + 0.55vw, 1.55rem);
+  --fs-label: clamp(0.95rem, 0.8rem + 0.45vw, 1.3rem);
+  --fs-small: clamp(0.85rem, 0.75rem + 0.3vw, 1.08rem);
+  --surface-glass: var(--surface);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --dur: 0ms; }
+}

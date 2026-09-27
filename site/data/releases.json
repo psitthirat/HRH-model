@@ -1,0 +1,14 @@
+{
+ "current": "20260927T131223Z-d9cf7dc92a81",
+ "latest": "20260927T131223Z-d9cf7dc92a81",
+ "releases": [
+  {
+   "id": "20260927T131223Z-d9cf7dc92a81",
+   "generated_at": "2026-09-27T13:12:23+00:00",
+   "status": "promoted",
+   "freshness": "fresh",
+   "validation_ok": true,
+   "promoted_at": "2026-09-27T13:58:54+00:00"
+  }
+ ]
+}
