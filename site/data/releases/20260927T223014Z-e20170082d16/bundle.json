@@ -328,6 +328,8 @@
   ]
  },
  "ui": {
+  "mode.lab": "Lab",
+  "btn.lab": "ทดลองปรับแผนนี้ใน Lab",
   "compare.plan_0": "P-R · ประชากร",
   "compare.plan_1": "S-R · บริการ",
   "compare.plan_2": "N-R · ความจำเป็นอ้างอิง",
@@ -802,8 +804,1266 @@
   "wf.running": "จำนวนคงเหลือหลังแต่ละขั้น",
   "wf.note": "ต้นปี − ออก + กลับเข้า + รับใหม่ = ปลายปี เป็นค่าประมาณภายใต้สมมติฐาน ยกเว้นการรับใหม่ซึ่งกำหนดเป็นจำนวนเต็มตามแผน"
  },
- "release_id": "20260927T145547Z-c1c8c26dd98f",
- "generated_at": "2026-09-27T14:55:47+00:00",
+ "release_id": "20260927T223014Z-e20170082d16",
+ "generated_at": "2026-09-27T22:30:14+00:00",
+ "lab": {
+  "schema_version": "workforce-lab.manifest/1",
+  "manifest": "lab/lab.json",
+  "sha256": "1e83f4943e160e3849585d7df331d16f46fcfda08c3233fb21bba85e7708f842",
+  "scene_map": {
+   "S00": {
+    "status": "reference_only",
+    "preset_id": null,
+    "comparison_ids": [],
+    "view_ids": [],
+    "reason": "Historical/reference evidence; not a future workforce outcome.",
+    "steps": [
+     {
+      "step_id": "cover",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     }
+    ]
+   },
+   "S01": {
+    "status": "reference_only",
+    "preset_id": null,
+    "comparison_ids": [],
+    "view_ids": [],
+    "reason": "Historical/reference evidence; not a future workforce outcome.",
+    "steps": [
+     {
+      "step_id": "opening",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     }
+    ]
+   },
+   "S02": {
+    "status": "reference_only",
+    "preset_id": null,
+    "comparison_ids": [],
+    "view_ids": [],
+    "reason": "Historical/reference evidence; not a future workforce outcome.",
+    "steps": [
+     {
+      "step_id": "groups",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     },
+     {
+      "step_id": "representatives",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     }
+    ]
+   },
+   "S03": {
+    "status": "reference_only",
+    "preset_id": null,
+    "comparison_ids": [],
+    "view_ids": [],
+    "reason": "Historical/reference evidence; not a future workforce outcome.",
+    "steps": [
+     {
+      "step_id": "index",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     }
+    ]
+   },
+   "S04": {
+    "status": "reference_only",
+    "preset_id": null,
+    "comparison_ids": [],
+    "view_ids": [],
+    "reason": "Historical/reference evidence; not a future workforce outcome.",
+    "steps": [
+     {
+      "step_id": "sectors",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     },
+     {
+      "step_id": "workforce",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     }
+    ]
+   },
+   "S05": {
+    "status": "reference_only",
+    "preset_id": null,
+    "comparison_ids": [],
+    "view_ids": [],
+    "reason": "Historical/reference evidence; not a future workforce outcome.",
+    "steps": [
+     {
+      "step_id": "cadres",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     },
+     {
+      "step_id": "combined",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     },
+     {
+      "step_id": "reference",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     }
+    ]
+   },
+   "S06": {
+    "status": "reference_only",
+    "preset_id": null,
+    "comparison_ids": [],
+    "view_ids": [],
+    "reason": "Historical/reference evidence; not a future workforce outcome.",
+    "steps": [
+     {
+      "step_id": "services",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     },
+     {
+      "step_id": "op_frequency",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     }
+    ]
+   },
+   "S07": {
+    "status": "reference_only",
+    "preset_id": null,
+    "comparison_ids": [],
+    "view_ids": [],
+    "reason": "Historical/reference evidence; not a future workforce outcome.",
+    "steps": [
+     {
+      "step_id": "cases_vs_weight",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     },
+     {
+      "step_id": "identity",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     }
+    ]
+   },
+   "S08": {
+    "status": "reference_only",
+    "preset_id": null,
+    "comparison_ids": [],
+    "view_ids": [],
+    "reason": "Historical/reference evidence; not a future workforce outcome.",
+    "steps": [
+     {
+      "step_id": "work_mix",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     },
+     {
+      "step_id": "op_frequency",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     },
+     {
+      "step_id": "time",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     }
+    ]
+   },
+   "S17V": {
+    "status": "reference_only",
+    "preset_id": null,
+    "comparison_ids": [],
+    "view_ids": [],
+    "reason": "Historical/reference evidence; not a future workforce outcome.",
+    "steps": [
+     {
+      "step_id": "verification",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     }
+    ]
+   },
+   "S09": {
+    "status": "reference_only",
+    "preset_id": null,
+    "comparison_ids": [],
+    "view_ids": [],
+    "reason": "Historical/reference evidence; not a future workforce outcome.",
+    "steps": [
+     {
+      "step_id": "structure",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     },
+     {
+      "step_id": "frames",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     }
+    ]
+   },
+   "S10": {
+    "status": "reference_only",
+    "preset_id": null,
+    "comparison_ids": [],
+    "view_ids": [],
+    "reason": "Historical/reference evidence; not a future workforce outcome.",
+    "steps": [
+     {
+      "step_id": "population_disease",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     },
+     {
+      "step_id": "resources",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     },
+     {
+      "step_id": "standardise",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     }
+    ]
+   },
+   "S11": {
+    "status": "reference_only",
+    "preset_id": null,
+    "comparison_ids": [],
+    "view_ids": [],
+    "reason": "Historical/reference evidence; not a future workforce outcome.",
+    "steps": [
+     {
+      "step_id": "population",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     },
+     {
+      "step_id": "services",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     },
+     {
+      "step_id": "model",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     }
+    ]
+   },
+   "S12": {
+    "status": "reference_only",
+    "preset_id": null,
+    "comparison_ids": [],
+    "view_ids": [],
+    "reason": "Historical/reference evidence; not a future workforce outcome.",
+    "steps": [
+     {
+      "step_id": "first",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     },
+     {
+      "step_id": "both",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     },
+     {
+      "step_id": "changes",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     }
+    ]
+   },
+   "S13": {
+    "status": "reference_only",
+    "preset_id": null,
+    "comparison_ids": [],
+    "view_ids": [],
+    "reason": "Historical/reference evidence; not a future workforce outcome.",
+    "steps": [
+     {
+      "step_id": "gini",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     },
+     {
+      "step_id": "between",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     }
+    ]
+   },
+   "S14": {
+    "status": "reference_only",
+    "preset_id": null,
+    "comparison_ids": [],
+    "view_ids": [],
+    "reason": "Historical/reference evidence; not a future workforce outcome.",
+    "steps": [
+     {
+      "step_id": "density",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     },
+     {
+      "step_id": "percent",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     }
+    ]
+   },
+   "S15": {
+    "status": "reference_only",
+    "preset_id": null,
+    "comparison_ids": [],
+    "view_ids": [],
+    "reason": "Historical/reference evidence; not a future workforce outcome.",
+    "steps": [
+     {
+      "step_id": "physicians",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     },
+     {
+      "step_id": "four",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     },
+     {
+      "step_id": "recent",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     }
+    ]
+   },
+   "S16": {
+    "status": "reference_only",
+    "preset_id": null,
+    "comparison_ids": [],
+    "view_ids": [],
+    "reason": "Historical/reference evidence; not a future workforce outcome.",
+    "steps": [
+     {
+      "step_id": "population",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     },
+     {
+      "step_id": "op_visits",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     },
+     {
+      "step_id": "intersection",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     },
+     {
+      "step_id": "m5",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     }
+    ]
+   },
+   "S17": {
+    "status": "reference_only",
+    "preset_id": null,
+    "comparison_ids": [],
+    "view_ids": [],
+    "reason": "Historical/reference evidence; not a future workforce outcome.",
+    "steps": [
+     {
+      "step_id": "profiles",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     },
+     {
+      "step_id": "questions",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     }
+    ]
+   },
+   "S18": {
+    "status": "reference_only",
+    "preset_id": null,
+    "comparison_ids": [],
+    "view_ids": [],
+    "reason": "Historical/reference evidence; not a future workforce outcome.",
+    "steps": [
+     {
+      "step_id": "op_visits",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     },
+     {
+      "step_id": "ip_days",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     },
+     {
+      "step_id": "adjrw",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     }
+    ]
+   },
+   "S19": {
+    "status": "reference_only",
+    "preset_id": null,
+    "comparison_ids": [],
+    "view_ids": [],
+    "reason": "Historical/reference evidence; not a future workforce outcome.",
+    "steps": [
+     {
+      "step_id": "physicians",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     },
+     {
+      "step_id": "nurses",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     },
+     {
+      "step_id": "all",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     }
+    ]
+   },
+   "S20": {
+    "status": "reference_only",
+    "preset_id": null,
+    "comparison_ids": [],
+    "view_ids": [],
+    "reason": "Historical/reference evidence; not a future workforce outcome.",
+    "steps": [
+     {
+      "step_id": "rates",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     },
+     {
+      "step_id": "ratio",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     },
+     {
+      "step_id": "provinces",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     }
+    ]
+   },
+   "S21": {
+    "status": "reference_only",
+    "preset_id": null,
+    "comparison_ids": [],
+    "view_ids": [],
+    "reason": "Historical/reference evidence; not a future workforce outcome.",
+    "steps": [
+     {
+      "step_id": "net",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     },
+     {
+      "step_id": "stock",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     },
+     {
+      "step_id": "residual",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     }
+    ]
+   },
+   "S22": {
+    "status": "reference_only",
+    "preset_id": null,
+    "comparison_ids": [],
+    "view_ids": [],
+    "reason": "Historical/reference evidence; not a future workforce outcome.",
+    "steps": [
+     {
+      "step_id": "primary",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     },
+     {
+      "step_id": "free_stock",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     },
+     {
+      "step_id": "vacancy",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     }
+    ]
+   },
+   "S22M": {
+    "status": "reference_only",
+    "preset_id": null,
+    "comparison_ids": [],
+    "view_ids": [],
+    "reason": "Historical/reference evidence; not a future workforce outcome.",
+    "steps": [
+     {
+      "step_id": "transition",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     }
+    ]
+   },
+   "S23": {
+    "status": "supported",
+    "preset_id": "P-R",
+    "comparison_ids": [
+     "P-R"
+    ],
+    "view_ids": [
+     "stock_flow"
+    ],
+    "reason": null,
+    "steps": [
+     {
+      "step_id": "national",
+      "status": "supported",
+      "preset_id": "P-R",
+      "comparison_ids": [
+       "P-R"
+      ],
+      "view_ids": [
+       "stock_flow"
+      ],
+      "reason": null
+     },
+     {
+      "step_id": "top",
+      "status": "supported",
+      "preset_id": "P-R",
+      "comparison_ids": [
+       "P-R"
+      ],
+      "view_ids": [
+       "stock_flow"
+      ],
+      "reason": null
+     },
+     {
+      "step_id": "worst",
+      "status": "supported",
+      "preset_id": "P-R",
+      "comparison_ids": [
+       "P-R"
+      ],
+      "view_ids": [
+       "stock_flow"
+      ],
+      "reason": null
+     },
+     {
+      "step_id": "plans",
+      "status": "supported",
+      "preset_id": "P-R",
+      "comparison_ids": [
+       "P-R",
+       "S-R",
+       "N-R",
+       "SQ-C"
+      ],
+      "view_ids": [
+       "stock_flow"
+      ],
+      "reason": null
+     }
+    ]
+   },
+   "S24": {
+    "status": "supported",
+    "preset_id": "P-R",
+    "comparison_ids": [
+     "P-R",
+     "S-R",
+     "N-R"
+    ],
+    "view_ids": [
+     "allocations",
+     "constraint_diagnostics"
+    ],
+    "reason": null,
+    "steps": [
+     {
+      "step_id": "p_first",
+      "status": "supported",
+      "preset_id": "P-R",
+      "comparison_ids": [
+       "P-R",
+       "S-R",
+       "N-R"
+      ],
+      "view_ids": [
+       "allocations",
+       "constraint_diagnostics"
+      ],
+      "reason": null
+     },
+     {
+      "step_id": "s_first",
+      "status": "supported",
+      "preset_id": "S-R",
+      "comparison_ids": [
+       "P-R",
+       "S-R",
+       "N-R"
+      ],
+      "view_ids": [
+       "allocations",
+       "constraint_diagnostics"
+      ],
+      "reason": null
+     },
+     {
+      "step_id": "p_all",
+      "status": "supported",
+      "preset_id": "P-R",
+      "comparison_ids": [
+       "P-R",
+       "S-R",
+       "N-R"
+      ],
+      "view_ids": [
+       "allocations",
+       "constraint_diagnostics"
+      ],
+      "reason": null
+     },
+     {
+      "step_id": "s_all",
+      "status": "supported",
+      "preset_id": "S-R",
+      "comparison_ids": [
+       "P-R",
+       "S-R",
+       "N-R"
+      ],
+      "view_ids": [
+       "allocations",
+       "constraint_diagnostics"
+      ],
+      "reason": null
+     }
+    ]
+   },
+   "S25": {
+    "status": "supported",
+    "preset_id": "P-R",
+    "comparison_ids": [
+     "P-R"
+    ],
+    "view_ids": [
+     "stock_trajectory",
+     "adequacy_trajectory",
+     "supply_gap"
+    ],
+    "reason": null,
+    "steps": [
+     {
+      "step_id": "stock",
+      "status": "supported",
+      "preset_id": "P-R",
+      "comparison_ids": [
+       "P-R"
+      ],
+      "view_ids": [
+       "stock_trajectory",
+       "adequacy_trajectory",
+       "supply_gap"
+      ],
+      "reason": null
+     },
+     {
+      "step_id": "target",
+      "status": "supported",
+      "preset_id": "P-R",
+      "comparison_ids": [
+       "P-R"
+      ],
+      "view_ids": [
+       "stock_trajectory",
+       "adequacy_trajectory",
+       "supply_gap"
+      ],
+      "reason": null
+     },
+     {
+      "step_id": "pool",
+      "status": "supported",
+      "preset_id": "P-R|pool1500",
+      "comparison_ids": [
+       "P-R",
+       "P-R|pool1500"
+      ],
+      "view_ids": [
+       "stock_trajectory",
+       "adequacy_trajectory",
+       "supply_gap"
+      ],
+      "reason": null
+     }
+    ]
+   },
+   "S26": {
+    "status": "supported",
+    "preset_id": "S-R",
+    "comparison_ids": [
+     "P-R",
+     "S-R"
+    ],
+    "view_ids": [
+     "province_comparison"
+    ],
+    "reason": null,
+    "steps": [
+     {
+      "step_id": "service",
+      "status": "supported",
+      "preset_id": "S-R",
+      "comparison_ids": [
+       "P-R",
+       "S-R"
+      ],
+      "view_ids": [
+       "province_comparison"
+      ],
+      "reason": null
+     },
+     {
+      "step_id": "need",
+      "status": "supported",
+      "preset_id": "S-R",
+      "comparison_ids": [
+       "P-R",
+       "S-R",
+       "N-R"
+      ],
+      "view_ids": [
+       "province_comparison"
+      ],
+      "reason": null
+     }
+    ]
+   },
+   "S27": {
+    "status": "supported",
+    "preset_id": "P-R",
+    "comparison_ids": [
+     "P-R",
+     "S-R",
+     "N-R",
+     "SQ-C"
+    ],
+    "view_ids": [
+     "common_gini",
+     "bottom_group"
+    ],
+    "reason": null,
+    "steps": [
+     {
+      "step_id": "ps",
+      "status": "supported",
+      "preset_id": "P-R",
+      "comparison_ids": [
+       "P-R",
+       "S-R",
+       "N-R",
+       "SQ-C"
+      ],
+      "view_ids": [
+       "common_gini",
+       "bottom_group"
+      ],
+      "reason": null
+     },
+     {
+      "step_id": "all",
+      "status": "supported",
+      "preset_id": "P-R",
+      "comparison_ids": [
+       "P-R",
+       "S-R",
+       "N-R",
+       "SQ-C"
+      ],
+      "view_ids": [
+       "common_gini",
+       "bottom_group"
+      ],
+      "reason": null
+     },
+     {
+      "step_id": "bottom",
+      "status": "supported",
+      "preset_id": "P-R",
+      "comparison_ids": [
+       "P-R",
+       "S-R",
+       "N-R",
+       "SQ-C"
+      ],
+      "view_ids": [
+       "common_gini",
+       "bottom_group"
+      ],
+      "reason": null
+     }
+    ]
+   },
+   "S28D": {
+    "status": "supported",
+    "preset_id": "P-R|net",
+    "comparison_ids": [
+     "P-R",
+     "P-R|net"
+    ],
+    "view_ids": [
+     "constraint_diagnostics"
+    ],
+    "reason": null,
+    "steps": [
+     {
+      "step_id": "mechanism",
+      "status": "supported",
+      "preset_id": "P-R|net",
+      "comparison_ids": [
+       "P-R",
+       "P-R|net"
+      ],
+      "view_ids": [
+       "constraint_diagnostics"
+      ],
+      "reason": null
+     }
+    ]
+   },
+   "S28": {
+    "status": "supported",
+    "preset_id": "P-R",
+    "comparison_ids": [
+     "P-R"
+    ],
+    "view_ids": [
+     "adequacy_trajectory",
+     "common_gini",
+     "bottom_group",
+     "supply_gap",
+     "province_trajectory"
+    ],
+    "reason": null,
+    "steps": [
+     {
+      "step_id": "gross",
+      "status": "supported",
+      "preset_id": "P-R",
+      "comparison_ids": [
+       "P-R"
+      ],
+      "view_ids": [
+       "adequacy_trajectory",
+       "common_gini",
+       "bottom_group",
+       "supply_gap",
+       "province_trajectory"
+      ],
+      "reason": null
+     },
+     {
+      "step_id": "net",
+      "status": "supported",
+      "preset_id": "P-R|net",
+      "comparison_ids": [
+       "P-R",
+       "P-R|net"
+      ],
+      "view_ids": [
+       "adequacy_trajectory",
+       "common_gini",
+       "bottom_group",
+       "supply_gap",
+       "province_trajectory"
+      ],
+      "reason": null
+     },
+     {
+      "step_id": "bottom",
+      "status": "supported",
+      "preset_id": "P-R|net",
+      "comparison_ids": [
+       "P-R",
+       "P-R|net"
+      ],
+      "view_ids": [
+       "adequacy_trajectory",
+       "common_gini",
+       "bottom_group",
+       "supply_gap",
+       "province_trajectory"
+      ],
+      "reason": null
+     }
+    ]
+   },
+   "S29D": {
+    "status": "supported",
+    "preset_id": "NFB1-R",
+    "comparison_ids": [
+     "N-R",
+     "NFB0.5-R",
+     "NFB1-R"
+    ],
+    "view_ids": [
+     "common_gini"
+    ],
+    "reason": null,
+    "steps": [
+     {
+      "step_id": "mechanism",
+      "status": "supported",
+      "preset_id": "NFB1-R",
+      "comparison_ids": [
+       "N-R",
+       "NFB0.5-R",
+       "NFB1-R"
+      ],
+      "view_ids": [
+       "common_gini"
+      ],
+      "reason": null
+     }
+    ]
+   },
+   "S29": {
+    "status": "supported",
+    "preset_id": "NFB1-R",
+    "comparison_ids": [
+     "N-R",
+     "NFB0.5-R",
+     "NFB1-R"
+    ],
+    "view_ids": [
+     "common_gini"
+    ],
+    "reason": null,
+    "steps": [
+     {
+      "step_id": "population",
+      "status": "supported",
+      "preset_id": "NFB1-R",
+      "comparison_ids": [
+       "N-R",
+       "NFB0.5-R",
+       "NFB1-R"
+      ],
+      "view_ids": [
+       "common_gini"
+      ],
+      "reason": null
+     }
+    ]
+   },
+   "S29M": {
+    "status": "supported",
+    "preset_id": "P-R",
+    "comparison_ids": [
+     "P-R",
+     "S-R"
+    ],
+    "view_ids": [
+     "cross_evaluation",
+     "constraint_diagnostics"
+    ],
+    "reason": null,
+    "steps": [
+     {
+      "step_id": "province_changes",
+      "status": "supported",
+      "preset_id": "P-R",
+      "comparison_ids": [
+       "P-R",
+       "S-R"
+      ],
+      "view_ids": [
+       "cross_evaluation",
+       "constraint_diagnostics"
+      ],
+      "reason": null
+     }
+    ]
+   },
+   "S29V": {
+    "status": "supported",
+    "preset_id": "P-R",
+    "comparison_ids": [
+     "P-R",
+     "S-R"
+    ],
+    "view_ids": [
+     "cross_evaluation",
+     "constraint_diagnostics"
+    ],
+    "reason": null,
+    "steps": [
+     {
+      "step_id": "province_outcomes",
+      "status": "supported",
+      "preset_id": "P-R",
+      "comparison_ids": [
+       "P-R",
+       "S-R"
+      ],
+      "view_ids": [
+       "cross_evaluation",
+       "constraint_diagnostics"
+      ],
+      "reason": null
+     },
+     {
+      "step_id": "common_gini",
+      "status": "supported",
+      "preset_id": "P-R",
+      "comparison_ids": [
+       "P-R",
+       "S-R"
+      ],
+      "view_ids": [
+       "cross_evaluation",
+       "constraint_diagnostics"
+      ],
+      "reason": null
+     }
+    ]
+   },
+   "S30": {
+    "status": "reference_only",
+    "preset_id": null,
+    "comparison_ids": [],
+    "view_ids": [],
+    "reason": "Historical/reference evidence; not a future workforce outcome.",
+    "steps": [
+     {
+      "step_id": "questions",
+      "status": "reference_only",
+      "preset_id": null,
+      "comparison_ids": [],
+      "view_ids": [],
+      "reason": "Historical/reference evidence or discussion; changing future inputs does not recalculate this finding."
+     }
+    ]
+   }
+  },
+  "versions": {
+   "engine_version": "fc3567af4f404691a21350367f927b3759857b08887ae0171c155b9fb51fa1c6",
+   "inputs_version": "a50fb1f62ffd1d412b3ab17058e88c5321e65996c7851d7aaa1831fa1496a9fd",
+   "parameter_definition_version": "211696f183083f2112328f087c23843f6cfdcfdec4c08d87352731f9963645b5",
+   "metric_definition_version": "chapter5-metrics/1",
+   "view_definition_version": "chapter5-views/1",
+   "scenario_schema_version": "workforce-lab.scenario/1",
+   "source_release_id": "20260927T223014Z-e20170082d16",
+   "source_scope": "moph_hrr_76_as_provisional_managed_stock",
+   "release_id": "20260927T223014Z-e20170082d16",
+   "analytical_data_version": "a50fb1f62ffd1d412b3ab17058e88c5321e65996c7851d7aaa1831fa1496a9fd",
+   "fitted_model_version": "bf5fc440e240c2f3d71d7afd62a59fe76a4e423fbc31fe62cb42dc336a45dc98",
+   "metric_definition_hash": "1a60929d85244bcb552e6d217fbcf05a8385ab702e0730b4eed1c11a547b71df",
+   "view_definition_hash": "354fcd57c41a11330978abafbdb0852a88f9083cf1b8f2e44772e1d6b550c496",
+   "scenario_preset_version": "612dbf88e1f6cabb54ac2339769f29516d186df74db00ad31f1cf041ef4b8084",
+   "frontend_build_id": "9090790e48e2d49441fb501be7bbde8d40fd44e9d3a24ed9d15dea102c324237"
+  }
+ },
  "meta": {
   "title": "ว่าด้วยกำลังคนด้านสุขภาพและอนาคตประเทศไทย",
   "question": "กำลังคนที่เพิ่มขึ้นสอดคล้องกับประชากร งานบริการ และบริบทของแต่ละพื้นที่เพียงใด",

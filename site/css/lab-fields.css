@@ -1,0 +1,137 @@
+/* Compact controls retain exact numeric entry beside a quick-adjustment range. */
+.lab-field--compact {
+  margin: 0;
+  padding: 13px 14px 11px;
+  border: 1px solid var(--border-hairline);
+  border-radius: 10px;
+  background: var(--surface);
+  min-width: 0;
+}
+.lab-field--compact .lab-field__heading {
+  gap: 6px 9px;
+  margin-bottom: 10px;
+}
+.lab-field--compact .lab-field__heading label {
+  flex: 1 1 175px;
+  line-height: 1.6;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+.lab-field--compact .lab-evidence {
+  align-self: flex-start;
+  font-size: .67rem;
+  line-height: 1.55;
+  padding: 2px 6px;
+}
+.lab-field--compact .lab-field__editor { gap: 8px; }
+.lab-field--compact .lab-field__foot {
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 8px;
+  line-height: 1.55;
+}
+.lab-field--compact .lab-field__unit {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.lab-field--compact .lab-field__reset { flex: none; }
+.lab-field--compact .lab-field__details {
+  margin-top: 9px;
+  padding-top: 7px;
+  border-top: 1px solid var(--border-hairline);
+}
+.lab-field--compact .lab-field__details summary {
+  color: var(--text-muted);
+  font-size: .74rem;
+  line-height: 1.65;
+}
+.lab-field--compact .lab-field__details[open] summary { color: var(--text-primary); }
+.lab-field--compact .lab-field__details .lab-help {
+  margin: 8px 0 0;
+  overflow-wrap: anywhere;
+}
+.lab-field__scalar {
+  display: grid;
+  grid-template-columns: minmax(90px, 112px) minmax(100px, 1fr);
+  align-items: start;
+  gap: 7px 12px;
+  min-width: 0;
+  grid-column: 1 / -1;
+}
+.lab .lab-field__scalar > input[type="number"] {
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+.lab-field__range-wrap { min-width: 0; }
+.lab input.lab-field__range {
+  width: 100%;
+  height: 32px;
+  min-height: 32px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  accent-color: var(--accent);
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.lab-field__range::-webkit-slider-runnable-track {
+  height: 5px;
+  border-radius: 9px;
+  background: linear-gradient(to right, var(--accent) 0 var(--lab-range-progress, 0%), var(--border-strong) var(--lab-range-progress, 0%) 100%);
+}
+.lab-field__range::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  margin-top: -5.5px;
+  border: 2px solid var(--surface);
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+.lab-field__range::-moz-range-track {
+  height: 5px;
+  border-radius: 9px;
+  background: var(--border-strong);
+}
+.lab-field__range::-moz-range-progress { height: 5px; border-radius: 9px; background: var(--accent); }
+.lab-field__range::-moz-range-thumb {
+  width: 13px;
+  height: 13px;
+  border: 2px solid var(--surface);
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+.lab input.lab-field__range:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 5px;
+}
+.lab-field__range-bounds {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: .66rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+.lab-field__range-hint {
+  grid-column: 1 / -1;
+  color: var(--text-muted);
+  font-size: .69rem;
+  line-height: 1.5;
+}
+.lab-field--compact .lab-toggle { line-height: 1.6; }
+.lab-field--compact .lab-trajectory { grid-template-columns: repeat(auto-fit, minmax(105px, 1fr)); }
+.lab-field--compact .lab-annual { grid-column: 1 / -1; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 440px) {
+  .lab-field--compact { padding: 12px; }
+  .lab-field__scalar { grid-template-columns: minmax(82px, 100px) minmax(74px, 1fr); gap: 7px 10px; }
+  .lab-field--compact .lab-annual { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

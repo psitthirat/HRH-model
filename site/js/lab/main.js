@@ -25,7 +25,7 @@ async function json(url,hash) {
   return JSON.parse(new TextDecoder().decode(bytes));
 }
 export async function initLab(app,{isCurrent=()=>true}={}) {
-  stylesheet('lab.css');stylesheet('lab-results.css');stylesheet('lab-policies.css');
+  stylesheet('lab.css');stylesheet('lab-results.css');stylesheet('lab-policies.css');stylesheet('lab-fields.css');
   const release=app.R;
   if(!release.bundle.lab)throw new Error('ชุดเผยแพร่นี้ยังไม่มี Workforce Lab กรุณาเปิดชุดเผยแพร่ปัจจุบัน');
   const releaseURL=new URL(`../../data/releases/${encodeURIComponent(release.id)}/`,import.meta.url);
@@ -42,8 +42,8 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
   const key=participantKey(release.id),persisted=await readWorkspace(key);
   let draft=clone(defaultConfig),selected=baseline,pins=[],archivedRuns=[],batch=[],lastRuntime=null,savedStatus=true,failedRun=null,comparisonAnalysis=null,experimentSummary=null;
   let alive=true,busy=false,cancelBatch=false,status='ready',statusDetail='',progressDetail={},resultController=null,policyController=null,saveTimer,newReleaseTimer;
-  const policyState={query:'',group:'all',readiness:'all',selectedId:app.state.labPolicy || 'P07'};
-  let lang=app.state.lang || 'th',T=copy(lang),advanced=false,root,form,results,feedback,actions,changeList,pinsBox,storageNote,batchBox;
+  let controlTab='overview',controlGroup={future:'services',analysis:'planning'},extraOpen=false,selectedPolicyId=null;
+  let lang=app.state.lang || 'th',T=copy(lang),root,form,results,feedback,actions,changeList,pinsBox,storageNote,batchBox;
   const entryContext=app.labEntryContext;
   app.labEntryContext=null;
   const comparableVersions=value=>same(value?.versions || {},lab.versions || {});
@@ -58,6 +58,8 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
     showStatus();
   }});
   if(app.state.labPreset && (!persisted || entryContext))await loadEntry(app.state.labPreset,false);
+  selectedPolicyId=app.state.labView==='policies'?(app.state.labPolicy||'P07'):draft.origin?.policy_option_id||null;
+  setPolicyContext(policyOptions.find(p=>p.id===selectedPolicyId));
   if(!isCurrent())return {destroy(){alive=false;client.dispose();}};
   render();app.persist();
 
@@ -67,7 +69,7 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
       experimentRuns:batch,experimentSummary,onPresent:()=>present(true)};
   }
   function dirty(){return !same(draft.parameters,configOf(selected)?.parameters);}
-  function edited(id){status='dirty';saveSoon();if(['supply.input_mode','allocation.family','mobility.enabled'].includes(id))render();else{showStatus();showChanges();}}
+  function edited(id){status='dirty';saveSoon();showStatus();showChanges();if(id==='mobility.enabled'){const hint=form?.querySelector('[data-transfer-hint]');if(hint)hint.hidden=!!draft.parameters[id];}}
   function saveSoon(){clearTimeout(saveTimer);if(storageNote?.isConnected)storageNote.textContent=lang==='en'?'Saving this tab’s draft…':'กำลังบันทึกฉบับร่างของแท็บนี้…';saveTimer=setTimeout(save,350);}
   async function save(){
     savedStatus=await writeWorkspace(key,{versions:lab.versions,draft,selected,pins,archivedRuns,batch,lastRuntime,comparisonAnalysis,experimentSummary});
@@ -94,7 +96,7 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
     if(sceneId){pins=contextPins;comparisonAnalysis=null;}
     constrainComparisons();
     draft=clone(preset.config);draft.origin={...(draft.origin||{}),preset_id:preset.id,...(sceneId?{source_scene_id:sceneId,source_step:entryContext?.step||app.state.step}:{})};
-    if(redraw)render();saveSoon();
+    if(redraw){syncPolicyContext();controlTab='overview';render();}saveSoon();
   }
   function archiveRuns(runs){
     const known=new Set(archivedRuns.map(run=>run.run_id));
@@ -114,14 +116,13 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
     T=copy(lang);initText(release.bundle,{overrides:lang==='en'?lab.ui_en||{}:{}});
     document.documentElement.lang=lang;
     document.body.classList.toggle('lab-presenting',app.state.labView==='present');
-    const policyView=app.state.labView==='policies';
-    clear(app.main);root=h('div',{class:`lab${policyView?' lab--policies':''}`,'data-lang':lang});app.main.append(root);
-    const language=h('select',{'aria-label':'Language / ภาษา',onchange:async e=>{lang=e.target.value;app.state.lang=lang;app.persist();clearTimeout(saveTimer);await save();if(alive)render();}},h('option',{value:'th',selected:lang==='th',text:'ไทย'}),h('option',{value:'en',selected:lang==='en',text:'English'}));
+    clear(app.main);root=h('div',{class:'lab','data-lang':lang});app.main.append(root);
+    const language=h('select',{'aria-label':'Language / ภาษา',onchange:async e=>{if(!validateForm()){e.target.value=lang;return;}lang=e.target.value;app.state.lang=lang;app.persist();clearTimeout(saveTimer);await save();if(alive)render();}},h('option',{value:'th',selected:lang==='th',text:'ไทย'}),h('option',{value:'en',selected:lang==='en',text:'English'}));
     root.append(h('header',{class:'lab-header'},h('div',{},h('p',{class:'lab-eyebrow',text:'WORKFORCE LAB'}),
-      h('h1',{text:policyView?(lang==='en'?'Workforce policy options':'ทางเลือกนโยบายกำลังคน'):T('title')}),
-      h('p',{text:policyView?(lang==='en'?'Explore 20 options, their evidence and the assumptions needed to evaluate them.':'สำรวจ 20 ทางเลือก พร้อมหลักฐานและสมมติฐานที่ต้องใช้ประเมินผล'):T('subtitle')})),
+      h('h1',{text:T('title')}),
+      h('p',{text:lang==='en'?'Adjust assumptions, calculate, then compare the results below.':'ปรับสมมติฐาน กดคำนวณ แล้วเปรียบเทียบผลด้านล่าง'})),
       h('div',{class:'lab-header__actions'},language,button(T('back'),app.returnFromLab))));
-    root.append(h('p',{class:'lab-scope',text:T('scope'),title:T('provisional')}),h('details',{class:'lab-scope-note'},h('summary',{text:lang==='en'?'Provisional MOPH / OPS scope':'ขอบเขตชั่วคราว: ใช้จำนวนแพทย์ สธ. เป็นตัวแทน สป.สธ.'}),h('p',{class:'lab-scope--detail',text:T('provisional')})));
+    root.append(h('div',{class:'lab-scope-row'},h('p',{class:'lab-scope',text:T('scope'),title:T('provisional')}),h('details',{class:'lab-scope-note'},h('summary',{text:lang==='en'?'Provisional MOPH / OPS scope':'ขอบเขตชั่วคราว: ใช้จำนวนแพทย์ สธ. เป็นตัวแทน สป.สธ.'}),h('p',{class:'lab-scope--detail',text:T('provisional')}))));
     const origin=draft.origin?.source_scene_id;if(origin)root.append(h('p',{class:'lab-origin',text:`${T('source')} ${origin} · ${release.scene(origin)?.title || ''}`}));
     const update=h('div',{class:'lab-release-update',hidden:true});root.append(update);
     checkNewRelease(update);
@@ -129,59 +130,36 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
       root.append(h('div',{class:'lab-present-actions'},h('span',{class:'badge',text:T('experimentLabel')}),button(T('backControls'),()=>present(false)),button(T('back'),app.returnFromLab),button(lang==='en'?'Fullscreen':'เต็มหน้าจอ',app.toggleFullscreen)));
       results=h('div',{class:'lab-output'});root.append(results);showResults();return;
     }
-    root.append(h('nav',{class:'lab-section-nav','aria-label':lang==='en'?'Lab sections':'ส่วนต่าง ๆ ของ Lab'},
-      button(lang==='en'?'Model controls and results':'สมมติฐานและผลคำนวณ',()=>openPolicies(false),{'data-action':'lab-controls','aria-pressed':String(app.state.labView!=='policies'),disabled:busy}),
-      button(lang==='en'?'20 policy options':'ทางเลือกนโยบาย 20 ข้อ',()=>openPolicies(true),{'data-action':'policies','aria-pressed':String(app.state.labView==='policies'),disabled:busy})));
-    if(app.state.labView==='policies'){
-      const host=h('section');root.append(host);
-      policyController=renderPolicyLibrary(host,{lang,compactHeader:true,state:policyState,onState:patch=>{
-        Object.assign(policyState,patch);app.state.labPolicy=policyState.selectedId;app.persist();
-      },onUse:usePolicy});return;
-    }
-    const grid=h('div',{class:'lab-grid'}),sidebar=h('aside',{class:'lab-sidebar'}),output=h('section',{class:'lab-output'});root.append(grid);grid.append(sidebar,output);
-    form=h('form',{class:'lab-form',onsubmit:e=>{e.preventDefault();runDraft();}});sidebar.append(form);
-    form.append(h('h2',{text:T('controls')}));
-    const policy=policyOptions.find(p=>p.id===draft.origin?.policy_option_id);
-    if(policy)form.append(h('section',{class:'lab-policy-context','data-policy-context':policy.id},
-      h('strong',{text:`${policy.id} · ${localized(policy,'title',lang)}`}),
-      h('p',{text:lang==='en'?'Set a model response as your own assumption. Research estimates have not been applied to these controls. The charts retain the last completed result until you run again.':'กำหนดผลต่อแบบจำลองเป็นสมมติฐานของคุณเอง ยังไม่ได้ใส่ค่าผลจากงานวิจัยลงในตัวควบคุม กราฟยังแสดงผลที่คำนวณแล้วจนกว่าจะคำนวณใหม่'}),
-      h('p',{text:localized(policy,'mapping',lang)}),
-      h('p',{text:localized(policy,'limitation',lang)}),
-      h('div',{class:'lab-actions'},button(lang==='en'?'Read evidence':'อ่านหลักฐาน',()=>{policyState.selectedId=policy.id;openPolicies(true);}),
-        button(lang==='en'?'Clear policy context':'ล้างชื่อนโยบาย',()=>{delete draft.origin.policy_option_id;delete draft.origin.policy_catalog_version;render();saveSoon();},{'data-action':'policy-clear'}))));
-    form.append(h('label',{class:'lab-field'},h('span',{text:T('name')}),h('input',{type:'text',value:draft.name||draft.title||'',maxLength:120,oninput:e=>{draft.name=e.target.value;saveSoon();}})));
-    const select=h('select',{'aria-label':T('preset'),onchange:e=>{if(e.target.value)loadEntry(e.target.value).catch(showError);}},h('option',{value:'',text:T('preset')}));
+    form=h('form',{class:'lab-form lab-control-board',onsubmit:e=>{e.preventDefault();runDraft();}});root.append(form);
+    const picker=h('div',{class:'lab-policy-picker-host'});form.append(picker);
+    policyController=renderPolicyLibrary(picker,{lang,selectedId:selectedPolicyId,onSelect:selectPolicy});
+    const metadata=h('div',{class:'lab-scenario-meta'});
+    metadata.append(h('label',{},h('span',{text:T('name')}),h('input',{type:'text',value:draft.name||draft.title||'',maxLength:120,oninput:e=>{draft.name=e.target.value;saveSoon();}})));
+    const select=h('select',{'aria-label':T('preset'),onchange:e=>{
+      if(!validateForm()){e.target.value='';return;}if(e.target.value)loadEntry(e.target.value).catch(showError);
+    }},h('option',{value:'',text:T('preset')}));
     for(const p of presets)select.append(h('option',{value:p.id,text:localized(p,'label',lang)||p.id}));
-    form.append(select);
-    const basic=entries.filter(p=>!p.advanced && enabled(p));
-    for(const group of [...new Set(basic.map(p=>p.group))]){
-      const box=h('fieldset',{class:'lab-group'},h('legend',{text:groupLabel(group)}));
-      for(const p of basic.filter(p=>p.group===group))box.append(parameterField(p,draft,{lang,onChange:edited,baseline:defaultConfig}));form.append(box);
-    }
-    const extra=h('details',{class:'lab-advanced',open:advanced,ontoggle:e=>{advanced=e.target.open;}},h('summary',{text:T('advanced')}));
-    const allAdvanced=entries.filter(p=>p.advanced||!enabled(p));
-    for(const group of [...new Set(allAdvanced.map(p=>p.group))]){
-      const box=h('fieldset',{class:'lab-group'},h('legend',{text:groupLabel(group)}));
-      for(const p of allAdvanced.filter(p=>p.group===group))box.append(parameterField(p,draft,{lang,onChange:edited,baseline:defaultConfig}));extra.append(box);
-    }form.append(extra);
-    const reset=button(T('reset'),()=>{draft=clone(defaultConfig);status='dirty';render();saveSoon();},{title:T('resetHelp'),'data-action':'reset'});
+    metadata.append(h('label',{},h('span',{text:T('preset')}),select));
+    form.append(controlPanel());
+    const reading=h('div',{class:'lab-control-reading'});
+    if(policyController.details)reading.append(policyController.details);
+    reading.append(h('details',{class:'lab-scenario-settings'},h('summary',{text:lang==='en'?'Starting plan and experiment name':'แผนตั้งต้นและชื่อการทดลอง'}),metadata));
+    changeList=h('details',{class:'lab-changes'},h('summary',{text:T('modified')}),h('div'));reading.append(changeList);form.append(reading);
+    const reset=button(T('reset'),()=>{draft=clone(defaultConfig);syncPolicyContext();controlTab='overview';status='dirty';render();saveSoon();},{title:T('resetHelp'),'data-action':'reset'});
     const importer=h('input',{type:'file',accept:'.json,application/json',hidden:true,onchange:async e=>{
       try{const file=e.target.files[0];if(!file)return;if(file.size>5e6)throw new Error(T('unknown'));const raw=JSON.parse(await file.text()),cfg=raw.config||raw.scenario||raw;
         if(!cfg.parameters||Object.keys(cfg.parameters).some(k=>!entryById.has(k))||cfg.schema_version&&cfg.schema_version!=='workforce-lab.scenario/1')throw new Error(T('unknown'));
         if(raw.versions&&Object.keys(lab.versions).some(k=>!same(raw.versions[k],lab.versions[k])))throw new Error(T('unknown'));
-        draft=clone(cfg);status='dirty';render();saveSoon();
+        draft=clone(cfg);syncPolicyContext();status='dirty';render();saveSoon();
       }catch(error){showError(error);}
     }});
-    form.append(h('div',{class:'lab-actions'},reset,button(T('exportConfig'),()=>downloadJSON('scenario-draft',{schema_version:'workforce-lab.scenario/1',config:draft,versions:lab.versions})),button(T('import'),()=>importer.click()),importer));
-    storageNote=h('p',{class:'lab-help',text:T(savedStatus?'saved':'notSaved')});form.append(storageNote);
-    form.append(experimentPanel());
-    form.append(robustPanel());
+    storageNote=h('span',{class:'lab-help lab-storage-note',text:T(savedStatus?'saved':'notSaved')});
+    form.append(h('div',{class:'lab-actions lab-draft-actions'},reset,button(T('exportConfig'),()=>downloadJSON('scenario-draft',{schema_version:'workforce-lab.scenario/1',config:draft,versions:lab.versions})),button(T('import'),()=>importer.click()),importer,storageNote));
     feedback=h('div',{class:'lab-status',role:'status','aria-live':'polite'});
     actions=h('div',{class:'lab-actions lab-run-actions'});
     actions.append(button(T('run'),runDraft,{class:'btn btn--primary','data-action':'run'}),button(T('cancel'),()=>{cancelBatch=true;if(!client.cancel())client.dispose();},{'data-action':'cancel',hidden:!busy}));
-    output.append(h('div',{class:'lab-run-bar',title:T('runtime')},feedback,actions));
-    output.append(h('p',{class:'lab-help lab-run-workload',hidden:true}));
-    changeList=h('details',{class:'lab-changes'},h('summary',{text:T('modified')}),h('div'));sidebar.append(changeList);
+    root.append(h('div',{class:'lab-run-bar',title:T('runtime')},feedback,actions),h('p',{class:'lab-help lab-run-workload',hidden:true}));
+    const output=h('section',{class:'lab-output'});root.append(output);
     const downloads=h('div',{class:'lab-downloads'});
     for(const [label,method] of [['exportPlan','downloadPlan'],['exportResults','downloadResults'],['exportPackage','downloadPackage']])downloads.append(button(T(label),()=>exportRun(method),{'data-export':method}));
     downloads.append(button(T('pin'),pinSelected,{'data-action':'pin'}));
@@ -189,28 +167,82 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
     results=h('div',{class:'lab-result-host'});output.append(results);
     output.append(downloads,pinsBox);
     batchBox=h('section',{class:'lab-batch-results'});output.append(batchBox);
-    output.append(methodsPanel());
+    output.append(h('div',{class:'lab-experiment-tools'},experimentPanel(),robustPanel()),methodsPanel());
     showChanges();showStatus();showPins();showResults();showBatch();
   }
-  function openPolicies(yes){
-    if(busy)return;
-    app.state.labView=yes?'policies':null;
-    if(yes)app.state.labPolicy=policyState.selectedId;
-    app.persist();render();root.scrollIntoView({block:'start',behavior:'instant'});
+  function syncPolicyContext(){
+    selectedPolicyId=draft.origin?.policy_option_id||null;
+    controlTab=selectedPolicyId?'policy':'overview';
+    app.state.labPolicy=selectedPolicyId;app.state.labView=selectedPolicyId?'policies':null;app.persist();
   }
-  function usePolicy(policy){
-    if(busy||!policy.route)return;
-    // A catalogue choice is provenance only. No coefficient, parameter, mode,
-    // coverage or completed result is changed without participant input.
-    draft.origin={...(draft.origin||{}),policy_option_id:policy.id,policy_catalog_version:policyCatalogueVersion};
-    const targets={retention:'retention.resignation_reduction',supply:'supply.input_mode',training:'supply.input_mode',mobility:'mobility.enabled',reentry:'departures.reentry_multiplier'};
-    advanced=true;openPolicies(false);saveSoon();
-    const field=form?.querySelector(`[data-parameter="${targets[policy.route]}"]`);
-    if(field){field.classList.add('lab-policy-target');field.scrollIntoView({block:'center',behavior:'instant'});field.querySelector('input,select,textarea')?.focus({preventScroll:true});}
+  function setPolicyContext(policy){
+    // Choosing a policy records context only; there is no evidence-to-effect
+    // conversion, parameter default, mode change or implicit calculation.
+    selectedPolicyId=policy?.id||null;
+    draft.origin={...(draft.origin||{})};
+    delete draft.origin.policy_option_id;delete draft.origin.policy_catalog_version;
+    if(policy?.route){draft.origin.policy_option_id=policy.id;draft.origin.policy_catalog_version=policyCatalogueVersion;}
+    controlTab=policy?.route?'policy':'overview';extraOpen=false;
+    app.state.labPolicy=selectedPolicyId;
+    if(app.state.labView!=='present')app.state.labView=policy?'policies':null;
   }
-  function groupLabel(group){
-    const map={targets:'allocation',departures:'attrition',retention:'attrition',demography:'future',morbidity:'future',services:'future',resources:'future',feedback:'analytical',solver:'analytical',planning:'analytical',uncertainty:'analytical'};
-    const translated=T(map[group]||group);return translated===group?localized({label_th:group,label_en:group},'label',lang):translated;
+  function selectPolicy(policy){
+    if(busy||!validateForm()){policyController?.update?.({selectedId:selectedPolicyId});return;}
+    setPolicyContext(policy);app.persist();render();saveSoon();
+    form.querySelector('[data-policy-select]')?.focus({preventScroll:true});
+  }
+  function controlPanel(){
+    const policy=policyOptions.find(p=>p.id===selectedPolicyId);
+    const tabs=[...(policy?.route?[['policy',lang==='en'?'This policy':'นโยบายนี้']]:[]),
+      ['overview',lang==='en'?'Allocation':'การจัดสรร'],['supply',lang==='en'?'Entrants':'กำลังคนเข้า'],
+      ['retention',lang==='en'?'Leaving / returning':'การออก–กลับเข้า'],['mobility',lang==='en'?'Transfers':'การย้าย'],
+      ['future',lang==='en'?'Future inputs':'ข้อมูลอนาคต'],['analysis',lang==='en'?'Analysis':'การวิเคราะห์']];
+    if(!tabs.some(([id])=>id===controlTab))controlTab='overview';
+    const panel=h('section',{class:'lab-controls'}),nav=h('div',{class:'lab-control-tabs',role:'tablist','aria-label':T('controls')});
+    for(const [id,label] of tabs)nav.append(button(label,()=>{
+      if(busy||!validateForm())return;controlTab=id;extraOpen=false;render();form.querySelector(`[data-control-tab="${id}"]`)?.focus({preventScroll:true});
+    },{id:`lab-tab-${id}`,role:'tab','data-control-tab':id,'aria-selected':String(controlTab===id),'aria-controls':'lab-control-panel',tabindex:controlTab===id?0:-1,
+      onkeydown:e=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;e.preventDefault();const buttons=[...nav.querySelectorAll('[role="tab"]')],i=buttons.indexOf(e.currentTarget);buttons[e.key==='Home'?0:e.key==='End'?buttons.length-1:(i+(e.key==='ArrowRight'?1:-1)+buttons.length)%buttons.length].click();}}));
+    panel.append(nav);
+    const content=h('div',{id:'lab-control-panel',class:'lab-control-panel',role:'tabpanel','aria-labelledby':`lab-tab-${controlTab}`});panel.append(content);
+    const byIds=ids=>ids.map(id=>entryById.get(id)).filter(Boolean),byGroups=groups=>entries.filter(p=>groups.includes(p.group));
+    let controls=[];
+    if(controlTab==='policy'){
+      const routes={
+        retention:['retention.resignation_reduction','retention.coverage','retention.start_year','retention.lag_years','retention.ramp_years'],
+        supply:['supply.input_mode','supply.available_appointments','supply.national_graduates','supply.licensing','supply.participation','supply.managed_share'],
+        training:['supply.input_mode','supply.student_intake','supply.completion','supply.licensing','supply.participation','supply.managed_share','supply.education_lag_years'],
+        mobility:byGroups(['mobility']).map(p=>p.id),reentry:['departures.reentry_multiplier','departures.rate_source']};
+      controls=byIds(routes[policy.route]||[]);
+      content.append(h('p',{class:'lab-policy-assumption-note',text:lang==='en'
+        ?'These are assumed model responses, not estimated policy effects. Editing leaves the last completed results unchanged until you calculate.'
+        :'ค่าที่ปรับคือสมมติฐานผลต่อแบบจำลอง ไม่ใช่ขนาดผลของนโยบายที่ยืนยันแล้ว กราฟจะเปลี่ยนเมื่อกดคำนวณ'}));
+      if(['supply','training'].includes(policy.route))content.append(h('p',{class:'lab-help',text:lang==='en'?'The supply input mode determines which inputs enter the calculation. Choose the intended mode before editing graduate or student numbers.':'วิธีระบุจำนวนผู้เข้าเป็นตัวกำหนดว่าค่าใดถูกนำไปคำนวณ เลือกวิธีที่ต้องการก่อนปรับจำนวนผู้สำเร็จการศึกษาหรือนักศึกษา'}));
+      if(policy.route==='mobility')content.append(h('p',{class:'lab-help','data-transfer-hint':'',hidden:!!draft.parameters['mobility.enabled'],text:lang==='en'?'Enable transfers to include these transfer assumptions in the calculation.':'เปิดการโอนย้ายเพื่อนำสมมติฐานการย้ายไปคำนวณ'}));
+    }else if(controlTab==='overview'){
+      const primary=['supply.input_mode','supply.available_appointments','allocation.family','targets.reference_per_1000','allocation.cap_mode','allocation.cap_fraction'];
+      controls=[...byIds(primary),...entries.filter(p=>!primary.includes(p.id)&&(['allocation','targets'].includes(p.group)||p.id==='mobility.enabled'))];
+    }else if(controlTab==='supply')controls=byGroups(['supply']);
+    else if(controlTab==='retention')controls=[...byGroups(['retention']),...byGroups(['departures'])];
+    else if(controlTab==='mobility')controls=byGroups(['mobility']);
+    else{
+      const groups=controlTab==='future'?[['services','บริการ','Services'],['demography','ประชากร','Population'],['morbidity','โรค','Morbidity'],['resources','ทรัพยากร','Resources']]
+        :[['planning','การปรับแผน','Replanning'],['feedback','การตอบสนองต่อทรัพยากร','Resource response'],['uncertainty','ความไม่แน่นอน','Uncertainty'],['solver','ตัวแก้ปัญหา','Solver'],['geography','รายจังหวัด','Province overrides'],['retirement','เกษียณ','Retirement'],['costs','ต้นทุน','Costs']];
+      const choose=h('select',{'data-control-group':'','aria-label':lang==='en'?'Parameter group':'กลุ่มตัวแปร',onchange:e=>{
+        if(!validateForm()){e.target.value=controlGroup[controlTab];return;}controlGroup[controlTab]=e.target.value;extraOpen=false;render();form.querySelector('[data-control-group]')?.focus({preventScroll:true});
+      }},...groups.map(([id,th,en])=>h('option',{value:id,selected:controlGroup[controlTab]===id,text:lang==='en'?en:th})));
+      content.append(h('label',{class:'lab-control-group-select'},h('span',{text:lang==='en'?'Parameter group':'กลุ่มตัวแปร'}),choose));
+      controls=byGroups([controlGroup[controlTab]]);
+    }
+    const grid=h('div',{class:'lab-control-grid','data-control-route':controlTab==='policy'?policy.route:null,'data-control-count':Math.min(6,controls.length)});content.append(grid);
+    const field=p=>parameterField(p,draft,{lang,onChange:edited,baseline:defaultConfig,compact:true});
+    controls.slice(0,6).forEach(p=>grid.append(field(p)));
+    if(controls.length>6){
+      const details=h('details',{class:'lab-control-extra',open:extraOpen,ontoggle:e=>{extraOpen=e.target.open;}},
+        h('summary',{text:lang==='en'?`Additional settings (${controls.length-6})`:`ตัวแปรเพิ่มเติม (${controls.length-6})`}));
+      const more=h('div',{class:'lab-control-grid'});controls.slice(6).forEach(p=>more.append(field(p)));details.append(more);content.append(details);
+    }
+    return panel;
   }
   function showChanges(){if(!changeList)return;const box=changeList.lastElementChild;clear(box);const changes=entries.filter(p=>!same(draft.parameters[p.id],defaultConfig.parameters[p.id]));
     if(!changes.length)box.append(h('p',{text:T('unchanged')}));else box.append(h('ul',{},...changes.map(p=>h('li',{},h('b',{text:localized(p,'label',lang)+': '}),`${JSON.stringify(defaultConfig.parameters[p.id])} → ${JSON.stringify(draft.parameters[p.id])}`))));
@@ -224,7 +256,7 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
     if(!busy&&failedRun&&['failed','infeasible'].includes(status))feedback.append(button(lang==='en'?'Download configuration and diagnostics':'ดาวน์โหลดสมมติฐานและข้อจำกัด',()=>downloadJSON('diagnostics',failedRun)));
     const run=actions?.querySelector('[data-action="run"]'),cancel=actions?.querySelector('[data-action="cancel"]');
     if(run)run.disabled=busy;if(cancel)cancel.hidden=!busy;
-    for(const nav of root.querySelectorAll('.lab-section-nav button'))nav.disabled=busy;
+    for(const field of root.querySelectorAll('.lab-experiment-tools input,.lab-experiment-tools select,.lab-experiment-tools button'))field.disabled=busy;
     for(const field of form?.querySelectorAll('input,select,textarea,button')||[])field.disabled=busy;
     for(const exportButton of root.querySelectorAll('[data-export]')){exportButton.disabled=!isCompleted(selected);exportButton.title=dirty()?T('lastCompleted'):'';}
     const workload=root.querySelector('.lab-run-workload');
@@ -235,7 +267,12 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
   }
   function stageLabel(stage){const labels={loading_runtime:['กำลังดาวน์โหลด Python','Downloading Python runtime'],loading_packages:['กำลังโหลดแพ็กเกจวิเคราะห์','Loading analysis packages'],loading_model:['กำลังตรวจไฟล์แบบจำลอง','Verifying model files'],validating:[T('validating'),T('validating')],preparing:['กำลังเตรียมข้อมูลและเป้าหมาย','Preparing inputs and targets'],solving:['กำลังจัดสรรตามข้อกำหนด','Solving the allocation problem'],evaluating:['กำลังคำนวณผลลัพธ์','Evaluating outcomes']};return labels[stage]?.[lang==='en'?1:0]||stage;}
   function showError(error){status='failed';statusDetail=String(error.message||error);showStatus();}
-  function validateForm(){if(form&&!form.reportValidity())return false;return true;}
+  function validateForm(extra){
+    const invalid=[...(form?.isConnected?form.querySelectorAll('input,select,textarea'):[]),...(extra?.querySelectorAll('input,select,textarea')||[])].find(el=>!el.checkValidity());
+    if(!invalid)return true;
+    for(let parent=invalid.parentElement;parent;parent=parent.parentElement)if(parent.tagName==='DETAILS')parent.open=true;
+    invalid.reportValidity();return false;
+  }
   async function execute(config){
     const result=await client.run(clone(config));
     if(!alive)return null;
@@ -265,13 +302,13 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
     const active=[...new Map([selected,...pins].filter(isCompleted).map(run=>[run.run_id,run])).values()];
     clear(pinsBox).append(h('h3',{text:T('pinned')}),h('p',{class:'lab-help',text:lang==='en'?`Compare up to four plans including the displayed result (${active.length}/4 active). Results removed from the active set remain in the saved list below.`:`เปรียบเทียบได้รวมไม่เกิน 4 แผน โดยนับผลที่กำลังแสดงด้วย (ขณะนี้ ${active.length}/4 แผน) ผลที่นำออกจากชุดเปรียบเทียบยังเปิดดูได้จากรายการที่เก็บไว้ด้านล่าง`}));
     const show=run=>{archiveRuns([selected]);selected=run;comparisonAnalysis=null;showResults();showPins();showStatus();saveSoon();};
-    for(const run of pins)pinsBox.append(h('article',{class:'lab-pin','data-run-id':run.run_id},h('b',{text:configOf(run)?.name||resultTitle(run,lang)}),h('small',{text:run.run_id}),h('div',{class:'lab-actions'},button(T('show'),()=>show(run)),button(T('edit'),()=>{draft=clone(configOf(run));render();saveSoon();}),button(T('remove'),()=>{archiveRuns([run]);pins=pins.filter(p=>p.run_id!==run.run_id);comparisonAnalysis=null;showPins();showResults();saveSoon();}))));
+    for(const run of pins)pinsBox.append(h('article',{class:'lab-pin','data-run-id':run.run_id},h('b',{text:configOf(run)?.name||resultTitle(run,lang)}),h('small',{text:run.run_id}),h('div',{class:'lab-actions'},button(T('show'),()=>show(run)),button(T('edit'),()=>{draft=clone(configOf(run));syncPolicyContext();render();saveSoon();}),button(T('remove'),()=>{archiveRuns([run]);pins=pins.filter(p=>p.run_id!==run.run_id);comparisonAnalysis=null;showPins();showResults();saveSoon();}))));
     pinsBox.append(button(T('baseline'),()=>show(baseline)));
     if(active.length>1)pinsBox.append(button(lang==='en'?'Compare selected results on common criteria':'คำนวณเปรียบเทียบแผนด้วยเกณฑ์ร่วม',compareSelected,{'data-action':'compare'}));
     const activeIds=new Set(active.map(run=>run.run_id)),archived=archivedRuns.filter(run=>!activeIds.has(run.run_id));
     if(archived.length){
       const box=h('details',{class:'lab-archived'},h('summary',{text:lang==='en'?`Saved results outside this comparison (${archived.length})`:`ผลที่เก็บไว้และยังไม่ได้เปรียบเทียบในชุดนี้ (${archived.length})`}));
-      for(const run of archived)box.append(h('article',{class:'lab-pin lab-archived-run','data-run-id':run.run_id},h('b',{text:resultTitle(run,lang)}),h('small',{text:run.run_id}),h('div',{class:'lab-actions'},button(T('show'),()=>show(run)),button(lang==='en'?'Restore to comparison':'นำกลับมาเปรียบเทียบ',()=>{archiveRuns([selected]);selected=run;pins=[run,...pins.filter(p=>p.run_id!==run.run_id)];comparisonAnalysis=null;constrainComparisons();showResults();showPins();showStatus();saveSoon();}),button(T('edit'),()=>{draft=clone(configOf(run));render();saveSoon();}))));
+      for(const run of archived)box.append(h('article',{class:'lab-pin lab-archived-run','data-run-id':run.run_id},h('b',{text:resultTitle(run,lang)}),h('small',{text:run.run_id}),h('div',{class:'lab-actions'},button(T('show'),()=>show(run)),button(lang==='en'?'Restore to comparison':'นำกลับมาเปรียบเทียบ',()=>{archiveRuns([selected]);selected=run;pins=[run,...pins.filter(p=>p.run_id!==run.run_id)];comparisonAnalysis=null;constrainComparisons();showResults();showPins();showStatus();saveSoon();}),button(T('edit'),()=>{draft=clone(configOf(run));syncPolicyContext();render();saveSoon();}))));
       pinsBox.append(box);
     }
   }
@@ -281,7 +318,7 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
     try{comparisonAnalysis=await client.compare_runs(runs);status='completed';showResults();saveSoon();}
     catch(error){if(error.name==='AbortError')status='cancelled';else showError(error);}finally{busy=false;showStatus();}
   }
-  function present(yes){app.state.labView=yes?'present':null;app.persist();render();}
+  function present(yes){app.state.labView=yes?'present':selectedPolicyId?'policies':null;app.persist();render();}
   function downloadJSON(name,data){download(`${name}.json`,JSON.stringify(data,null,2),'application/json');}
   async function exportRun(method){
     if(!isCompleted(selected))return;
@@ -306,7 +343,7 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
     const estimate=()=>{const n=parse(values1).length*(second.value?parse(values2).length:1),seconds=Number(lastRuntime?.total_ms??0)/1000;preview.textContent=`${T('batchCount')}: ${n} · ${seconds?`${Math.round(n*seconds)} s (${lang==='en'?'estimate from the last run':'ประเมินจากรอบล่าสุด'})`:T('runtimeUnknown')}`;};
     for(const el of [first,second,values1,values2])el.addEventListener('input',estimate);estimate();
     details.append(h('label',{},h('span',{text:T('parameter')}),first),h('label',{},h('span',{text:T('values')}),values1),h('label',{},h('span',{text:T('second')}),second),values2,preview,h('p',{class:'lab-help',text:T('batchLimit')}),button(T('batchRun'),async()=>{
-      if(busy||!validateForm())return;const a=parse(values1),b=second.value?parse(values2):[null];
+      if(busy||!validateForm(details))return;const a=parse(values1),b=second.value?parse(values2):[null];
       if(!a.length||!b.length||a.length*b.length>12||[...a,...b.filter(v=>v!==null)].some(v=>!Number.isFinite(v))||first.value===second.value){showError(new Error(T('invalidNumber')));return;}
       const template=clone(draft);batch=[];experimentSummary=null;busy=true;cancelBatch=false;showStatus();
       try{for(const va of a){for(const vb of b){if(cancelBatch)break;const config=clone(template);config.parameters[first.value]=va;if(second.value)config.parameters[second.value]=vb;config.name=`${template.name||'Experiment'} · ${first.value}=${va}${second.value?`, ${second.value}=${vb}`:''}`;
@@ -326,7 +363,7 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
     const minAdequacy=h('input',{type:'number',min:0,step:'any',placeholder:lang==='en'?'No limit':'ไม่กำหนด','data-acceptance':'minimum_worst_attainment'}),maxTransfers=h('input',{type:'number',min:0,step:1,placeholder:lang==='en'?'No limit':'ไม่กำหนด','data-acceptance':'maximum_annual_transfers'});
     const limits=()=>Object.fromEntries([[minAdequacy,'minimum_worst_attainment'],[maxTransfers,'maximum_annual_transfers']].filter(([el])=>el.value!=='').map(([el,key])=>[key,el.valueAsNumber]));
     details.append(policyBox,futureBox,h('label',{},h('span',{text:lang==='en'?'Minimum worst-province attainment in 2040 (stock / target)':'อัตราส่วนแพทย์ต่อเป้าหมายขั้นต่ำของจังหวัดที่มีค่าต่ำสุดในปี 2583'}),minAdequacy),h('label',{},h('span',{text:lang==='en'?'Maximum national planned transfers in any year (people)':'จำนวนโอนย้ายตามแผนทั้งประเทศสูงสุดในแต่ละปี (คน)'}),maxTransfers),h('p',{class:'lab-help',text:lang==='en'?'Optional acceptance limits screen these candidates only; they do not prove global optimality. Affordability is unverified without costs.':'กรอกได้ตามเกณฑ์ที่ที่ประชุมยอมรับ ใช้คัดกรองแผนที่เลือกมาเปรียบเทียบ ไม่ได้ยืนยันว่าเป็นแผนที่ดีที่สุดจากทุกทางเลือก และยังไม่ได้ประเมินความสามารถในการจ่าย'}),preview,h('p',{class:'lab-help',text:T('batchLimit')}),button(T('batchRun'),async()=>{
-      const policies=values(policyBox),futures=values(futureBox);if(busy||!validateForm()||!policies.length||!futures.length||policies.length*futures.length>12)return;
+      const policies=values(policyBox),futures=values(futureBox);if(busy||!validateForm(details)||!policies.length||!futures.length||policies.length*futures.length>12)return;
       const acceptedLimits=limits();
       const template=clone(draft);batch=[];experimentSummary=null;busy=true;cancelBatch=false;showStatus();
       try{for(const future of futures){for(const policy of policies){if(cancelBatch)break;
