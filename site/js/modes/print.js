@@ -5,6 +5,7 @@
 import { h, clear } from "../util/dom.js";
 import { mountView, stepView } from "../engine.js";
 import { evidenceBadge } from "../charts/core.js";
+import { giniTable } from "../charts/plancompare.js";
 import { releaseSummary } from "../ui/drawer.js";
 import { t } from "../util/i18n.js";
 
@@ -41,6 +42,7 @@ export function initPrint(app) {
       sc.sources?.length ? h("p", { class: "meta-src" }, t("print.sources") + ": ", ...sc.sources.map((s) => h("span", {
         text: [s.report_number || s.asset_id, s.file ? `(${s.file})` : s.caption_th].filter(Boolean).join(" ") + "; " }))) : "",
       withNotes ? h("pre", { class: "print__notes", text: sc.notes }) : "");
+    if (current.view.comparison_table) sec.append(giniTable(R));
     root.append(sec);
     stages.push([stage, sc]);
   }

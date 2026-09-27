@@ -1,0 +1,43 @@
+{
+ "release_id": "20260927T145547Z-c1c8c26dd98f",
+ "schema_version": "1.0.0",
+ "generated_at": "2026-09-27T14:55:47+00:00",
+ "data_as_of": "2026-09-27T10:53:07Z",
+ "status": "promoted",
+ "freshness": {
+  "status": "unknown",
+  "reasons": [
+   "raw inputs are not available here; freshness against raw data cannot be checked"
+  ]
+ },
+ "validation": {
+  "ok": true,
+  "errors": [],
+  "warnings": [
+   "freshness.fresh: status=unknown: raw inputs are not available here; freshness against raw data cannot be checked"
+  ],
+  "n_checks": 2218
+ },
+ "publication": {
+  "audience": "public",
+  "capabilities": {
+   "notes": false,
+   "appendix": true,
+   "authoring": false
+  }
+ },
+ "files": {
+  "bundle.json": {
+   "sha256": "2645b59d6037e30e34aa69386457e89fd0e60a3d229e957dc9db5ba2bfab29be",
+   "bytes": 5098516
+  },
+  "geo.json": {
+   "sha256": "f6244a2deb14d91d9b39fccaaf19c7f35ead459b41acb632bd3992a829adbae7",
+   "bytes": 1006414
+  },
+  "appendix.json": {
+   "sha256": "1ac8eb13fc8a117ec41c9a2a9224e2ee0d11a25a9c9b19170196e986b648d36a",
+   "bytes": 866098
+  }
+ }
+}

@@ -2,7 +2,7 @@
 
 เว็บไซต์สไลด์ผลการวิจัยสำหรับอ่าน นำเสนอ สำรวจข้อมูล และดูภาคผนวก
 
-[เปิดเว็บไซต์](https://psitthirat.github.io/HRH-slides/?mode=present&scene=S00)
+[เปิดเว็บไซต์](https://psitthirat.github.io/HRH-model/?mode=present&scene=S00)
 
 โครงการวิจัย: การพัฒนาแนวทางและนโยบายการวางแผนกำลังคนด้านสุขภาพโดยใช้แบบจำลองบูรณาการ
 

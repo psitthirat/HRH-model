@@ -23,11 +23,13 @@ import { TimeBudget } from "./charts/timebudget.js";
 import { HalfLife } from "./charts/halflife.js";
 import { Waterfall } from "./charts/waterfall.js";
 import { Alloc } from "./charts/alloc.js";
+import { ModelDiagram } from "./charts/mechanism.js";
+import { PlanCompare, giniTable } from "./charts/plancompare.js";
 import { t, pin, uiLoc, sceneLoc, chapterLoc } from "./util/i18n.js";
 
 const REGISTRY = { provinces: ProvinceStage, lines: Lines, bars: Bars, dots: Dots, dumbbell: Dumbbell,
   bridge: Bridge, stack: Stack, cards: Cards, text: TextPanel, scatter: Scatter, timebudget: TimeBudget,
-  halflife: HalfLife, waterfall: Waterfall, alloc: Alloc, titlecard: TitleCard };
+  halflife: HalfLife, waterfall: Waterfall, alloc: Alloc, titlecard: TitleCard, modeldiagram: ModelDiagram, plancompare: PlanCompare };
 const WIDE = new Set(["text"]);
 
 export function stepView(scene, stepIdx) {
@@ -174,6 +176,11 @@ export function setStepCaption(F, stepIdx) {
   }
   F.ribbon.querySelector('.badge')?.replaceWith(evidenceBadge(F.R, current.evidence || sc.evidence));
   renderEndpointSummary(F.detailTable, view.endpoint_table, F.R);
+  if (view.comparison_table) {
+    const table = giniTable(F.R);
+    table.prepend(h("caption", { text: view.comparison_table.title }));
+    F.detailTable.append(table);
+  }
   if (view.side_items?.length) F.detailTable.append(h("ul", { class: "scene__agenda" },
     ...view.side_items.map(text => h("li", { text }))));
   // Layout follows the current view, including scenes that change chart type.

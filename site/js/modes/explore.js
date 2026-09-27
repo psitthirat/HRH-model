@@ -37,6 +37,23 @@ export function initExplore(app) {
     return applyOverrides(base, app.state.ov, R);
   }
 
+  function currentContent(spec) {
+    const sc = scene();
+    const current = app.state.step > sc.steps.length
+      ? sc.explore.views?.[app.state.step - sc.steps.length - 1]
+      : sc.steps[Math.min(Math.max(1, app.state.step || 1), sc.steps.length) - 1];
+    // A disclosure step can change both the chart and its interpretation.
+    // Explore keeps those together, including in the sources drawer.
+    return { ...sc,
+      headline: current?.headline ?? sc.headline,
+      body: current?.body ?? sc.body,
+      time: current?.time ?? sc.time,
+      scope: current?.scope ?? sc.scope,
+      denominator: current?.denominator ?? sc.denominator,
+      evidence: current?.evidence ?? (spec.dataset ? R.ds(spec.dataset).meta.evidence : sc.evidence),
+    };
+  }
+
   function select(label, options, value, onchange, id) {
     const sel = h("select", { id, onchange: (e) => onchange(e.target.value) });
     for (const o of options) sel.append(h("option", { value: o.value, selected: String(o.value) === String(value) ? true : null, text: o.label }));
@@ -85,13 +102,13 @@ export function initExplore(app) {
 
   function renderSide(spec) {
     clear(side);
-    const sc = scene();
+    const sc = currentContent(spec);
     const changed = Object.values(app.state.ov).some((v) => v);
     side.append(h("p", { class: "scene__kicker", text: `${sc.id} · ${R.chapter(sc.chapter).title}` }), h("h2", { class: "scene__title", text: sc.title }));
     side.append(h("p", { class: "explore__note", text: changed ? t("explore.changed_note") : t("explore.default_note") }));
     side.append(h("p", { class: "scene__headline", text: sc.headline.text }), h("p", { class: "scene__body", text: sc.body.text }));
     side.append(h("dl", { class: "kv" }, h("dt", { text: t("ribbon.time") }), h("dd", { text: sc.time }), h("dt", { text: t("ribbon.scope") }), h("dd", { text: sc.scope }),
-      h("dt", { text: t("ribbon.den") }), h("dd", { text: sc.denominator })), evidenceBadge(R, spec.dataset ? R.ds(spec.dataset).meta.evidence : sc.evidence));
+      h("dt", { text: t("ribbon.den") }), h("dd", { text: sc.denominator })), evidenceBadge(R, sc.evidence));
     side.append(h("div", { class: "explore__actions" },
       h("button", { class: "btn", type: "button", onclick: () => app.openSources(sc, spec), text: t("btn.sources") }),
       ...(R.capabilities.appendix ? sc.appendix || [] : []).map((a) => h("button", { class: "btn btn--ghost", type: "button", onclick: () => app.openAppendix(a), text: t("btn.appendix", { ids: a }) }))));
@@ -100,6 +117,8 @@ export function initExplore(app) {
 
   function renderTable(spec) {
     clear(tableBox);
+    tableBox.hidden = spec.component === "modeldiagram" && !spec.dataset && !spec.rows?.length;
+    if (tableBox.hidden) return;
     const tbl = viewRows(spec, R);
     const name = `${scene().id}_${spec.dataset || "table"}.csv`;
     const meta = [`release ${R.id}`, `scene ${scene().id}`, `dataset ${spec.dataset || "-"}`, `filter ${JSON.stringify(spec.filter || {})}`,
