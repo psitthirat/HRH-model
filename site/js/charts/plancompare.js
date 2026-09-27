@@ -229,37 +229,39 @@ export class PlanCompare {
   }
 
   gini(wrap) {
-    const rows = this.ctx.release.rows("c5_gini_final");
+    const rows = this.ctx.release.rows(this.spec.gini_dataset || "c5_gini_final");
     const body = h("div", { class: "compare__body" }), plot = h("div", { class: "compare__plot" }), side = h("div", { class: "compare__side" });
     body.append(plot, side); wrap.append(body, h("p", { class: "compare__note", text: t("compare.gini_note") }));
+    if (!rows.length) return;
     const max = Math.max(...rows.flatMap(r => [r.gini_p, r.gini_s]));
     const { svg, x, y } = this.plotAxes(plot, nice([0, max * 1.18], 5), 2, {
       x: t("compare.gini_x"), y: t("compare.gini_y"),
     });
     const labelOffsets = { "P-R": [-14, -21, "end"], "N-R": [0, -34, "start"],
       "NFB0.5-R": [-16, 40, "end"], "NFB1-R": [16, -12, "start"], "S-R": [13, 24, "start"], "SQ-C": [14, -16, "start"] };
-    for (const row of rows) {
+    for (const [index, row] of rows.entries()) {
       const px = x(row.gini_p), py = y(row.gini_s);
-      const [dx, dy, anchor] = labelOffsets[row.plan];
-      const point = s("g", { class: "compare__point", tabindex: 0, "aria-label": `${planLabel(row.plan)}: ${num(row.gini_p, 3)}, ${num(row.gini_s, 3)}` },
-        s("circle", { cx: px, cy: py, r: 8, style: `fill:${PLAN_COLOURS[PLAN_KEYS.indexOf(row.plan)]}` }),
+      const [dx, dy, anchor] = row.label_offset || labelOffsets[row.plan] || [index % 2 ? -12 : 12, -18 - 18 * (index % 3), index % 2 ? "end" : "start"];
+      const label = row.label || planLabel(row.plan);
+      const point = s("g", { class: "compare__point", tabindex: 0, "aria-label": `${label}: ${num(row.gini_p, 3)}, ${num(row.gini_s, 3)}` },
+        s("circle", { cx: px, cy: py, r: 8, style: `fill:${row.color || PLAN_COLOURS[Math.max(0, PLAN_KEYS.indexOf(row.plan))]}` }),
         s("line", { x1: px, y1: py + (dy < 0 ? -9 : 9), x2: px + dx, y2: py + dy + (dy < 0 ? 5 : -14), class: "compare__leader" }),
-        s("text", { x: px + dx, y: py + dy, "text-anchor": anchor, class: "map-label", text: row.plan.replace("NFB", "N-FB ") }));
-      bindTip(point, () => tipHTML(planLabel(row.plan), [[t("compare.gini_x"), num(row.gini_p, 3)], [t("compare.gini_y"), num(row.gini_s, 3)]])); svg.append(point);
+        s("text", { x: px + dx, y: py + dy, "text-anchor": anchor, class: "map-label", text: row.short_label || row.label || row.plan.replace("NFB", "N-FB ") }));
+      bindTip(point, () => tipHTML(label, [[t("compare.gini_x"), num(row.gini_p, 3)], [t("compare.gini_y"), num(row.gini_s, 3)]])); svg.append(point);
     }
-    side.append(h("h3", { text: t("compare.final_gini", { year: be(rows[0].year) }) }), giniTable(this.ctx.release),
+    side.append(h("h3", { text: t("compare.final_gini", { year: be(rows[0].year) }) }), giniTable(this.ctx.release, this.spec.gini_dataset),
       h("p", { class: "compare__selection", text: t("compare.gini_read") }));
   }
 
   destroy() { hideTip(); clear(this.el); }
 }
 
-export function giniTable(R) {
+export function giniTable(R, dataset = "c5_gini_final") {
   const table = h("table", { class: "gini-table" }, h("thead", {}, h("tr", {}, h("th", { text: t("compare.plan") }),
     h("th", { text: t("compare.population_short") }), h("th", { text: t("compare.service_short") }))));
-  const rows = R.rows("c5_gini_final"), body = h("tbody"); table.append(body);
+  const rows = R.rows(dataset || "c5_gini_final"), body = h("tbody"); table.append(body);
   const minP = Math.min(...rows.map(r => r.gini_p)), minS = Math.min(...rows.map(r => r.gini_s));
-  for (const row of rows) body.append(h("tr", {}, h("th", { scope: "row", text: row.plan.replace("NFB", "N-FB ") }),
+  for (const row of rows) body.append(h("tr", {}, h("th", { scope: "row", text: row.label || row.plan.replace("NFB", "N-FB ") }),
     h("td", { class: row.gini_p === minP ? "is-lowest" : "", text: num(row.gini_p, 3) }),
     h("td", { class: row.gini_s === minS ? "is-lowest" : "", text: num(row.gini_s, 3) })));
   return table;

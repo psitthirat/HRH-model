@@ -16,6 +16,30 @@ import { t } from "../util/i18n.js";
 
 const SEQ = [0, 1, 2, 3, 4, 5, 6].map((i) => `var(--seq-${i})`);
 
+// One selector feeds the map, its tooltips and chart-data downloads.
+export function selectAllocations(rows, plans, year) {
+  const out = new Map(plans.map(p => [p.key, new Map()]));
+  const years = [...new Set(rows.map(r => r.year))].sort((a,b) => a-b);
+  const first = years[0], last = years.at(-1);
+  for (const r of rows) {
+    const m=out.get(r.plan);if(!m)continue;
+    if(year!=='all'){if(r.year===year)m.set(r.prov_code,{...r});continue;}
+    const cur=m.get(r.prov_code)||{...r,x:0,departures:0};cur.x+=r.x;
+    if(r.year===first)cur.opening=r.opening;
+    if(r.year===last){cur.closing=r.closing;cur.attainment_pop=r.attainment_pop;}
+    cur.departures+=r.departures;
+    cur.year=r.year;m.set(r.prov_code,cur);
+  }
+  return out;
+}
+export function allocationFigureRows(rows, plans, plan, year) {
+  const years=[...new Set(rows.map(r=>r.year))].sort((a,b)=>a-b),all=year==='all';
+  return [...(selectAllocations(rows,plans,year).get(plan)?.values()||[])].map(r=>({plan:r.plan,prov_code:r.prov_code,province:r.province,
+    period:all?'cumulative':'annual',year_ce:all?null:year,first_year_ce:all?years[0]:year,last_year_ce:all?years.at(-1):year,
+    appointments:r.x,opening_stock:r.opening,departures:r.departures,closing_stock:r.closing,attainment_population:r.attainment_pop,
+    cap_binding:all?null:r.cap_binding,floor_only:all?null:r.floor_only}));
+}
+
 export class Alloc {
   constructor(el, ctx) {
     this.el = el;
@@ -43,27 +67,10 @@ export class Alloc {
 
   // values for the current year (or all years) under every plan: plan -> code -> record
   table() {
-    const { year } = this.state;
-    const out = new Map();
-    for (const p of this.spec.plans) out.set(p.key, new Map());
-    const first = this.years[0], last = this.years[this.years.length - 1];
-    for (const r of this.rows) {
-      const m = out.get(r.plan);
-      if (!m) continue;
-      if (year !== "all") {
-        if (r.year === year) m.set(r.prov_code, { ...r, x: r.x });
-        continue;
-      }
-      const cur = m.get(r.prov_code) || { ...r, x: 0 };
-      cur.x += r.x;
-      if (r.year === first) cur.opening = r.opening;
-      if (r.year === last) { cur.closing = r.closing; cur.attainment_pop = r.attainment_pop; }
-      cur.departures = (cur.year === r.year ? 0 : cur.departures || 0) + r.departures;
-      cur.year = r.year;
-      m.set(r.prov_code, cur);
-    }
-    return out;
+    return selectAllocations(this.rows,this.spec.plans,this.state.year);
   }
+
+  figureData(){return {rows:allocationFigureRows(this.rows,this.spec.plans,this.state.plan,this.state.year),selection:{plan:this.state.plan,year:this.state.year}};}
 
   render() {
     const R = this.ctx.release;

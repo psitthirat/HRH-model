@@ -7,8 +7,8 @@ let UI = {};
 let LOC = null;
 let LOCATE = false;
 
-export function initText(bundle, { locate = false } = {}) {
-  UI = bundle.ui || {};
+export function initText(bundle, { locate = false, overrides = {} } = {}) {
+  UI = { ...(bundle.ui || {}), ...overrides };
   const authoring = bundle.publication?.capabilities?.authoring !== false;
   LOC = authoring ? bundle.loc || null : null;
   LOCATE = authoring && !!locate;

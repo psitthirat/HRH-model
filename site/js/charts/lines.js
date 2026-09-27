@@ -315,7 +315,7 @@ export class Lines {
           if (r && raw && r[raw] != null && raw !== sr.col)
             out.push([`${label} · ${spec.raw_label || t("chart.raw_value")}`, num(r[raw], spec.raw_digits ?? (raw === "headcount" || raw === "value" ? 0 : 2))]);
           if (r && sr.lo && sr.hi && r[sr.lo] != null && r[sr.hi] != null)
-            out.push([spec.interval_kind === "scenario_range" ? t("chart.scenario_range") : t("chart.interval"), `${num(r[sr.lo], 2)}–${num(r[sr.hi], 2)}`]);
+            out.push([spec.interval_label || (spec.interval_kind === "scenario_range" ? t("chart.scenario_range") : t("chart.interval")), `${num(r[sr.lo], 2)}–${num(r[sr.hi], 2)}`]);
           for (const point of scenarioRows.filter((row) => row[xcol] === near && (!sr.filter || sr.filter(row)) && (fk == null || row[facetCol] === fk))) {
             const years = String(point.window_years).split("-").map((year) => be(Number(year))).join("–");
             const population = point.population_scenario === "pop_fixed" ? t("chart.population_fixed") : t("chart.population_trend");

@@ -110,6 +110,7 @@ export function initExplore(app) {
     side.append(h("dl", { class: "kv" }, h("dt", { text: t("ribbon.time") }), h("dd", { text: sc.time }), h("dt", { text: t("ribbon.scope") }), h("dd", { text: sc.scope }),
       h("dt", { text: t("ribbon.den") }), h("dd", { text: sc.denominator })), evidenceBadge(R, sc.evidence));
     side.append(h("div", { class: "explore__actions" },
+      app.labEntry(sc.id)?.status === "supported" ? h("button", { class: "btn", type: "button", text: t("btn.lab"), onclick: () => app.enterLab({ scene: sc.id, step: app.state.step }) }) : "",
       h("button", { class: "btn", type: "button", onclick: () => app.openSources(sc, spec), text: t("btn.sources") }),
       ...(R.capabilities.appendix ? sc.appendix || [] : []).map((a) => h("button", { class: "btn btn--ghost", type: "button", onclick: () => app.openAppendix(a), text: t("btn.appendix", { ids: a }) }))));
     if (sc.caveats.length) side.append(h("ul", { class: "scene__caveats" }, ...sc.caveats.map((c) => h("li", { text: c }))));

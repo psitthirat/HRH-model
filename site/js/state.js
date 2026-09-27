@@ -3,7 +3,7 @@
 // Explore adds temporary overrides (cadre, scope, den, year, ...) that are never
 // written back into the presenter's prepared state.
 
-export const MODES = ["story", "present", "explore", "print"];
+export const MODES = ["story", "present", "explore", "print", "lab"];
 const OVERRIDES = ["cadre", "scope", "den", "pair", "year", "window", "tier", "wf", "prov", "cadres", "view"];
 
 export function readState(search = location.search) {
@@ -13,6 +13,9 @@ export function readState(search = location.search) {
     release: q.get("release") || null,
     scene: (q.get("scene") || "").toUpperCase() || null,
     step: Math.max(1, parseInt(q.get("step") || "1", 10) || 1),
+    lang: q.get("lang") === "en" ? "en" : "th",
+    labPreset: q.get("preset") || null,
+    labView: q.get("labview") === "present" ? "present" : null,
     ov: {},
   };
   for (const k of OVERRIDES) if (q.get(k)) st.ov[k] = q.get(k);
@@ -25,6 +28,9 @@ export function toQuery(st, { includeOverrides = true } = {}) {
   if (st.scene) q.set("scene", st.scene);
   if (st.step && st.step > 1) q.set("step", String(st.step));
   if (st.release) q.set("release", st.release);
+  if (st.lang === "en") q.set("lang", "en");
+  if (st.mode === "lab" && st.labPreset) q.set("preset", st.labPreset);
+  if (st.mode === "lab" && st.labView) q.set("labview", st.labView);
   if (includeOverrides) for (const [k, v] of Object.entries(st.ov || {})) if (v != null && v !== "") q.set(k, v);
   return "?" + q.toString();
 }
@@ -45,4 +51,15 @@ export function savePresenter(st) {
 export function loadPresenter() {
   if (savePresenter.mem) return savePresenter.mem;
   try { return JSON.parse(sessionStorage.getItem(KEY) || "null"); } catch { return null; }
+}
+
+// Per-tab return context is independent of local participant drafts/results.
+export function saveLabReturn(st) {
+  const snap = structuredClone(st);
+  saveLabReturn.mem = snap;
+  try { sessionStorage.setItem("story.lab.return", JSON.stringify(snap)); } catch { /* optional storage */ }
+}
+export function loadLabReturn() {
+  try { return saveLabReturn.mem || JSON.parse(sessionStorage.getItem("story.lab.return") || "null"); }
+  catch { return saveLabReturn.mem || null; }
 }

@@ -1,14 +1,22 @@
 {
- "current": "20260927T145547Z-c1c8c26dd98f",
- "latest": "20260927T145547Z-c1c8c26dd98f",
- "releases": [
-  {
-   "id": "20260927T145547Z-c1c8c26dd98f",
-   "generated_at": "2026-09-27T14:55:47+00:00",
-   "status": "promoted",
-   "freshness": "unknown",
-   "validation_ok": true,
-   "promoted_at": "2026-09-27T14:56:23+00:00"
-  }
- ]
+  "current": "20260927T170441Z-518d6356eddd",
+  "latest": "20260927T170441Z-518d6356eddd",
+  "releases": [
+    {
+      "id": "20260927T145547Z-c1c8c26dd98f",
+      "generated_at": "2026-09-27T14:55:47+00:00",
+      "status": "promoted",
+      "freshness": "unknown",
+      "validation_ok": true,
+      "promoted_at": "2026-09-27T14:56:23+00:00"
+    },
+    {
+      "id": "20260927T170441Z-518d6356eddd",
+      "generated_at": "2026-09-27T17:04:41+00:00",
+      "status": "promoted",
+      "freshness": "unknown",
+      "validation_ok": true,
+      "promoted_at": "2026-09-27T17:09:26+00:00"
+    }
+  ]
 }

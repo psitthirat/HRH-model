@@ -127,7 +127,7 @@ export function viewRows(spec, R) {
 }
 
 // ---------------------------------------------------------------- scene frame
-export function sceneFrame(R, scene, { mode, onSources, onExplore, onAppendix } = {}) {
+export function sceneFrame(R, scene, { mode, onSources, onExplore, onAppendix, onLab } = {}) {
   const ch = R.chapter(scene.chapter);
   const wide = WIDE.has(scene.steps[0].view.component);
   const frame = h("section", { class: `scene scene--${scene.evidence}${wide ? " scene--wide" : ""}`, "data-scene": scene.id,
@@ -155,6 +155,7 @@ export function sceneFrame(R, scene, { mode, onSources, onExplore, onAppendix } 
     item("time", "ribbon.time", "time"), item("scope", "ribbon.scope", "scope"), item("den", "ribbon.den", "denominator"),
     evidenceBadge(R, scene.evidence),
     h("span", { class: "ribbon__actions" },
+      onLab && R.bundle.lab?.scene_map?.[scene.id]?.status === "supported" ? h("button", { class: "btn btn--ghost", type: "button", onclick: () => onLab(scene), text: t("btn.lab") }) : "",
       scene.caveats.length ? info : "",
       h("button", { class: "btn btn--ghost", type: "button", onclick: () => onSources?.(scene), text: t("btn.sources") }),
       R.capabilities.appendix && scene.appendix?.length ? h("button", { class: "btn btn--ghost", type: "button", onclick: () => onAppendix?.(scene.appendix[0]), text: t("btn.appendix", { ids: scene.appendix.join(", ") }) }) : "",

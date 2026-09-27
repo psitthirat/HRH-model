@@ -35,7 +35,7 @@ export function initPresent(app) {
     if (!F || F.scene.id !== scene.id) {
       hideTip();
       F = sceneFrame(R, scene, { mode: "present", onSources: app.openSources, onExplore: () => app.switchMode("explore"),
-        onAppendix: app.openAppendix });
+        onAppendix: app.openAppendix, onLab: () => app.enterLab({ scene: scene.id, step: app.state.step }) });
       F.frame.replaceChild(stage, F.stage);   // keep the same stage element across scenes
       F.stage = stage;
       clear(root); root.append(progress, F.frame);

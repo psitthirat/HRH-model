@@ -4,7 +4,7 @@
 
 import { h, clear } from "./util/dom.js";
 import { loadIndex, chooseRelease, loadRelease } from "./data.js";
-import { readState, writeState, savePresenter, loadPresenter, MODES } from "./state.js";
+import { readState, writeState, savePresenter, loadPresenter, saveLabReturn, loadLabReturn, MODES } from "./state.js";
 import { initPresent } from "./modes/present.js";
 import { initStory } from "./modes/story.js";
 import { initExplore } from "./modes/explore.js";
@@ -14,7 +14,7 @@ import { stepView } from "./engine.js";
 import { initText, t, tp, pin, uiLoc } from "./util/i18n.js";
 
 const MODE_INIT = { present: initPresent, story: initStory, explore: initExplore, print: initPrint };
-const MODE_KEYS = ["story", "present", "explore"];
+const MODE_KEYS = ["story", "present", "explore", "lab"];
 
 async function boot() {
   const main = document.getElementById("main");
@@ -44,8 +44,9 @@ async function boot() {
         goto: (sid) => app.goto(sid), ...extra };
     },
     persist() {
-      const s = { ...app.state, release: pinned || app.state.mode === "present" ? R.id : null };
-      if (app.state.mode !== "explore") s.ov = {};
+      const s = { ...app.state, release: pinned || ["present", "lab"].includes(app.state.mode) ? R.id : null };
+      if (app.state.mode === "lab") s.ov = app.state.ov?.prov ? { prov: app.state.ov.prov } : {};
+      else if (app.state.mode !== "explore") s.ov = {};
       writeState(s);
     },
     updateTopbar(scene, step) {
@@ -57,12 +58,27 @@ async function boot() {
     },
     switchMode(mode) {
       if (!MODES.includes(mode)) return;
+      if (mode === "lab") return app.enterLab();
       if (app.state.mode === "present" && mode === "explore") savePresenter({ ...app.state, release: R.id });
       if (mode === "explore" && !app.state.scene) app.state.scene = R.scenes[2].id;
       if (mode === "present" && !app.state.scene) { app.state.scene = R.scenes[0].id; app.state.step = 1; }
       if (mode !== "explore") app.state.ov = {};
       app.state.mode = mode;
       writeState({ ...app.state, release: pinned || mode === "present" ? R.id : null }, { push: true });
+      mount();
+    },
+    labEntry(sceneId) { return R.bundle.lab?.scene_map?.[sceneId]; },
+    enterLab(context = null) {
+      if (app.state.mode !== "lab") saveLabReturn({ ...app.state, release: R.id });
+      app.labEntryContext = context || { kind: "main_menu" };
+      app.state = { ...app.state, mode: "lab", labView: null,
+        labPreset: context?.preset_id || (context?.scene ? `scene:${context.scene}` : null) };
+      writeState({ ...app.state, release: R.id }, { push: true });
+      mount();
+    },
+    returnFromLab() {
+      app.state = loadLabReturn() || { mode: "present", scene: R.scenes[0].id, step: 1, ov: {}, lang: app.state.lang };
+      writeState({ ...app.state, release: R.id }, { push: true });
       mount();
     },
     returnToPresenter() {
@@ -103,11 +119,30 @@ async function boot() {
   };
 
   buildTopbar(app, R, pinned);
-  function mount() {
+  let mountGeneration = 0;
+  async function mount() {
+    const generation = ++mountGeneration;
     app.current?.destroy?.();
+    app.current = null;
+    initText(R.bundle, { locate: new URLSearchParams(location.search).has("locate") });
+    document.documentElement.lang = app.state.mode === "lab" ? app.state.lang || "th" : "th";
     document.body.className = `mode-${app.state.mode}`;
     document.querySelectorAll(".modes button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.mode === app.state.mode)));
-    app.current = MODE_INIT[app.state.mode](app);
+    if (app.state.mode === "lab") {
+      clear(main).append(h("p", { class: "loading", text: "กำลังเปิด Workforce Lab…" }));
+      try {
+        const { initLab } = await import("./lab/main.js");
+        if (generation !== mountGeneration) return;
+        const controller = await initLab(app, { isCurrent: () => generation === mountGeneration });
+        if (generation !== mountGeneration) controller?.destroy?.();
+        else app.current = controller;
+      } catch (error) {
+        if (generation === mountGeneration) clear(main).append(h("div", { class: "fatal" },
+          h("h1", { text: "เปิด Lab ไม่สำเร็จ" }), h("p", { text: error.message }),
+          h("button", { class: "btn", text: "กลับไปยังสไลด์", onclick: app.returnFromLab })));
+        console.error(error);
+      }
+    } else app.current = MODE_INIT[app.state.mode](app);
   }
   window.addEventListener("popstate", () => { app.state = readState(); if (!app.state.mode) app.state.mode = "story"; mount(); });
   // SVG margins are measured from text. Draw after the local font is ready.
@@ -129,7 +164,7 @@ function buildTopbar(app, R, pinned) {
     tp(h("a", { class: "topbar__brand", href: "?mode=story" }), "top.brand"),
     h("div", { class: "topbar__where", "aria-live": "polite" }),
     h("nav", { class: "modes", "aria-label": t("top.modes") }, ...MODE_KEYS.map((m) =>
-      tp(h("button", { type: "button", "data-mode": m, "aria-pressed": "false", onclick: () => app.switchMode(m) }), `mode.${m}`))),
+      tp(h("button", { type: "button", "data-mode": m, "aria-pressed": "false", title: m === "lab" ? "ทดลองแผนจัดสรรกำลังคน" : null, onclick: () => app.switchMode(m) }), `mode.${m}`))),
     h("div", { class: "topbar__tools" },
       R.capabilities.notes ? tp(h("button", { class: "btn btn--ghost only-present", type: "button", onclick: () => app.openNotes() }), "top.notes") : "",
       tp(h("button", { class: "btn btn--ghost only-present", type: "button", onclick: () => app.toggleFullscreen() }), "top.fullscreen"),

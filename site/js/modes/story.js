@@ -41,7 +41,8 @@ export function initStory(app) {
 
   for (const sc of R.scenes) {
     const F = sceneFrame(R, sc, { mode: "story", onSources: app.openSources, onAppendix: app.openAppendix,
-      onExplore: () => { app.state.scene = sc.id; app.state.step = sc.steps.length; app.switchMode("explore"); } });
+      onExplore: () => { app.state.scene = sc.id; app.state.step = sc.steps.length; app.switchMode("explore"); },
+      onLab: () => { app.state.scene = sc.id; app.state.step = sc.steps.length; app.enterLab({ scene: sc.id, step: sc.steps.length }); } });
     frames.set(sc.id, F);
     setStepCaption(F, narrow ? sc.steps.length : 1);
     const block = h("article", { class: "story-scene", id: `scene-${sc.id}`, "data-scene": sc.id }, F.text, F.ribbon);
