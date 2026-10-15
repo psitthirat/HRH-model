@@ -15,7 +15,7 @@ export function readState(search = location.search) {
     step: Math.max(1, parseInt(q.get("step") || "1", 10) || 1),
     lang: q.get("lang") === "en" ? "en" : "th",
     labPreset: q.get("preset") || null,
-    labView: ["present", "policies"].includes(q.get("labview")) ? q.get("labview") : null,
+    labView: ["present", "policies", "modules"].includes(q.get("labview")) ? q.get("labview") : null,
     labPolicy: /^P(?:0[1-9]|1[0-9]|20)$/.test(q.get("policy") || "") ? q.get("policy") : null,
     ov: {},
   };

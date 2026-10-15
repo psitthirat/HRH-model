@@ -86,7 +86,7 @@ async function loadModel(id, manifest, manifestURL) {
 
 self.onmessage = async ({ data }) => {
   const { id, action, config, manifest, manifestURL } = data || {};
-  if (!id || !['run', 'validate', 'compare', 'summarize'].includes(action)) return;
+  if (!id || !['run', 'validate', 'compare', 'summarize', 'service'].includes(action)) return;
   if (active) { send(id, 'error', { error: { name: 'BusyError', message: 'A computation is already running' } }); return; }
   active = true;
   const started = performance.now();
@@ -106,6 +106,9 @@ self.onmessage = async ({ data }) => {
         ? `_hrh_adapter.compare_json(_hrh_config_json)`
         : action === 'summarize'
           ? `from chapter5 import lab_experiments as _hrh_experiments\n_hrh_experiments.summarize_json(_hrh_config_json)`
+          : action === 'service'
+            // Uploaded CSV text arrives as a JSON value; it is parsed by pandas, never executed.
+            ? `from services import lab_modules as _hrh_services\n_hrh_services.dispatch_json(_hrh_config_json, _hrh_inputs_json)`
           : `_hrh_adapter.run_json(_hrh_config_json, _hrh_inputs_json, _hrh_versions_json, progress=_hrh_progress)`;
     const raw = await py.runPythonAsync(command);
     const result = JSON.parse(raw);

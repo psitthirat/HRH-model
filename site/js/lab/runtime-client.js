@@ -160,6 +160,13 @@ export class LabRuntimeClient {
     return (await this._request('summarize', {items: values, limits: clone(limits)}, { id: `summarize-${crypto.randomUUID()}` })).result;
   }
 
+  // Data-ready service modules: op = describe | synthetic | validate | run | staged | comparability.  Files supplied by the
+  // user are passed as text to the worker and processed there; nothing is uploaded to a server.
+  async service(op, payload = {}) {
+    if (this.activeId || this.pending.size) throw new Error('Wait for the active computation before starting another');
+    return (await this._request('service', { ...clone(payload), op }, { id: `service-${crypto.randomUUID()}` })).result;
+  }
+
   cancel_run(runId = this.activeId) {
     const run = this.runs.get(runId);
     if (!run || completed(run.status)) return false;

@@ -9,6 +9,7 @@ import { registryEntries, enabled, parameterField, same, stable } from './fields
 import { readWorkspace, writeWorkspace, participantKey } from './storage.js';
 import { copy, localized } from './copy.js';
 import { renderPolicyLibrary } from './policies.js';
+import { renderServiceModules } from './modules.js';
 import { policyOptions, policyCatalogueVersion } from './policy-data.js';
 
 const clone=structuredClone;
@@ -25,7 +26,7 @@ async function json(url,hash) {
   return JSON.parse(new TextDecoder().decode(bytes));
 }
 export async function initLab(app,{isCurrent=()=>true}={}) {
-  stylesheet('lab.css');stylesheet('lab-results.css');stylesheet('lab-policies.css');stylesheet('lab-fields.css');
+  stylesheet('lab.css');stylesheet('lab-results.css');stylesheet('lab-policies.css');stylesheet('lab-fields.css');stylesheet('lab-modules.css');
   const release=app.R;
   if(!release.bundle.lab)throw new Error('ชุดเผยแพร่นี้ยังไม่มี Workforce Lab กรุณาเปิดชุดเผยแพร่ปัจจุบัน');
   const releaseURL=new URL(`../../data/releases/${encodeURIComponent(release.id)}/`,import.meta.url);
@@ -41,7 +42,7 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
   const presets=Array.isArray(lab.presets)?lab.presets:Object.entries(lab.presets || {}).map(([id,p])=>({id,...p}));
   const key=participantKey(release.id),persisted=await readWorkspace(key);
   let draft=clone(defaultConfig),selected=baseline,pins=[],archivedRuns=[],batch=[],lastRuntime=null,savedStatus=true,failedRun=null,comparisonAnalysis=null,experimentSummary=null;
-  let alive=true,busy=false,cancelBatch=false,status='ready',statusDetail='',progressDetail={},resultController=null,policyController=null,saveTimer,newReleaseTimer;
+  let alive=true,busy=false,cancelBatch=false,status='ready',statusDetail='',progressDetail={},resultController=null,policyController=null,serviceController=null,saveTimer,newReleaseTimer;
   let controlTab='overview',controlGroup={future:'services',analysis:'planning'},extraOpen=false,selectedPolicyId=null;
   let lang=app.state.lang || 'th',T=copy(lang),root,form,results,feedback,actions,changeList,pinsBox,storageNote,batchBox;
   const entryContext=app.labEntryContext;
@@ -113,6 +114,7 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
   function render(){
     resultController?.destroy?.();resultController=null;
     policyController?.destroy?.();policyController=null;
+    serviceController?.destroy?.();serviceController=null;
     T=copy(lang);initText(release.bundle,{overrides:lang==='en'?lab.ui_en||{}:{}});
     document.documentElement.lang=lang;
     document.body.classList.toggle('lab-presenting',app.state.labView==='present');
@@ -121,11 +123,19 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
     root.append(h('header',{class:'lab-header'},h('div',{},h('p',{class:'lab-eyebrow',text:'WORKFORCE LAB'}),
       h('h1',{text:T('title')}),
       h('p',{text:lang==='en'?'Adjust assumptions, calculate, then compare the results below.':'ปรับสมมติฐาน กดคำนวณ แล้วเปรียบเทียบผลด้านล่าง'})),
-      h('div',{class:'lab-header__actions'},language,button(T('back'),app.returnFromLab))));
+      h('div',{class:'lab-header__actions'},language,
+        app.state.labView!=='present'&&button(app.state.labView==='modules'?(lang==='en'?'Allocation Lab':'Lab การจัดสรร'):(lang==='en'?'Service modules (experimental)':'โมดูลบริการ (ทดลอง)'),
+          ()=>{app.state.labView=app.state.labView==='modules'?null:'modules';app.persist();render();},{'data-action':'service-modules'}),
+        button(T('back'),app.returnFromLab))));
     root.append(h('div',{class:'lab-scope-row'},h('p',{class:'lab-scope',text:T('scope'),title:T('provisional')}),h('details',{class:'lab-scope-note'},h('summary',{text:lang==='en'?'Provisional MOPH / OPS scope':'ขอบเขตชั่วคราว: ใช้จำนวนแพทย์ สธ. เป็นตัวแทน สป.สธ.'}),h('p',{class:'lab-scope--detail',text:T('provisional')}))));
     const origin=draft.origin?.source_scene_id;if(origin)root.append(h('p',{class:'lab-origin',text:`${T('source')} ${origin} · ${release.scene(origin)?.title || ''}`}));
     const update=h('div',{class:'lab-release-update',hidden:true});root.append(update);
     checkNewRelease(update);
+    if(app.state.labView==='modules'){
+      const host=h('div',{class:'lab-service-host'});root.append(host);
+      serviceController=renderServiceModules(host,{client,lang,onBack:()=>{app.state.labView=null;app.persist();render();}});
+      return;
+    }
     if(app.state.labView==='present'){
       root.append(h('div',{class:'lab-present-actions'},h('span',{class:'badge',text:T('experimentLabel')}),button(T('backControls'),()=>present(false)),button(T('back'),app.returnFromLab),button(lang==='en'?'Fullscreen':'เต็มหน้าจอ',app.toggleFullscreen)));
       results=h('div',{class:'lab-output'});root.append(results);showResults();return;
@@ -167,13 +177,13 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
     results=h('div',{class:'lab-result-host'});output.append(results);
     output.append(downloads,pinsBox);
     batchBox=h('section',{class:'lab-batch-results'});output.append(batchBox);
-    output.append(h('div',{class:'lab-experiment-tools'},experimentPanel(),robustPanel()),methodsPanel());
+    output.append(h('div',{class:'lab-experiment-tools'},experimentPanel(),robustPanel()),methodsPanel(),validationPanel());
     showChanges();showStatus();showPins();showResults();showBatch();
   }
   function syncPolicyContext(){
     selectedPolicyId=draft.origin?.policy_option_id||null;
     controlTab=selectedPolicyId?'policy':'overview';
-    app.state.labPolicy=selectedPolicyId;app.state.labView=selectedPolicyId?'policies':null;app.persist();
+    app.state.labPolicy=selectedPolicyId;if(app.state.labView!=='modules')app.state.labView=selectedPolicyId?'policies':null;app.persist();
   }
   function setPolicyContext(policy){
     // Choosing a policy records context only; there is no evidence-to-effect
@@ -184,7 +194,7 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
     if(policy?.route){draft.origin.policy_option_id=policy.id;draft.origin.policy_catalog_version=policyCatalogueVersion;}
     controlTab=policy?.route?'policy':'overview';extraOpen=false;
     app.state.labPolicy=selectedPolicyId;
-    if(app.state.labView!=='present')app.state.labView=policy?'policies':null;
+    if(!['present','modules'].includes(app.state.labView))app.state.labView=policy?'policies':null;
   }
   function selectPolicy(policy){
     if(busy||!validateForm()){policyController?.update?.({selectedId:selectedPolicyId});return;}
@@ -333,6 +343,27 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
     for(const p of entries)body.append(h('tr',{},h('td',{text:localized(p,'label',lang)}),h('td',{text:localized(p,'help',lang)}),h('td',{text:localized(p,'unit',lang)||p.unit||''})));
     details.append(h('div',{class:'lab-table-scroll'},table),h('pre',{text:JSON.stringify(lab.versions,null,2)}));return details;
   }
+  // Compact validation view (plan §8.2): what was held out, against which baseline, where it is weak.
+  // Read from the release manifest; values come from the canonical Chapter 5 validation inventory.
+  function validationPanel(){
+    const v=lab.validation;if(!v)return document.createDocumentFragment();
+    const en=lang==='en',num=x=>typeof x==='number'?(Math.abs(x)>=10?x.toFixed(1):x.toFixed(2)):(x??'');
+    const details=h('details',{class:'lab-validation','data-validation':'compact'},h('summary',{text:en?'How well does the engine predict? (hindcast and validation)':'แบบจำลองทำนายได้ดีแค่ไหน (การทดสอบย้อนหลังและการตรวจสอบ)'}));
+    details.append(h('p',{class:'lab-help',text:(en?'Held out: MOPH physicians by province after forecast origins 2020–2023, using only information available at each origin; targets up to 2025. ':'ข้อมูลที่ซ่อนไว้: ')+(en?'':v.held_out_th)}));
+    const crit=h('table',{},h('thead',{},h('tr',{},...(en?['criterion','comparator','engine','benchmark','result','consequence']:['คำถาม','ตัวเทียบ','แบบจำลอง','เกณฑ์','ผล','ความหมาย']).map(k=>h('th',{text:k})))),
+      h('tbody',{},...v.criteria.map(c=>h('tr',{'data-passed':String(c.passed)},h('td',{text:en?c.criterion:c.question_th}),h('td',{text:en?c.benchmark:c.comparator_th}),
+        h('td',{text:num(c.value)}),h('td',{text:c.benchmark}),h('td',{text:c.passed?(en?'passed':'ผ่าน'):(en?'not passed':'ไม่ผ่าน')}),h('td',{text:c.consequence})))));
+    const names={persistence:en?'persistence':'คงจำนวนเดิม',trend:en?'trend':'แนวโน้ม',population_only:en?'population only':'ตามประชากร',
+      stock_flow_unconditional:en?'stock-flow engine':'แบบจำลองเข้า-ออก',stock_flow_conditional:en?'stock-flow, actual recruitment (not a forecast)':'แบบจำลองเข้า-ออก ใช้การรับเข้าจริง (ไม่ใช่การพยากรณ์)'};
+    const mod=h('table',{},h('thead',{},h('tr',{},...(en?['model (horizon 3 years)','MAE (persons)','national error %','lowest-19 Jaccard','90% interval coverage']:['แบบจำลอง (ล่วงหน้า 3 ปี)','MAE (คน)','คลาดรวมประเทศ %','Jaccard 19 จังหวัด','ช่วง 90% ครอบค่าจริง']).map(k=>h('th',{text:k})))),
+      h('tbody',{},...v.hindcast_h3.map(m=>h('tr',{},h('td',{text:names[m.model]||m.model}),h('td',{text:num(m.mae)}),h('td',{text:num(m.national_error_pct)}),h('td',{text:num(m.jaccard_lowest19)}),h('td',{text:m.interval_coverage==null?'—':num(m.interval_coverage)})))));
+    const weak=v.inventory.filter(r=>r.verdict==='does_not_beat_comparator');
+    details.append(h('div',{class:'lab-table-scroll'},crit),h('div',{class:'lab-table-scroll'},mod),
+      h('p',{text:en?`Where performance is weak (${weak.length} of ${v.inventory.length} checks do not beat their simple comparator):`:`จุดที่ยังอ่อน (${weak.length} จาก ${v.inventory.length} รายการไม่ดีกว่าตัวเทียบอย่างง่าย):`}),
+      h('ul',{},...weak.map(r=>h('li',{'data-check':r.check_id,text:`${r.component} — ${r.metric}: ${num(r.value_model)} vs ${num(r.value_comparator)} (${r.comparator}). ${r.limitation}`}))),
+      h('p',{class:'lab-help',text:`criteria file SHA-256 ${String(v.criteria_file_sha256).slice(0,12)}`}));
+    return details;
+  }
   function experimentPanel(){
     const details=h('details',{class:'lab-experiments'},h('summary',{text:T('sensitivity')}),h('p',{class:'lab-help',text:T('sensitivityHelp')}));
     const candidates=entries.filter(p=>enabled(p)&&['number','integer'].includes(p.type));
@@ -401,5 +432,5 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
     if(alive)newReleaseTimer=setTimeout(()=>checkNewRelease(box),60000);
   }
   return {get draft(){return clone(draft);},get result(){return clone(selected);},get lab(){return lab;},get client(){return client;},
-    destroy(){alive=false;clearTimeout(saveTimer);clearTimeout(newReleaseTimer);save();client.dispose();resultController?.destroy?.();policyController?.destroy?.();document.body.classList.remove('lab-presenting');}};
+    destroy(){alive=false;clearTimeout(saveTimer);clearTimeout(newReleaseTimer);save();client.dispose();resultController?.destroy?.();policyController?.destroy?.();serviceController?.destroy?.();document.body.classList.remove('lab-presenting');}};
 }
