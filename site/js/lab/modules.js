@@ -13,6 +13,8 @@ const T = {
     title: 'โมดูลบริการที่พร้อมรับข้อมูล (ทดลอง)',
     lead: 'โครงสร้างแบบจำลองพร้อมแล้ว แต่ต้องใช้ข้อมูลของผู้ใช้จึงจะคำนวณได้: อัปโหลดไฟล์ตามแม่แบบ ระบบจะตรวจข้อมูล ปรับฐานพารามิเตอร์ที่ประมาณได้จากข้อมูล ให้คุณทบทวน แล้วจึงรัน',
     privacy: 'ไฟล์ถูกประมวลผลในเบราว์เซอร์ของคุณเท่านั้น ไม่ถูกส่งไปยังเซิร์ฟเวอร์ และไม่ถูกบันทึกเมื่อปิดหน้า',
+    reviewWarning: 'คำเตือน: โครงสร้างของโมดูลไตวายเรื้อรังระยะสุดท้าย (ESRD) และมะเร็ง ยังไม่ผ่านการทบทวนโดยผู้เชี่ยวชาญ โมดูลทั้งหมดในหน้านี้เป็นโครงสร้างฉบับร่าง',
+    dataWarning: 'ยังต้องการข้อมูลจริงสำหรับการรันให้ได้ผลจริง ผลจากข้อมูลสังเคราะห์สาธิตใช้ทดลองการทำงานของโมดูลเท่านั้น ไม่ใช่ค่าประมาณของประเทศไทย และไม่ควรนำไปใช้ตัดสินใจ',
     draft: 'โครงสร้างฉบับร่าง — รอผู้เชี่ยวชาญทบทวน', back: 'กลับไป Lab การจัดสรร', datasets: 'ชุดข้อมูล',
     required: 'จำเป็น', optional: 'ไม่บังคับ', template: 'แม่แบบ CSV', upload: 'เลือกไฟล์ CSV', clear: 'ล้าง',
     notLoaded: 'ยังไม่มีข้อมูล', synthetic: 'ใช้ข้อมูลสังเคราะห์สาธิตทั้งหมด', validate: 'ตรวจข้อมูลและปรับฐาน',
@@ -39,6 +41,8 @@ const T = {
     title: 'Data-ready service modules (experimental)',
     lead: 'The model structure is ready but needs your data: upload files following the templates; the system validates them, calibrates the parameters that data can estimate, lets you review, then runs.',
     privacy: 'Files are processed only in your browser. They are not sent to any server and are not kept after you close the page.',
+    reviewWarning: 'Warning: the end-stage renal disease (ESRD) and cancer module structures have not yet been reviewed by clinical experts. Every module on this page is a draft structure.',
+    dataWarning: 'Real data are still required before these modules can produce usable results. Synthetic demonstration data only show how a module works; they are not estimates for Thailand and should not inform decisions.',
     draft: 'Draft structure — pending expert review', back: 'Back to the allocation Lab', datasets: 'Datasets',
     required: 'required', optional: 'optional', template: 'CSV template', upload: 'Choose CSV', clear: 'Clear',
     notLoaded: 'No data', synthetic: 'Use synthetic demonstration data', validate: 'Validate and calibrate',
@@ -232,7 +236,10 @@ export function renderServiceModules(host, { client, lang = 'th', onBack }) {
   function paint() {
     clear(root);
     root.append(h('header', { class: 'svc-head' },
-      h('h2', { id: 'svc-title', text: t.title }), h('p', { text: t.lead }), h('p', { class: 'svc-privacy', text: t.privacy }),
+      h('h2', { id: 'svc-title', text: t.title }),
+      h('div', { class: 'svc-warning', role: 'note', 'data-warning': 'expert-review' },
+        h('p', { text: t.reviewWarning }), h('p', { class: 'svc-warning__data', text: t.dataWarning })),
+      h('p', { text: t.lead }), h('p', { class: 'svc-privacy', text: t.privacy }),
       h('button', { type: 'button', class: 'btn', text: t.back, onclick: onBack })));
     if (!state.spec) { root.append(status); return; }
     const cards = h('div', { class: 'svc-cards', role: 'list' });

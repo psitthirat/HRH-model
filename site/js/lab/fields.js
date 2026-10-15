@@ -9,7 +9,16 @@ export function stable(value) {
   if (value && typeof value === 'object') return `{${Object.keys(value).sort().map(k=>JSON.stringify(k)+':'+stable(value[k])).join(',')}}`;
   return JSON.stringify(value);
 }
-export function parameterField(p, config, { lang='th', onChange, baseline, compact=false } = {}) {
+const optionValue = o => typeof o==='object' ? o.value ?? o.id : o;
+// Readable form of a value: option label, on/off, or a note for year-specific paths.
+export function displayValue(p, value, lang='th') {
+  const options=p.options || p.enum || p.choices;
+  if(options?.length){const o=options.find(o=>String(optionValue(o))===String(value));return o&&typeof o==='object'?localized(o,'label',lang)||String(value):String(value);}
+  if(typeof value==='boolean')return lang==='en'?(value?'On':'Off'):(value?'เปิด':'ปิด');
+  if(value&&typeof value==='object')return lang==='en'?'year-specific values':'ค่ารายปี';
+  return String(value);
+}
+export function parameterField(p, config, { lang='th', onChange, baseline, compact=false, references } = {}) {
   const T=copy(lang), label=localized(p,'label',lang), help=localized(p,'help',lang);
   const id=`lab-${p.id.replace(/[^a-zA-Z0-9_-]/g,'-')}`;
   const wrapper=h('div',{class:`lab-field${compact?' lab-field--compact':''}`,'data-parameter':p.id});
@@ -26,7 +35,21 @@ export function parameterField(p, config, { lang='th', onChange, baseline, compa
     return wrapper;
   }
   const current=()=>config.parameters[p.id] ?? p.default;
-  const change=value=>{config.parameters[p.id]=value; onChange?.(p.id,value);};
+  // Study Lab (Tier 1): every control shows when its value departs from the study configuration.
+  const baseValue=baseline?.parameters?.[p.id] ?? p.default;
+  const departure=h('p',{class:'lab-departure','data-departure':'',hidden:same(current(),baseValue),text:T('departure')+displayValue(p,baseValue,lang)});
+  wrapper.append(departure);
+  const change=value=>{config.parameters[p.id]=value; departure.hidden=same(value,baseValue); onChange?.(p.id,value);};
+  if(p.tier1==='fixed') {
+    // Computation settings stay at the published values in the Study Lab; an imported
+    // scenario keeps its own value, shown here with a way back to the published one.
+    headingLabel.removeAttribute('for');wrapper.classList.add('lab-field--fixed');wrapper.dataset.tier1='fixed';
+    const unitText=localized(p,'unit',lang)||p.unit||'';
+    wrapper.append(h('p',{class:'lab-field__fixed-value',text:`${displayValue(p,current(),lang)}${unitText?` ${unitText}`:''}`}),h('p',{class:'lab-help',text:T('fixedNote')}));
+    if(!same(current(),baseValue))wrapper.append(h('button',{type:'button',class:'btn btn--ghost lab-field__reset',text:T('resetFixed'),onclick:()=>{change(structuredClone(baseValue));wrapper.replaceWith(parameterField(p,config,{lang,onChange,baseline,compact,references}));}}));
+    if(helpDetails)wrapper.append(helpDetails);
+    return wrapper;
+  }
   const type=p.type || p.value_type, options=p.options || p.enum || p.choices;
   const editor=h('div',{class:'lab-field__editor'});
   const minimum=p.hard_domain?.min ?? p.min, maximum=p.hard_domain?.max ?? p.max;
@@ -83,9 +106,13 @@ export function parameterField(p, config, { lang='th', onChange, baseline, compa
     const input=h('input',{...common,type:'checkbox',checked:!!current(),onchange:e=>change(e.target.checked)});
     editor.append(h('label',{class:'lab-toggle'},input,h('span',{text:help?label:label})));
   } else if(options?.length) {
-    const select=h('select',{...common,onchange:e=>{const opt=options.find(o=>String(typeof o==='object'?o.value??o.id:o)===e.target.value);change(typeof opt==='object'?opt.value??opt.id:opt);}});
-    for(const option of options){const value=typeof option==='object'?option.value??option.id:option;select.append(h('option',{value,selected:String(value)===String(current()),text:typeof option==='object'?localized(option,'label',lang)||String(value):String(value)}));}
-    editor.append(select);
+    // An option that carries a data reference (family B: BOD 2022) shows its source while selected.
+    const cite=h('p',{class:'lab-citation','data-citation':''});
+    const showCite=value=>{const o=options.find(o=>String(optionValue(o))===String(value));const ref=o&&typeof o==='object'&&o.reference_id?references?.get?.(o.reference_id):null;
+      clear(cite);cite.hidden=!ref;if(ref)cite.append(h('span',{text:`${lang==='en'?'Source':'แหล่งข้อมูล'}: ${localized(ref,'text',lang)} `}),...(ref.url?[h('a',{href:ref.url,target:'_blank',rel:'noopener noreferrer',text:lang==='en'?'Open source':'เปิดแหล่งข้อมูล'})]:[]));};
+    const select=h('select',{...common,onchange:e=>{const opt=options.find(o=>String(optionValue(o))===e.target.value);change(optionValue(opt));showCite(optionValue(opt));}});
+    for(const option of options){const value=optionValue(option);select.append(h('option',{value,selected:String(value)===String(current()),text:typeof option==='object'?localized(option,'label',lang)||String(value):String(value)}));}
+    editor.append(select,cite);showCite(current());
   } else if(type==='object'||type==='json'||type==='array') {
     // Region/province overrides use explicit IDs and trajectory JSON, never
     // an ambiguous text-to-number coercion. The canonical validator resolves it.
@@ -115,7 +142,7 @@ export function parameterField(p, config, { lang='th', onChange, baseline, compa
       }
     }renderTrajectory();
   }else editor.append(h('input',{...common,type:'text',value:typeof current()==='string'?current():'',onchange:e=>change(e.target.value)}));
-  const reset=h('button',{type:'button',class:'btn btn--ghost lab-field__reset',text:T('resetOne'),onclick:()=>{change(structuredClone(baseline?.parameters?.[p.id]??p.default));wrapper.replaceWith(parameterField(p,config,{lang,onChange,baseline,compact}));}});
+  const reset=h('button',{type:'button',class:'btn btn--ghost lab-field__reset',text:T('resetOne'),onclick:()=>{change(structuredClone(baseValue));wrapper.replaceWith(parameterField(p,config,{lang,onChange,baseline,compact,references}));}});
   wrapper.append(editor,h('div',{class:'lab-field__foot'},h('span',{id:`${id}-unit`,class:'lab-field__unit',text:unit}),reset));
   if(helpDetails)wrapper.append(helpDetails);
   return wrapper;

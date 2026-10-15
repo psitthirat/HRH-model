@@ -121,3 +121,27 @@
 @media(min-width:1200px) { .lab-control-grid[data-control-route="retention"] { grid-template-columns:repeat(2,minmax(0,1.4fr)) repeat(3,minmax(0,1fr));gap:16px; } }
 
 @media(min-width:1000px) and (max-width:1699px) { .lab-control-grid[data-control-count="6"] { grid-template-columns:repeat(3,minmax(0,1fr)); } }
+/* Study Lab (Tier 1): modes, result labels, advanced free edits, reproduction check */
+.lab-mode { margin: 4px 0 14px; }
+.lab-mode-switch { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+.lab-mode-switch .btn[aria-pressed="true"] { border-color: var(--accent); background: var(--surface-2); color: var(--accent); }
+.lab-mode .lab-help { margin: 8px 0 0; }
+.lab-reproduce { background: var(--surface); border: 1px solid var(--border-hairline); border-radius: var(--radius-md); padding: 18px 22px; margin: 0 0 18px; min-width: 0; }
+.lab-reproduce h2 { margin: 0 0 6px; font-size: var(--fs-title, 1.3rem); }
+.lab-reproduce__settings { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px 18px; margin: 8px 0 14px; }
+.lab-reproduce__settings div { min-width: 0; }
+.lab-reproduce__settings dt { color: var(--text-muted); font-size: .78rem; }
+.lab-reproduce__settings dd { margin: 2px 0 0; overflow-wrap: anywhere; }
+.lab-reproduce__check { margin: 10px 0 0; padding: 8px 12px; border-left: 3px solid var(--accent); line-height: 1.6; }
+.lab-reproduce__check[data-match="partial"] { border-left-color: #ffb95b; }
+.badge--class { font-size: .75rem; }
+.badge--class-baseline { border-color: var(--accent); color: var(--accent); }
+.badge--class-sensitivity { border-color: var(--n-1); color: var(--n-1); }
+.badge--class-user { border-color: #ffb95b; color: #ffb95b; }
+.lab-draft-class { margin: 6px 0 0; font-size: .82rem; color: var(--text-secondary); }
+.lab-control-advanced { margin: 12px 0; padding-top: 12px; border-top: 1px dashed #ffb95b; }
+.lab-control-advanced > .lab-control-grid { margin-top: 14px; }
+.lab-advanced-note { font-size: .82rem; color: #ffcb83; line-height: 1.6; max-width: 900px; }
+.lab-citation { font-size: .78rem; color: var(--text-secondary); line-height: 1.6; overflow-wrap: anywhere; }
+.lab-references { font-size: .8rem; padding-left: 20px; overflow-wrap: anywhere; }
+@media print { .lab-mode { display: none !important; } }

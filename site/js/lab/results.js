@@ -5,6 +5,7 @@ import { mountView } from '../engine.js';
 import { num, be } from '../util/format.js';
 import { toCSV, download } from '../ui/table.js';
 import { allocationFigureRows } from '../charts/alloc.js';
+import { scenarioClass, scenarioLabel, scenarioHelp } from './scenario-class.js';
 
 export const RUN_SCHEMA = 'workforce-lab.run/1';
 const CORE_VIEWS=new Set(['stock_flow','allocations','stock_trajectory','adequacy_trajectory','common_gini','bottom_group','supply_gap','province_trajectory','cross_evaluation','constraint_diagnostics','province_comparison']);
@@ -46,7 +47,8 @@ function planLabel(R, key, lang) {
     const plan = step.view?.plans?.find?.(p => p.key === key);
     if (plan && lang !== 'en') return plan.label || plan.title || key;
   }
-  const en={'P-R':'P-R · Population','S-R':'S-R · Services','N-R':'N-R · Reference need','P-RT':'P-RT · Population + transfers','S-RT':'S-RT · Services + transfers','N-RT':'N-RT · Reference need + transfers','SQ-C':'SQ-C · Historical recruitment shares','NFB0.5-R':'N-FB · Half response','NFB1-R':'N-FB · Full response'};
+  if (lang !== 'en' && /^B-R/.test(key)) return key==='B-RT'?'B-RT · DALY คาดหมาย + การโอนย้าย':key==='B-R'?'B-R · DALY คาดหมาย':key;
+  const en={'B-R':'B-R · Expected DALYs','B-RT':'B-RT · Expected DALYs + transfers','P-R':'P-R · Population','S-R':'S-R · Services','N-R':'N-R · Standardized M5 services','P-RT':'P-RT · Population + transfers','S-RT':'S-RT · Services + transfers','N-RT':'N-RT · Reference need + transfers','SQ-C':'SQ-C · Historical recruitment shares','NFB0.5-R':'N-FB · Half response','NFB1-R':'N-FB · Full response'};
   return en[key] || key;
 }
 export function runSummary(run, lang='th') {
@@ -98,7 +100,7 @@ export function createRunRelease(run, release, lab, lang='th') {
 function scopeText(run,registry,lang) { return lang==='en' ? (run.methods?.scope || registry.metrics[0].workforce_scope+'; study provinces exclude Bangkok')+' · chart years: B.E.; table year_ce: C.E.' : 'แพทย์สังกัด สธ. ใช้แทนขอบเขต สป.สธ. ชั่วคราว · 76 จังหวัด ไม่รวมกรุงเทพมหานคร'; }
 function unitLabel(registry,id,lang){const m=registry.metrics.find(m=>m.metric_id===id);return m?.[lang==='en'?'display_unit_en':'display_unit_th']||L(lang,'คน','Persons');}
 function definition(registry,id,lang){const m=registry.metrics.find(m=>m.metric_id===id);return m?.[lang==='en'?'label_en':'label_th'] || id;}
-function commonCriteria(rows){const all=[...new Set(rows.map(r=>r.criterion).filter(c=>/^[PSN]\|/.test(String(c))))];const common=all.filter(c=>c.endsWith('|common_total'));return common.length?common:all;}
+function commonCriteria(rows){const all=[...new Set(rows.map(r=>r.criterion).filter(c=>/^[PSNB]\|/.test(String(c))))];const common=all.filter(c=>c.endsWith('|common_total'));return common.length?common:all;}
 function flowRows(row,{province=false,lang='th',name=''}){
   const list=province?[
     ['start',pick(row,'opening_headcount'),'แพทย์ต้นปี','Opening'],['minus',pick(row,'expected_departures_total'),'ผู้ที่ออก','External exits'],['plus',pick(row,'expected_reentries'),'กลับเข้า','Other entries'],['plus',pick(row,'new_appointments_accepted_starts'),'รับใหม่','Appointments'],['plus',pick(row,'transfers_in_planned'),'โอนเข้า','Transfers in'],['minus',pick(row,'transfers_out_planned'),'โอนออก','Transfers out'],['end',pick(row,'expected_closing_stock'),'แพทย์ปลายปี','Closing']
@@ -202,8 +204,12 @@ export function dataTable(rows,columns,registry,lang='th',{limit=150}={}) {
 export function renderLabResults(el,run,options={}) {
   const {release,lab,lang='th',onPresent}=options;const registry=assertResult(run,lab);clear(el);
   const wrapper=h('section',{class:'lab-results','aria-label':L(lang,'ผลที่คำนวณแล้ว','Completed results')});el.append(wrapper);
-  const header=h('header',{class:'lab-results__header'},h('div',{class:'lab-results__heading'},h('h2',{text:resultTitle(run,lang)}),h('span',{class:'badge badge--scenario',text:run.source==='presentation_cache'?L(lang,'ผลอ้างอิงจากงานวิจัย','Published reference result'):L(lang,'ผลทดลองของผู้เข้าร่วม','Participant experiment')})),h('p',{text:runSummary(run,lang)}),h('details',{class:'lab-results__provenance'},h('summary',{text:L(lang,'ขอบเขตและรุ่นที่ใช้คำนวณ','Scope and computation versions')}),h('p',{text:run.methods?.scope||scopeText(run,registry,lang)}),h('pre',{text:JSON.stringify({run_id:run.run_id,...run.versions},null,2)})));wrapper.append(header);
+  const config=run.config||run.resolved_config,cls=scenarioClass(config,lab);
+  const header=h('header',{class:'lab-results__header'},h('div',{class:'lab-results__heading'},h('h2',{text:resultTitle(run,lang)}),h('span',{class:'badge badge--scenario',text:run.source==='presentation_cache'?L(lang,'ผลอ้างอิงจากงานวิจัย','Published reference result'):L(lang,'ผลทดลองของผู้เข้าร่วม','Participant experiment')}),h('span',{class:`badge badge--class badge--class-${cls}`,'data-scenario-class':cls,title:scenarioHelp(cls,lang),text:scenarioLabel(cls,lang)})),h('p',{text:runSummary(run,lang)}),h('details',{class:'lab-results__provenance'},h('summary',{text:L(lang,'ขอบเขตและรุ่นที่ใช้คำนวณ','Scope and computation versions')}),h('p',{text:run.methods?.scope||scopeText(run,registry,lang)}),h('pre',{text:JSON.stringify({run_id:run.run_id,...run.versions},null,2)})));wrapper.append(header);
   if(run.uncertainty?.diagnostics)header.append(h('p',{class:'lab-results__diagnostic',text:simulationDiagnostics(run,lang)}));
+  // Family B results carry their data source (BOD 2022, IHPP).
+  const bod=(lab?.parameter_registry?.references||[]).find(r=>r.id==='bod2022');
+  if(bod&&(config?.parameters?.['allocation.family']==='B'||plansOf(run).some(p=>/^B-R/.test(p))))header.append(h('p',{class:'lab-citation','data-citation':'bod2022',text:`${L(lang,'แหล่งข้อมูล B','Source of B')}: ${lang==='en'?bod.text_en:bod.text_th}`}));
   if(!isCompleted(run)){wrapper.append(h('p',{class:'lab-results__diagnostic',text:L(lang,'ไม่มีแผนที่ผ่านเงื่อนไขสำหรับแสดงผล ดูรายละเอียดข้อจำกัดด้านล่าง','No valid allocation plan is available. Review the diagnostics below.')}),h('pre',{text:JSON.stringify(run.diagnostics,null,2)}));return {destroy(){clear(el);},run};}
   const initial=buildOutcomeViews(run,options).state;
   const state={...initial,view:'stock_trajectory'};

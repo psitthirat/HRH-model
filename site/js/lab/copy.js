@@ -92,6 +92,21 @@ const pairs = {
   geography: ["สมมติฐานรายเขตและจังหวัด", "Regional and provincial assumptions"],
   methodSetting: ["ตัวเลือกวิธีวิเคราะห์", "Method setting"],
   solverSetting: ["ค่าการคำนวณ", "Solver setting"],
+  departure: ["ต่างจากค่าในรายงาน · ค่าในรายงาน: ", "Differs from the study value · study value: "],
+  fixedNote: ["ค่าคงที่ตามชุดเผยแพร่ใน Study Lab · ปรับได้ใน Research Workspace (Tier 2) ซึ่งยังไม่เปิดให้บริการ", "Fixed at the published value in the Study Lab · editable in the Research Workspace (Tier 2), not yet available"],
+  resetFixed: ["ใช้ค่าที่เผยแพร่", "Use the published value"],
+  modeLabel: ["โหมดของ Study Lab", "Study Lab mode"],
+  modeReproduce: ["ทำซ้ำผลการศึกษา", "Reproduce study baseline"],
+  modeExplore: ["สำรวจนโยบาย", "Explore policy"],
+  reproduceLead: ["คำนวณแผนตั้งต้นของรายงานบทที่ 5 (P-R) ใหม่ในเบราว์เซอร์ ด้วยข้อมูลและโค้ดชุดที่เผยแพร่ แล้วตรวจเทียบกับผลที่เผยแพร่ทุกจังหวัด-ปี", "Recalculate the Chapter 5 study baseline (P-R) in your browser with the published data and code, then check it against the published result for every province-year."],
+  reproduceSettings: ["ค่าหลักของชุดตั้งต้น", "Key baseline settings"],
+  reproduceRun: ["คำนวณซ้ำและตรวจเทียบ", "Recalculate and check"],
+  reproduceOpen: ["เปิดผลที่เผยแพร่", "Open the published result"],
+  exploreLead: ["ปรับสมมติฐานและนโยบาย ผลจะติดป้าย baseline, sensitivity หรือ user scenario ตามค่าที่เปลี่ยน", "Change assumptions and policies. Each result is labelled baseline, sensitivity or user scenario according to what changed."],
+  draftClass: ["ฉบับร่างนี้จะได้ป้าย", "This draft will be labelled"],
+  advancedFree: ["ขั้นสูง: ปรับความชุกโรคแบบอิสระ", "Advanced: free prevalence edits"],
+  advancedFreeNote: ["ค่าที่ปรับอิสระในส่วนนี้ไม่ใช่ชุดค่าที่ใช้ในรายงาน ผลจะติดป้าย user scenario การปรับอิสระเต็มรูปแบบจะอยู่ใน Research Workspace (Tier 2) เมื่อเปิดให้บริการ", "Free values here are not the study's published settings; results are labelled user scenario. Full free editing will move to the Research Workspace (Tier 2) when it opens."],
+  references: ["เอกสารอ้างอิงข้อมูล", "Data references"],
 };
 export const copy = lang => key => pairs[key]?.[lang === "en" ? 1 : 0] || key;
 export const localized = (record, key, lang) => record?.[`${key}_${lang}`] || record?.[key]?.[lang] || record?.[key] || record?.[`${key}_th`] || (key==='label'?record?.id:'') || "";

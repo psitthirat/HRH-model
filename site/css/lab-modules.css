@@ -3,6 +3,9 @@
 .svc-head h2 { margin: 0 0 6px; font-size: var(--fs-title, 1.4rem); }
 .svc-head p { color: var(--text-secondary); max-width: 1000px; line-height: 1.7; }
 .svc-privacy { border-left: 3px solid var(--accent); padding-left: 10px; color: var(--text-primary); }
+.svc-head .svc-warning { margin: 10px 0 14px; padding: 10px 14px; border: 1px solid var(--div-neg); border-left-width: 4px; border-radius: var(--radius-sm, 6px); max-width: 1000px; }
+.svc-head .svc-warning p { margin: 0; color: var(--text-primary); line-height: 1.7; }
+.svc-head .svc-warning .svc-warning__data { margin-top: 6px; color: var(--div-neg); font-weight: 700; }
 .svc-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin: 18px 0; }
 .svc-card { display: flex; flex-direction: column; gap: 6px; text-align: left; padding: 14px 16px; background: var(--surface-2); color: var(--text-primary);
   border: 1px solid var(--border-strong); border-radius: var(--radius-md); cursor: pointer; font: inherit; }

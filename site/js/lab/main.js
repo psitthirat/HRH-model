@@ -4,8 +4,9 @@ import { h, clear } from '../util/dom.js';
 import { initText } from '../util/i18n.js';
 import { download } from '../ui/table.js';
 import { LabRuntimeClient } from './runtime-client.js';
-import { renderLabResults, isCompleted, resultTitle, runSummary } from './results.js';
-import { registryEntries, enabled, parameterField, same, stable } from './fields.js';
+import { renderLabResults, isCompleted, resultTitle, runSummary, runLedger } from './results.js';
+import { registryEntries, enabled, parameterField, displayValue, same, stable } from './fields.js';
+import { scenarioClass, scenarioLabel, scenarioHelp } from './scenario-class.js';
 import { readWorkspace, writeWorkspace, participantKey } from './storage.js';
 import { copy, localized } from './copy.js';
 import { renderPolicyLibrary } from './policies.js';
@@ -40,10 +41,13 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
   lab.baseline_config=defaultConfig;
   const entries=registryEntries(lab.parameter_registry),entryById=new Map(entries.map(p=>[p.id,p]));
   const presets=Array.isArray(lab.presets)?lab.presets:Object.entries(lab.presets || {}).map(([id,p])=>({id,...p}));
+  const references=new Map((lab.parameter_registry?.references||[]).map(r=>[r.id,r]));
   const key=participantKey(release.id),persisted=await readWorkspace(key);
   let draft=clone(defaultConfig),selected=baseline,pins=[],archivedRuns=[],batch=[],lastRuntime=null,savedStatus=true,failedRun=null,comparisonAnalysis=null,experimentSummary=null;
   let alive=true,busy=false,cancelBatch=false,status='ready',statusDetail='',progressDetail={},resultController=null,policyController=null,serviceController=null,saveTimer,newReleaseTimer;
-  let controlTab='overview',controlGroup={future:'services',analysis:'planning'},extraOpen=false,selectedPolicyId=null;
+  let controlTab='overview',controlGroup={future:'services',analysis:'planning'},extraOpen=false,advancedOpen=false,selectedPolicyId=null;
+  // Study Lab (Tier 1) modes: reproduce the study baseline, or explore policies.
+  let labMode='explore',reproduction=null,check=null,classNote=null;
   let lang=app.state.lang || 'th',T=copy(lang),root,form,results,feedback,actions,changeList,pinsBox,storageNote,batchBox;
   const entryContext=app.labEntryContext;
   app.labEntryContext=null;
@@ -52,8 +56,10 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
     draft=persisted.draft || draft;
     selected=persisted.selected?frozen(persisted.selected):selected;
     pins=(persisted.pins||[]).map(frozen);archivedRuns=(persisted.archivedRuns||[]).map(frozen);batch=persisted.batch||[];lastRuntime=persisted.lastRuntime;comparisonAnalysis=persisted.comparisonAnalysis||null;experimentSummary=persisted.experimentSummary||null;
+    labMode=persisted.labMode==='reproduce'?'reproduce':'explore';
   }
   if(entryContext?.kind==='main_menu'){archiveRuns([selected]);draft=clone(defaultConfig);selected=baseline;comparisonAnalysis=null;}
+  if(app.state.labPreset&&entryContext)labMode='explore';
   const client=new LabRuntimeClient({labUrl:labUrl.href,manifest:lab,onStatus:event=>{
     status=event.status;statusDetail=event.stage || '';progressDetail=event.detail||{};if(event.runtime)lastRuntime=event.runtime;
     showStatus();
@@ -73,7 +79,7 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
   function edited(id){status='dirty';saveSoon();showStatus();showChanges();if(id==='mobility.enabled'){const hint=form?.querySelector('[data-transfer-hint]');if(hint)hint.hidden=!!draft.parameters[id];}}
   function saveSoon(){clearTimeout(saveTimer);if(storageNote?.isConnected)storageNote.textContent=lang==='en'?'Saving this tab’s draft…':'กำลังบันทึกฉบับร่างของแท็บนี้…';saveTimer=setTimeout(save,350);}
   async function save(){
-    savedStatus=await writeWorkspace(key,{versions:lab.versions,draft,selected,pins,archivedRuns,batch,lastRuntime,comparisonAnalysis,experimentSummary});
+    savedStatus=await writeWorkspace(key,{versions:lab.versions,draft,selected,pins,archivedRuns,batch,lastRuntime,comparisonAnalysis,experimentSummary,labMode});
     if(storageNote?.isConnected)storageNote.textContent=T(savedStatus?'saved':'notSaved');
   }
   async function loadEntry(presetId,redraw=true){
@@ -140,6 +146,17 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
       root.append(h('div',{class:'lab-present-actions'},h('span',{class:'badge',text:T('experimentLabel')}),button(T('backControls'),()=>present(false)),button(T('back'),app.returnFromLab),button(lang==='en'?'Fullscreen':'เต็มหน้าจอ',app.toggleFullscreen)));
       results=h('div',{class:'lab-output'});root.append(results);showResults();return;
     }
+    root.append(modeSwitch());
+    if(labMode==='reproduce'){
+      form=null;changeList=null;storageNote=null;classNote=null;root.append(reproducePanel());
+      const output=h('section',{class:'lab-output'});root.append(output);
+      results=h('div',{class:'lab-result-host'});output.append(results);
+      const downloads=h('div',{class:'lab-downloads'});
+      for(const [label,method] of [['exportPlan','downloadPlan'],['exportResults','downloadResults'],['exportPackage','downloadPackage']])downloads.append(button(T(label),()=>exportRun(method),{'data-export':method}));
+      downloads.append(button(T('pin'),pinSelected,{'data-action':'pin'}));
+      pinsBox=h('section',{class:'lab-pins'});batchBox=null;output.append(downloads,pinsBox,methodsPanel(),validationPanel());
+      showStatus();showPins();showResults();return;
+    }
     form=h('form',{class:'lab-form lab-control-board',onsubmit:e=>{e.preventDefault();runDraft();}});root.append(form);
     const picker=h('div',{class:'lab-policy-picker-host'});form.append(picker);
     policyController=renderPolicyLibrary(picker,{lang,selectedId:selectedPolicyId,onSelect:selectPolicy});
@@ -168,7 +185,8 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
     feedback=h('div',{class:'lab-status',role:'status','aria-live':'polite'});
     actions=h('div',{class:'lab-actions lab-run-actions'});
     actions.append(button(T('run'),runDraft,{class:'btn btn--primary','data-action':'run'}),button(T('cancel'),()=>{cancelBatch=true;if(!client.cancel())client.dispose();},{'data-action':'cancel',hidden:!busy}));
-    root.append(h('div',{class:'lab-run-bar',title:T('runtime')},feedback,actions),h('p',{class:'lab-help lab-run-workload',hidden:true}));
+    classNote=h('p',{class:'lab-draft-class','data-draft-class':''});
+    root.append(h('div',{class:'lab-run-bar',title:T('runtime')},feedback,actions),classNote,h('p',{class:'lab-help lab-run-workload',hidden:true}));
     const output=h('section',{class:'lab-output'});root.append(output);
     const downloads=h('div',{class:'lab-downloads'});
     for(const [label,method] of [['exportPlan','downloadPlan'],['exportResults','downloadResults'],['exportPackage','downloadPackage']])downloads.append(button(T(label),()=>exportRun(method),{'data-export':method}));
@@ -179,6 +197,60 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
     batchBox=h('section',{class:'lab-batch-results'});output.append(batchBox);
     output.append(h('div',{class:'lab-experiment-tools'},experimentPanel(),robustPanel()),methodsPanel(),validationPanel());
     showChanges();showStatus();showPins();showResults();showBatch();
+  }
+  function modeSwitch(){
+    const nav=h('div',{class:'lab-mode-switch',role:'group','aria-label':T('modeLabel')});
+    for(const [id,label] of [['reproduce',T('modeReproduce')],['explore',T('modeExplore')]])
+      nav.append(button(label,()=>{if(busy||labMode===id||(labMode==='explore'&&!validateForm()))return;labMode=id;render();saveSoon();},{'data-lab-mode':id,'aria-pressed':String(labMode===id)}));
+    return h('div',{class:'lab-mode'},nav,labMode==='explore'?h('p',{class:'lab-help',text:T('exploreLead')}):'');
+  }
+  function reproducePanel(){
+    const box=h('section',{class:'lab-reproduce','data-mode-panel':'reproduce'},h('h2',{text:T('modeReproduce')}),h('p',{class:'lab-help',text:T('reproduceLead')}));
+    const list=h('dl',{class:'lab-reproduce__settings'});
+    for(const id of ['allocation.family','supply.available_appointments','targets.reference_per_1000','allocation.floor','allocation.cap_mode','allocation.cap_fraction','mobility.enabled','services.op_minutes','services.adjrw_minutes','demography.scenario']){
+      const p=entryById.get(id);if(!p)continue;const unit=localized(p,'unit',lang);
+      list.append(h('div',{},h('dt',{text:localized(p,'label',lang)}),h('dd',{text:`${displayValue(p,defaultConfig.parameters[id]??p.default,lang)}${unit?` ${unit}`:''}`})));
+    }
+    feedback=h('div',{class:'lab-status',role:'status','aria-live':'polite'});
+    actions=h('div',{class:'lab-actions lab-run-actions'},button(T('reproduceRun'),reproduce,{class:'btn btn--primary','data-action':'run'}),
+      button(T('cancel'),()=>{if(!client.cancel())client.dispose();},{'data-action':'cancel',hidden:!busy}),
+      button(T('reproduceOpen'),()=>{if(busy)return;archiveRuns([selected]);selected=baseline;comparisonAnalysis=null;showResults();showPins();showStatus();saveSoon();},{'data-action':'open-baseline'}));
+    check=h('p',{class:'lab-reproduce__check','data-reproduction':''});
+    box.append(h('h3',{text:T('reproduceSettings')}),list,actions,feedback,check);paintCheck();
+    return box;
+  }
+  async function reproduce(){
+    if(busy)return;
+    archiveRuns([selected]);draft=clone(defaultConfig);draft.name=lang==='en'?'Reproduced study baseline (P-R)':'ทำซ้ำชุดตั้งต้นของการศึกษา (P-R)';
+    busy=true;status='validating';statusDetail='';reproduction=null;paintCheck();showStatus();
+    try{const result=await execute(draft);if(result&&isCompleted(result))reproduction=reproductionCheck(result);}
+    catch(error){if(error.name==='AbortError'){status='cancelled';statusDetail='';}else showError(error);}
+    finally{busy=false;showStatus();paintCheck();saveSoon();}
+  }
+  // Compare with the published P-R: identical integer decisions per province-year, and each solver
+  // stage objective against the accepted relative MILP gap. Near-optimal plans are not unique, so a
+  // plan with different destinations but objectives within the gap is reported as equivalent, not exact.
+  function reproductionCheck(run){
+    const key=r=>`${r.year_ce}|${r.prov_code}`,ref=new Map(runLedger(baseline).map(r=>[key(r),r]));
+    let matched=0,total=0,maxStock=0;
+    for(const r of runLedger(run)){const b=ref.get(key(r));if(!b)continue;total++;
+      if(['new_appointments_accepted_starts','transfers_in_planned','transfers_out_planned'].every(k=>Number(r[k]??0)===Number(b[k]??0)))matched++;
+      maxStock=Math.max(maxStock,Math.abs(Number(r.expected_closing_stock)-Number(b.expected_closing_stock)));}
+    const published=baseline.diagnostics?.solver_stages||[],mine=run.diagnostics?.solver_stages||[];
+    const objective=published.map(s=>{const m=mine.find(x=>x.stage===s.stage);return m?Math.abs(m.objective-s.objective)/Math.max(Math.abs(s.objective),1e-12):Infinity;});
+    const gap=Number(defaultConfig.parameters['solver.mip_gap']??0),maxObjective=objective.length?Math.max(...objective):Infinity;
+    const match=total>0&&matched===total?'exact':maxObjective<=gap?'equivalent':'different';
+    return {run_id:run.run_id,matched,total,maxStock,maxObjective,gap,match};
+  }
+  function paintCheck(){
+    if(!check)return;const r=reproduction;check.hidden=!r;if(!r)return;
+    const n=x=>x.toLocaleString(lang==='en'?'en-US':'th-TH'),stock=r.maxStock.toPrecision(3),pct=x=>`${(100*x).toPrecision(2)}%`;
+    check.dataset.match=r.match;
+    const counts=lang==='en'?`New starts and transfers equal the published plan in ${n(r.matched)} of ${n(r.total)} province-years; largest closing-stock difference ${stock} persons.`:`แพทย์ใหม่และการโอนย้ายตรงกับแผนที่เผยแพร่ ${n(r.matched)} จาก ${n(r.total)} จังหวัด-ปี ส่วนต่างแพทย์ปลายปีสูงสุด ${stock} คน`;
+    const verdict={exact:lang==='en'?'Exact reproduction.':'ทำซ้ำได้ตรงทุกจังหวัด-ปี',
+      equivalent:lang==='en'?`Equivalent within solver tolerance: every solver-stage objective is within ${pct(r.maxObjective)} of the published value (accepted gap ${pct(r.gap)}). Several plans reach practically the same objective, so some destinations differ; the browser solver build differs from the one used for the report (see Chapter 5 on non-unique solutions).`:`เทียบเท่าภายในความคลาดเคลื่อนที่ solver ยอมรับ: ค่าเป้าหมายทุกขั้นต่างจากที่เผยแพร่ไม่เกิน ${pct(r.maxObjective)} (ช่องว่างที่ยอมรับ ${pct(r.gap)}) แผนที่ได้ค่าเป้าหมายเกือบเท่ากันมีได้หลายชุด และ solver ในเบราว์เซอร์เป็นคนละรุ่นกับที่ใช้ทำรายงาน ปลายทางบางส่วนจึงต่างกัน (ดูบทที่ 5 เรื่องคำตอบที่ไม่ unique)`,
+      different:lang==='en'?`Not reproduced: a solver-stage objective differs from the published value by ${pct(r.maxObjective)}, more than the accepted gap ${pct(r.gap)}. Download the diagnostics and report it.`:`ทำซ้ำไม่ได้: ค่าเป้าหมายของ solver ต่างจากที่เผยแพร่ ${pct(r.maxObjective)} มากกว่าช่องว่างที่ยอมรับ ${pct(r.gap)} กรุณาดาวน์โหลดข้อมูลวินิจฉัยและแจ้งผู้วิจัย`}[r.match];
+    check.textContent=`${verdict} ${counts}`;
   }
   function syncPolicyContext(){
     selectedPolicyId=draft.origin?.policy_option_id||null;
@@ -244,17 +316,27 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
       content.append(h('label',{class:'lab-control-group-select'},h('span',{text:lang==='en'?'Parameter group':'กลุ่มตัวแปร'}),choose));
       controls=byGroups([controlGroup[controlTab]]);
     }
+    const free=controls.filter(p=>p.tier1==='advanced');controls=controls.filter(p=>p.tier1!=='advanced');
     const grid=h('div',{class:'lab-control-grid','data-control-route':controlTab==='policy'?policy.route:null,'data-control-count':Math.min(6,controls.length)});content.append(grid);
-    const field=p=>parameterField(p,draft,{lang,onChange:edited,baseline:defaultConfig,compact:true});
+    const field=p=>parameterField(p,draft,{lang,onChange:edited,baseline:defaultConfig,compact:true,references});
     controls.slice(0,6).forEach(p=>grid.append(field(p)));
     if(controls.length>6){
       const details=h('details',{class:'lab-control-extra',open:extraOpen,ontoggle:e=>{extraOpen=e.target.open;}},
         h('summary',{text:lang==='en'?`Additional settings (${controls.length-6})`:`ตัวแปรเพิ่มเติม (${controls.length-6})`}));
       const more=h('div',{class:'lab-control-grid'});controls.slice(6).forEach(p=>more.append(field(p)));details.append(more);content.append(details);
     }
+    if(free.length){
+      // Free prevalence edits stay available until Tier 2 exists, behind an explicit advanced section.
+      const departed=free.some(p=>!same(draft.parameters[p.id]??p.default,defaultConfig.parameters[p.id]??p.default));
+      const adv=h('details',{class:'lab-control-advanced','data-tier1':'advanced',open:departed||advancedOpen,ontoggle:e=>{advancedOpen=e.target.open;}},
+        h('summary',{text:`${T('advancedFree')} (${free.length})`}),h('p',{class:'lab-advanced-note',text:T('advancedFreeNote')}));
+      const more=h('div',{class:'lab-control-grid'});free.forEach(p=>more.append(field(p)));adv.append(more);content.append(adv);
+    }
     return panel;
   }
-  function showChanges(){if(!changeList)return;const box=changeList.lastElementChild;clear(box);const changes=entries.filter(p=>!same(draft.parameters[p.id],defaultConfig.parameters[p.id]));
+  function showChanges(){
+    if(classNote?.isConnected){const cls=scenarioClass(draft,lab);clear(classNote).append(`${T('draftClass')}: `,h('span',{class:`badge badge--class badge--class-${cls}`,'data-scenario-class':cls,title:scenarioHelp(cls,lang),text:scenarioLabel(cls,lang)}));}
+    if(!changeList)return;const box=changeList.lastElementChild;clear(box);const changes=entries.filter(p=>!same(draft.parameters[p.id],defaultConfig.parameters[p.id]));
     if(!changes.length)box.append(h('p',{text:T('unchanged')}));else box.append(h('ul',{},...changes.map(p=>h('li',{},h('b',{text:localized(p,'label',lang)+': '}),`${JSON.stringify(defaultConfig.parameters[p.id])} → ${JSON.stringify(draft.parameters[p.id])}`))));
   }
   function showStatus(){if(!alive||!feedback?.isConnected)return;
@@ -312,7 +394,8 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
     const active=[...new Map([selected,...pins].filter(isCompleted).map(run=>[run.run_id,run])).values()];
     clear(pinsBox).append(h('h3',{text:T('pinned')}),h('p',{class:'lab-help',text:lang==='en'?`Compare up to four plans including the displayed result (${active.length}/4 active). Results removed from the active set remain in the saved list below.`:`เปรียบเทียบได้รวมไม่เกิน 4 แผน โดยนับผลที่กำลังแสดงด้วย (ขณะนี้ ${active.length}/4 แผน) ผลที่นำออกจากชุดเปรียบเทียบยังเปิดดูได้จากรายการที่เก็บไว้ด้านล่าง`}));
     const show=run=>{archiveRuns([selected]);selected=run;comparisonAnalysis=null;showResults();showPins();showStatus();saveSoon();};
-    for(const run of pins)pinsBox.append(h('article',{class:'lab-pin','data-run-id':run.run_id},h('b',{text:configOf(run)?.name||resultTitle(run,lang)}),h('small',{text:run.run_id}),h('div',{class:'lab-actions'},button(T('show'),()=>show(run)),button(T('edit'),()=>{draft=clone(configOf(run));syncPolicyContext();render();saveSoon();}),button(T('remove'),()=>{archiveRuns([run]);pins=pins.filter(p=>p.run_id!==run.run_id);comparisonAnalysis=null;showPins();showResults();saveSoon();}))));
+    const classBadge=run=>{const cls=scenarioClass(configOf(run),lab);return h('span',{class:`badge badge--class badge--class-${cls}`,'data-scenario-class':cls,title:scenarioHelp(cls,lang),text:scenarioLabel(cls,lang)});};
+    for(const run of pins)pinsBox.append(h('article',{class:'lab-pin','data-run-id':run.run_id},h('b',{text:configOf(run)?.name||resultTitle(run,lang)}),classBadge(run),h('small',{text:run.run_id}),h('div',{class:'lab-actions'},button(T('show'),()=>show(run)),button(T('edit'),()=>{draft=clone(configOf(run));syncPolicyContext();render();saveSoon();}),button(T('remove'),()=>{archiveRuns([run]);pins=pins.filter(p=>p.run_id!==run.run_id);comparisonAnalysis=null;showPins();showResults();saveSoon();}))));
     pinsBox.append(button(T('baseline'),()=>show(baseline)));
     if(active.length>1)pinsBox.append(button(lang==='en'?'Compare selected results on common criteria':'คำนวณเปรียบเทียบแผนด้วยเกณฑ์ร่วม',compareSelected,{'data-action':'compare'}));
     const activeIds=new Set(active.map(run=>run.run_id)),archived=archivedRuns.filter(run=>!activeIds.has(run.run_id));
@@ -341,6 +424,9 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
     details.append(h('p',{text:T('provisional')}),h('p',{text:T('experimentLabel')}),h('p',{text:T('network')}));
     const table=h('table',{},h('thead',{},h('tr',{},...['parameter','value','units'].map(k=>h('th',{text:T(k)}))))),body=h('tbody');table.append(body);
     for(const p of entries)body.append(h('tr',{},h('td',{text:localized(p,'label',lang)}),h('td',{text:localized(p,'help',lang)}),h('td',{text:localized(p,'unit',lang)||p.unit||''})));
+    const reg=lab.parameter_registry||{};
+    if(reg.tier1_note_th)details.append(h('p',{class:'lab-help','data-tier1-note':'',text:lang==='en'?'Study Lab (Tier 1): computation settings (solver, seed, uncertainty components) stay at the published values; free prevalence edits sit in an advanced section and are marked when they depart from the study. Full free editing belongs to the Research Workspace (Tier 2), not yet available.':reg.tier1_note_th}));
+    if(references.size)details.append(h('h4',{text:T('references')}),h('ul',{class:'lab-references'},...[...references.values()].map(r=>h('li',{'data-reference':r.id,text:localized(r,'text',lang)}))));
     details.append(h('div',{class:'lab-table-scroll'},table),h('pre',{text:JSON.stringify(lab.versions,null,2)}));return details;
   }
   // Compact validation view (plan §8.2): what was held out, against which baseline, where it is weak.
@@ -366,7 +452,7 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
   }
   function experimentPanel(){
     const details=h('details',{class:'lab-experiments'},h('summary',{text:T('sensitivity')}),h('p',{class:'lab-help',text:T('sensitivityHelp')}));
-    const candidates=entries.filter(p=>enabled(p)&&['number','integer'].includes(p.type));
+    const candidates=entries.filter(p=>enabled(p)&&p.tier1!=='fixed'&&['number','integer'].includes(p.type));
     const choose=(optional=false)=>h('select',{'aria-label':T(optional?'second':'parameter')},...(optional?[h('option',{value:'',text:T('none')})]:[]),...candidates.map(p=>h('option',{value:p.id,text:localized(p,'label',lang)})));
     const first=choose(),second=choose(true),values1=h('input',{type:'text',value:'1800, 2000, 2200','aria-label':T('values')}),values2=h('input',{type:'text',value:'','aria-label':T('values')}),preview=h('p',{class:'lab-help'});
     first.value='supply.available_appointments';

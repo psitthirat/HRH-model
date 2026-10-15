@@ -135,3 +135,8 @@
   .lab-field__scalar { grid-template-columns: minmax(82px, 100px) minmax(74px, 1fr); gap: 7px 10px; }
   .lab-field--compact .lab-annual { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+/* Study Lab (Tier 1): departure from the study value and fixed computation settings */
+.lab-departure { margin: 2px 0 6px; font-size: .74rem; color: #ffcb83; overflow-wrap: anywhere; }
+.lab-departure[hidden] { display: none; }
+.lab-field:has(.lab-departure:not([hidden])) { border-color: #ffb95b; }
+.lab-field--fixed .lab-field__fixed-value { margin: 4px 0; font-variant-numeric: tabular-nums; }
