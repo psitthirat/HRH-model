@@ -7,7 +7,6 @@ const LOGOS = [
   ["01_rama-hpsr.png", "logo_hpsr"],
   ["02_rama.png", "logo_rama"],
   ["03_moph.svg", "logo_moph"],
-  ["04_WHO.png", "logo_who"],
   ["05_HSRI.svg", "logo_hsri"],
 ];
 
