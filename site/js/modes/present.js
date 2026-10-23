@@ -6,7 +6,7 @@
 import { h, clear } from "../util/dom.js";
 import { sceneFrame, setStepCaption, mountView, stepView } from "../engine.js";
 import { hideTip } from "../charts/core.js";
-import { t } from "../util/i18n.js";
+import { t, pin, uiLoc } from "../util/i18n.js";
 
 const CHANNEL = "story-present";
 
@@ -14,14 +14,20 @@ export function initPresent(app) {
   const { R, main } = app;
   clear(main);
   const root = h("div", { class: "present" });
-  const TOTAL = R.bundle.meta.total_seconds || R.scenes.reduce((a, sc) => a + sc.duration_seconds, 0);
+  // A talk (?talk=<id>) carries its own running time; otherwise the full deck's.
+  const TOTAL = R.talk?.total_seconds || R.bundle.meta.total_seconds || R.scenes.reduce((a, sc) => a + sc.duration_seconds, 0);
   const progress = h("div", { class: "present__progress", role: "progressbar", "aria-label": t("present.progress"),
     "aria-valuemin": 0, "aria-valuemax": TOTAL }, h("span"));
   const nav = h("nav", { class: "present__nav", "aria-label": t("present.nav") },
     h("button", { class: "btn btn--nav", type: "button", "aria-label": t("present.prev"), onclick: () => move(-1), text: "‹" }),
     h("span", { class: "present__pos", "aria-live": "polite" }),
     h("button", { class: "btn btn--nav", type: "button", "aria-label": t("present.next"), onclick: () => move(1), text: "›" }));
-  root.append(progress);
+  // Funder acknowledgement on every slide (HSRI agreement: logo and wording on all presentation pages).
+  // Releases built before the footer existed carry no wording for it, so they show none.
+  const funding = R.bundle.ui?.["present.funding"] ? pin(h("footer", { class: "present__funding" },
+    h("img", { src: "assets/logos/05_HSRI.svg", alt: t("present.funding_logo"), decoding: "async" }),
+    h("span", { text: t("present.funding") })), uiLoc("present.funding")) : "";
+  root.append(progress, funding);
   main.append(root, nav);
   const stage = h("div", { class: "scene__stage present__stage" });
   let F = null;
@@ -38,22 +44,27 @@ export function initPresent(app) {
         onAppendix: app.openAppendix, onLab: () => app.enterLab({ scene: scene.id, step: app.state.step }) });
       F.frame.replaceChild(stage, F.stage);   // keep the same stage element across scenes
       F.stage = stage;
-      clear(root); root.append(progress, F.frame);
+      clear(root); root.append(progress, F.frame, funding);
       document.title = `${scene.id} ${scene.title} · ${R.bundle.meta.title}`;
     }
+    if (R.sceneIndex(scene.id) >= 0) lastInSequence = scene.id;
     setStepCaption(F, st.step);
     requestAnimationFrame(() => mountView(stage, stepView(scene, st.step), app.viewCtx()));
     nav.querySelector(".present__pos").textContent = t("present.pos", { id: scene.id, i: st.step, n: scene.steps.length });
     const pos = scene.start_seconds + (scene.duration_seconds * (st.step - 1)) / scene.steps.length;
-    progress.firstChild.style.width = `${(pos / TOTAL) * 100}%`;
+    progress.firstChild.style.width = `${Math.min(100, (pos / TOTAL) * 100)}%`;
     progress.setAttribute("aria-valuenow", Math.round(pos));
     app.updateTopbar(scene, st.step);
     app.persist();
     bc?.postMessage({ type: "state", release: R.id, scene: scene.id, step: st.step, t: Date.now() });
   }
 
+  // Inside a talk, a backup scene opened from a link (Q&A) is outside the sequence:
+  // the next or previous key returns to the talk scene the presenter left.
+  let lastInSequence = null;
   function move(dir) {
     const st = app.state;
+    if (R.sceneIndex(st.scene) < 0 && lastInSequence) { st.scene = lastInSequence; st.step = 1; return render(); }
     const i = R.sceneIndex(st.scene);
     const sc = R.scenes[i];
     if (dir > 0) {

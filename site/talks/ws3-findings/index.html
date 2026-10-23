@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="th" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ความก้าวหน้าไม่เดินทางเอง</title>
+<meta name="description" content="การนำเสนอข้อค้นพบและข้อเสนอเชิงนโยบาย โครงการวางแผนกำลังคนด้านสุขภาพ เวที WS3 26 ตุลาคม 2569 (30 นาที)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='12' fill='%2303040f'/%3E%3Cpath d='M8 34h32' stroke='%23ff8f8a' stroke-width='4'/%3E%3Cpath d='M8 34 20 16l8 10 6-8 6 16' fill='none' stroke='%23ff8f8a' stroke-width='3.5' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="../engine/deck.css">
+<link rel="stylesheet" href="../engine/hud.css">
+</head>
+<body class="mode-present">
+<a class="skip" href="#deck">ข้ามไปที่สไลด์</a>
+<header class="topbar">
+  <span class="topbar__brand">ความก้าวหน้าไม่เดินทางเอง</span>
+  <span class="topbar__where"><span id="chapter-name"></span><span id="slide-number"></span></span>
+  <nav class="modes" aria-label="มุมมอง">
+    <button type="button" data-mode="present" aria-pressed="true">นำเสนอ</button>
+    <button type="button" data-mode="read" aria-pressed="false">อ่าน</button>
+  </nav>
+  <span class="topbar__tools">
+    <button type="button" class="btn btn--ghost" id="btn-notes" title="บันทึกผู้บรรยาย (N)">บันทึก</button>
+    <button type="button" class="btn btn--ghost btn--icon" id="btn-overview" title="สไลด์ทั้งหมด (O)" aria-label="สไลด์ทั้งหมด">
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+    </button>
+    <button type="button" class="btn btn--ghost btn--icon" id="btn-theme" title="สว่างหรือมืด (T)" aria-label="สลับธีม">
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/></svg>
+    </button>
+    <button type="button" class="btn btn--ghost btn--icon only-present" id="btn-full" title="เต็มจอ (F)" aria-label="เต็มจอ">
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+    </button>
+    <button type="button" class="btn btn--ghost btn--icon" id="btn-help" title="ปุ่มลัด (?)" aria-label="ปุ่มลัด">?</button>
+  </span>
+</header>
+
+<main id="deck" class="deck" tabindex="-1"><p class="loading">กำลังโหลดสไลด์…</p></main>
+
+<div class="ribbon only-present" aria-hidden="false">
+  <button type="button" class="btn btn--nav" id="btn-prev" aria-label="ก่อนหน้า">‹</button>
+  <span class="ribbon__pos" id="pos" aria-live="polite"></span>
+  <span class="ribbon__timer" id="timer" title="เวลาที่ใช้และความเร็วเทียบแผน"></span>
+  <button type="button" class="btn btn--nav" id="btn-next" aria-label="ถัดไป">›</button>
+  <div class="ribbon__progress" role="progressbar" aria-label="เวลาตามแผน" aria-valuemin="0"><span id="progress"></span></div>
+</div>
+
+<aside class="notes-drawer" id="notes-drawer" hidden aria-label="บันทึกผู้บรรยาย"></aside>
+
+<dialog id="overview" class="sheet" aria-labelledby="overview-title">
+  <div class="sheet__head"><h2 id="overview-title">สไลด์ทั้งหมด</h2><button type="button" class="btn btn--icon btn--ghost" data-close aria-label="ปิด">×</button></div>
+  <ol class="overview" id="overview-list"></ol>
+</dialog>
+
+<dialog id="help" class="sheet sheet--narrow" aria-labelledby="help-title">
+  <div class="sheet__head"><h2 id="help-title">ปุ่มลัด</h2><button type="button" class="btn btn--icon btn--ghost" data-close aria-label="ปิด">×</button></div>
+  <dl class="keys">
+    <dt><kbd>→</kbd> <kbd>Space</kbd></dt><dd>ขั้นหรือสไลด์ถัดไป</dd>
+    <dt><kbd>←</kbd></dt><dd>ขั้นหรือสไลด์ก่อนหน้า</dd>
+    <dt><kbd>Home</kbd> <kbd>End</kbd></dt><dd>สไลด์แรกหรือสุดท้าย</dd>
+    <dt><kbd>N</kbd></dt><dd>บันทึกผู้บรรยายในหน้าต่างที่สอง (ลากไปไว้ที่จอโน้ตบุ๊ก)</dd>
+    <dt><kbd>Shift</kbd> <kbd>N</kbd></dt><dd>บันทึกผู้บรรยายในหน้าต่างนี้</dd>
+    <dt><kbd>O</kbd></dt><dd>สไลด์ทั้งหมด</dd>
+    <dt><kbd>F</kbd></dt><dd>เต็มจอ</dd>
+    <dt><kbd>T</kbd></dt><dd>สว่างหรือมืด</dd>
+    <dt><kbd>R</kbd></dt><dd>โหมดอ่าน (ทุกสไลด์พร้อมบันทึก)</dd>
+    <dt><kbd>0</kbd></dt><dd>เริ่มจับเวลาใหม่</dd>
+  </dl>
+  <p class="sheet__note">ในโหมดนำเสนอ สไลด์เต็มจอ แถบบนและแถบล่างซ่อนเองเมื่อไม่ขยับเมาส์ ขยับเมาส์เพื่อเรียกกลับ ตัวจับเวลาอยู่ในหน้าต่างบันทึก (N) เท่านั้น ผู้ชมไม่เห็น เวลาเริ่มนับเมื่อกดครั้งแรก และบอกว่าเร็วหรือช้ากว่าแผนเท่าใด</p>
+</dialog>
+
+<noscript><p class="loading">โปรดเปิด JavaScript เพื่อดูสไลด์</p></noscript>
+<script src="data.js"></script>
+<script src="../engine/hud.js"></script>
+<script src="figures.js"></script>
+<script src="slides.js"></script>
+<script src="../engine/deck.js"></script>
+</body>
+</html>

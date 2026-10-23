@@ -1,6 +1,6 @@
 // Text panels for the discussion scenes: two columns, a mission table, the policy
-// matrix revealed row by row, and the closing questions with links back to the
-// evidence. Content is authored in config/web/scenes.toml, not computed.
+// matrix revealed row by row, a monograph diagram beside its points, and the closing
+// questions with links back to the evidence. An optional local figure (e.g. a QR code) follows the panel. Content is authored in config/web/scenes.toml, not computed.
 
 import { h, clear } from "../util/dom.js";
 import { evidenceBadge, hideTip } from "./core.js";
@@ -12,7 +12,8 @@ export class TextPanel {
   update(spec, ctx) {
     const R = ctx.release;
     clear(this.el); hideTip();
-    const wrap = h("div", { class: `textpanel textpanel--${spec.layout}` + ((spec.columns || []).length === 3 ? " textpanel--three" : "") });
+    const wrap = h("div", { class: `textpanel textpanel--${spec.layout}` + ((spec.columns || []).length === 3 && spec.layout === "columns" ? " textpanel--three" : "")
+      + (spec.size === "large" ? " textpanel--large" : "") });
     this.el.append(wrap);
     if (spec.layout === "columns") {
       for (const c of spec.columns || []) {
@@ -35,6 +36,20 @@ export class TextPanel {
       table.append(tb);
       wrap.append(h("div", { class: "tp-scroll" }, table));
       if (spec.layout === "matrix") wrap.append(h("p", { class: "chart-note", text: t("text.matrix_note") }));
+    } else if (spec.layout === "diagram") {
+      // A monograph diagram beside the points the presenter makes about it; steps swap the points list.
+      const side = h("div", { class: "tp-points" });
+      if (spec.lead) side.append(h("p", { class: "tp-lead", text: spec.lead }));
+      const list = h("ul", { class: "tp-pointlist" });
+      for (const it of spec.points || []) {
+        const p = typeof it === "string" ? { text: it } : it;
+        list.append(h("li", {}, p.title ? h("strong", { text: p.title }) : "", p.text ? h("span", { text: p.text }) : ""));
+      }
+      side.append(list);
+      const d = spec.diagram || {};
+      wrap.append(side, h("figure", { class: "tp-diagram" },
+        h("img", { src: d.src, alt: d.alt || "", decoding: "async" }),
+        d.caption ? h("figcaption", { text: d.caption }) : ""));
     } else if (spec.layout === "questions") {
       const ol = h("ol", { class: "tp-questions" });
       (spec.questions || []).forEach((q) => {
@@ -45,6 +60,9 @@ export class TextPanel {
       });
       wrap.append(ol);
     }
+    if (spec.figure) wrap.append(h("figure", { class: "tp-figure" },
+      h("img", { src: spec.figure.src, alt: spec.figure.alt || "", decoding: "async" }),
+      spec.figure.caption ? h("figcaption", { text: spec.figure.caption }) : ""));
     if (spec.definition) wrap.append(h("p", { class: "tp-definition", text: spec.definition }));
   }
   destroy() { hideTip(); clear(this.el); }

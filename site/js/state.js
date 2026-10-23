@@ -1,9 +1,10 @@
 // Shareable state lives in the query string (no hash routing, so the two never
 // disagree). Example: ?mode=present&scene=S14&step=2&release=<id>
+// ?talk=<id> narrows every mode to one event's timed scene sequence ([[talk]] in scenes.toml).
 // Explore adds temporary overrides (cadre, scope, den, year, ...) that are never
 // written back into the presenter's prepared state.
 
-export const MODES = ["story", "present", "explore", "print", "lab"];
+export const MODES = ["read", "talks", "story", "present", "explore", "print", "lab"];
 const OVERRIDES = ["cadre", "scope", "den", "pair", "year", "window", "tier", "wf", "prov", "cadres", "view"];
 
 export function readState(search = location.search) {
@@ -14,8 +15,9 @@ export function readState(search = location.search) {
     scene: (q.get("scene") || "").toUpperCase() || null,
     step: Math.max(1, parseInt(q.get("step") || "1", 10) || 1),
     lang: q.get("lang") === "en" ? "en" : "th",
+    talk: /^[a-z0-9-]+$/.test(q.get("talk") || "") ? q.get("talk") : null,
     labPreset: q.get("preset") || null,
-    labView: ["present", "policies", "modules"].includes(q.get("labview")) ? q.get("labview") : null,
+    labView: ["present", "policies", "modules", "hub", "data", "workspace", "connect", "review"].includes(q.get("labview")) ? q.get("labview") : null,
     labPolicy: /^P(?:0[1-9]|1[0-9]|20)$/.test(q.get("policy") || "") ? q.get("policy") : null,
     ov: {},
   };
@@ -29,6 +31,7 @@ export function toQuery(st, { includeOverrides = true } = {}) {
   if (st.scene) q.set("scene", st.scene);
   if (st.step && st.step > 1) q.set("step", String(st.step));
   if (st.release) q.set("release", st.release);
+  if (st.talk) q.set("talk", st.talk);
   if (st.lang === "en") q.set("lang", "en");
   if (st.mode === "lab" && st.labPreset) q.set("preset", st.labPreset);
   if (st.mode === "lab" && st.labView) q.set("labview", st.labView);

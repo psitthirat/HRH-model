@@ -1,0 +1,128 @@
+[
+ {
+  "token": "c46_conc_top10_all1",
+  "display": "63.5",
+  "unit": "%",
+  "source": "outputs/chapter4_6/claims.csv"
+ },
+ {
+  "token": "c46_dis_n_all_four",
+  "display": "8",
+  "unit": "จังหวัด",
+  "source": "outputs/chapter4_6/claims.csv"
+ },
+ {
+  "token": "c54_maxcum_PR_vs_SR",
+  "display": "499",
+  "unit": "คน",
+  "source": "outputs/chapter5/claims_5_4.csv"
+ },
+ {
+  "token": "c5f_PR_F0_bq_P",
+  "display": "0.337",
+  "unit": "",
+  "source": "outputs/chapter5/claims_5_frame.csv"
+ },
+ {
+  "token": "c5f_PR_F1_bq_P",
+  "display": "0.390",
+  "unit": "",
+  "source": "outputs/chapter5/claims_5_frame.csv"
+ },
+ {
+  "token": "c5f_PR_GDc5_bq_P",
+  "display": "0.488",
+  "unit": "",
+  "source": "outputs/chapter5/claims_5_frame.csv"
+ },
+ {
+  "token": "c5f_PR_GDh5_bq_P",
+  "display": "0.396",
+  "unit": "",
+  "source": "outputs/chapter5/claims_5_frame.csv"
+ },
+ {
+  "token": "c5f_PR_bq_P",
+  "display": "0.437",
+  "unit": "",
+  "source": "outputs/chapter5/claims_5_frame.csv"
+ },
+ {
+  "token": "c5f_PR_pool2500_unplaced",
+  "display": "8,272",
+  "unit": "คน",
+  "source": "outputs/chapter5/claims_5_frame.csv"
+ },
+ {
+  "token": "c5f_prorata_equiv_ratio",
+  "display": "2.0",
+  "unit": "เท่า",
+  "source": "outputs/chapter5/claims_5_frame.csv"
+ },
+ {
+  "token": "c77_early_retire_all",
+  "display": "34",
+  "unit": "%",
+  "source": "outputs/chapter7_7/claims.csv"
+ },
+ {
+  "token": "c77_or_leave_areaB_home_province_match",
+  "display": "0.44",
+  "unit": "",
+  "source": "outputs/chapter7_7/claims.csv"
+ },
+ {
+  "token": "c77_pct_primary_carer",
+  "display": "43",
+  "unit": "%",
+  "source": "outputs/chapter7_7/claims.csv"
+ },
+ {
+  "token": "c77_units_P",
+  "display": "76",
+  "unit": "หน่วย",
+  "source": "outputs/chapter7_7/claims.csv"
+ },
+ {
+  "token": "c77_units_P_local",
+  "display": "39",
+  "unit": "หน่วย",
+  "source": "outputs/chapter7_7/claims.csv"
+ },
+ {
+  "token": "lit.gap_1979",
+  "display": "21",
+  "unit": "",
+  "source": "monograph 01_scarcity.md:115; Wibulpolprasert & Pengpaibon 2003"
+ },
+ {
+  "token": "lit.gap_1986",
+  "display": "8.6",
+  "unit": "",
+  "source": "monograph 01_scarcity.md:115; Wibulpolprasert & Pengpaibon 2003"
+ },
+ {
+  "token": "lit.rural_hosp_end",
+  "display": "425",
+  "unit": "",
+  "source": "monograph 01_scarcity.md:115; Wibulpolprasert & Pengpaibon 2003"
+ },
+ {
+  "token": "lit.rural_hosp_start",
+  "display": "200",
+  "unit": "",
+  "source": "monograph 01_scarcity.md:115; Wibulpolprasert & Pengpaibon 2003"
+ },
+ {
+  "token": "lit.rural_md_end",
+  "display": "1,162",
+  "unit": "",
+  "source": "monograph 01_scarcity.md:115; Wibulpolprasert & Pengpaibon 2003"
+ },
+ {
+  "token": "lit.rural_md_start",
+  "display": "300",
+  "unit": "",
+  "source": "monograph 01_scarcity.md:115; Wibulpolprasert & Pengpaibon 2003"
+ }
+]

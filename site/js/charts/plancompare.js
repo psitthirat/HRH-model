@@ -48,9 +48,13 @@ export class PlanCompare {
     const st = this.state;
     const selected = this.rows.filter(r => r.year !== "all" && (st.year === "all" || r.year === st.year));
     const lookup = new Map(selected.filter(r => r.plan === st.base).map(r => [`${r.year}|${r.prov_code}`, r.x]));
-    const baseTotal = [...lookup.values()].reduce((a, b) => a + b, 0);
-    const moved = selected.filter(r => r.plan === st.compare).reduce((sum, r) => sum + Math.abs(r.x - lookup.get(`${r.year}|${r.prov_code}`)), 0) / 2;
-    return { moved, pct: baseTotal ? moved / baseTotal * 100 : 0 };
+    // graduates without a funded position are one more destination (evaluation.switches): one value per plan-year
+    const unplaced = plan => new Map(selected.filter(r => r.plan === plan).map(r => [r.year, r.unplaced || 0]));
+    const ua = unplaced(st.base), ub = unplaced(st.compare);
+    const pool = [...lookup.values()].reduce((a, b) => a + b, 0) + [...ua.values()].reduce((a, b) => a + b, 0);
+    const moved = (selected.filter(r => r.plan === st.compare).reduce((sum, r) => sum + Math.abs(r.x - lookup.get(`${r.year}|${r.prov_code}`)), 0)
+      + [...ub.keys()].reduce((sum, y) => sum + Math.abs(ub.get(y) - (ua.get(y) || 0)), 0)) / 2;
+    return { moved, pct: pool ? moved / pool * 100 : 0 };
   }
 
   select(label, key, options) {

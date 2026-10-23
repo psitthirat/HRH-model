@@ -109,7 +109,9 @@ function lineChart(rows, key, label) {
   return svg;
 }
 
-export function renderServiceModules(host, { client, lang = 'th', onBack }) {
+// canUpload(): whether the user may upload their own files (sign-in, owner decision 23 Oct 2569); onNeedSignIn()
+// opens the sign-in dialog.  Synthetic demonstration data stay available without an account.
+export function renderServiceModules(host, { client, lang = 'th', onBack, canUpload = () => true, onNeedSignIn = null }) {
   const t = T[lang] || T.th;
   const state = { spec: null, module: null, datasets: {}, overrides: {}, validation: null, result: null, busy: false, stale: true,
     view: 'residence', base: null, staged: null };
@@ -142,7 +144,8 @@ export function renderServiceModules(host, { client, lang = 'th', onBack }) {
       h('p', { class: 'lab-help', text: `${t.columns}: ${ds.columns.map(c => c.name + (c.unit ? ` (${c.unit})` : '') + (c.required ? '' : '?')).join(', ')}` }),
       h('div', { class: 'lab-actions' },
         h('button', { type: 'button', class: 'btn', text: t.template, onclick: () => download(`template_${ds.id}.csv`, ds.template_csv) }),
-        h('button', { type: 'button', class: 'btn', text: t.upload, 'data-action': `upload-${ds.id}`, onclick: () => file.click() }), file,
+        h('button', { type: 'button', class: 'btn', text: canUpload() ? t.upload : (lang === 'en' ? 'Sign in to upload' : 'เข้าสู่ระบบเพื่ออัปโหลด'), 'data-action': `upload-${ds.id}`,
+          onclick: () => { if (canUpload()) file.click(); else onNeedSignIn?.(); } }), file,
         loaded && h('button', { type: 'button', class: 'btn', text: t.clear, onclick: () => { delete state.datasets[ds.id]; markStale(); paint(); } })));
   }
 

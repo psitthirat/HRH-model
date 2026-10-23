@@ -1,0 +1,878 @@
+[
+ {
+  "token": "c41_physicians_end",
+  "display": "45,937",
+  "unit": "คน",
+  "source": "outputs/chapter4_1/claims.csv"
+ },
+ {
+  "token": "c41_physicians_pct",
+  "display": "71.62",
+  "unit": "%",
+  "source": "outputs/chapter4_1/claims.csv"
+ },
+ {
+  "token": "c41_physicians_start",
+  "display": "26,767",
+  "unit": "คน",
+  "source": "outputs/chapter4_1/claims.csv"
+ },
+ {
+  "token": "c41_professional_nurses_end",
+  "display": "203,224",
+  "unit": "คน",
+  "source": "outputs/chapter4_1/claims.csv"
+ },
+ {
+  "token": "c41_professional_nurses_pct",
+  "display": "47.05",
+  "unit": "%",
+  "source": "outputs/chapter4_1/claims.csv"
+ },
+ {
+  "token": "c41_professional_nurses_start",
+  "display": "138,205",
+  "unit": "คน",
+  "source": "outputs/chapter4_1/claims.csv"
+ },
+ {
+  "token": "c421_dens_physicians_all_sectors_end",
+  "display": "71.11",
+  "unit": "ต่อ 100,000",
+  "source": "outputs/chapter4_2/claims.csv"
+ },
+ {
+  "token": "c421_dens_physicians_moph_end",
+  "display": "36.97",
+  "unit": "ต่อ 100,000",
+  "source": "outputs/chapter4_2/claims.csv"
+ },
+ {
+  "token": "c421_dens_physicians_public_total_end",
+  "display": "56.06",
+  "unit": "ต่อ 100,000",
+  "source": "outputs/chapter4_2/claims.csv"
+ },
+ {
+  "token": "c421_pop_pct",
+  "display": "1.49",
+  "unit": "%",
+  "source": "outputs/chapter4_2/claims.csv"
+ },
+ {
+  "token": "c421_register_gap_civil_grand",
+  "display": "-1.8",
+  "unit": "%",
+  "source": "outputs/chapter4_2/claims.csv"
+ },
+ {
+  "token": "c421_register_gap_nhso_rights",
+  "display": "-3.8",
+  "unit": "%",
+  "source": "outputs/chapter4_2/claims.csv"
+ },
+ {
+  "token": "c421_scope_gap_max_abs",
+  "display": "48.0",
+  "unit": "%",
+  "source": "outputs/chapter4_2/claims.csv"
+ },
+ {
+  "token": "c421_scope_gap_min_abs",
+  "display": "5.2",
+  "unit": "%",
+  "source": "outputs/chapter4_2/claims.csv"
+ },
+ {
+  "token": "c423_assoc_ip_moph_long_pooled_year_fe_beds",
+  "display": "0.708",
+  "unit": "elasticity",
+  "source": "outputs/chapter4_2/claims.csv"
+ },
+ {
+  "token": "c424_moph_physicians_adjrw_casemix_long",
+  "display": "-20.07",
+  "unit": "%",
+  "source": "outputs/chapter4_2/claims.csv"
+ },
+ {
+  "token": "c424_moph_physicians_civil_population_long",
+  "display": "48.39",
+  "unit": "%",
+  "source": "outputs/chapter4_2/claims.csv"
+ },
+ {
+  "token": "c424_moph_physicians_ip_days_moph_long",
+  "display": "20.21",
+  "unit": "%",
+  "source": "outputs/chapter4_2/claims.csv"
+ },
+ {
+  "token": "c424_moph_physicians_op_visits_moph_long",
+  "display": "25.20",
+  "unit": "%",
+  "source": "outputs/chapter4_2/claims.csv"
+ },
+ {
+  "token": "c43_gap_bkk_ne_end",
+  "display": "5.7",
+  "unit": "เท่า",
+  "source": "outputs/chapter4_3/claims.csv"
+ },
+ {
+  "token": "c43_gap_bkk_ne_start",
+  "display": "4.3",
+  "unit": "เท่า",
+  "source": "outputs/chapter4_3/claims.csv"
+ },
+ {
+  "token": "c43_gap_ne_n_provinces",
+  "display": "20",
+  "unit": "จังหวัด",
+  "source": "outputs/chapter4_3/claims.csv"
+ },
+ {
+  "token": "c43_pri_all6_n",
+  "display": "4",
+  "unit": "จังหวัด",
+  "source": "outputs/chapter4_3/claims.csv"
+ },
+ {
+  "token": "c43_pri_any6_n",
+  "display": "41",
+  "unit": "จังหวัด",
+  "source": "outputs/chapter4_3/claims.csv"
+ },
+ {
+  "token": "c44_int_professional_nurses_entries_per100",
+  "display": "9.57",
+  "unit": "",
+  "source": "outputs/chapter4_4/claims.csv"
+ },
+ {
+  "token": "c44_int_professional_nurses_exits_per100",
+  "display": "8.06",
+  "unit": "",
+  "source": "outputs/chapter4_4/claims.csv"
+ },
+ {
+  "token": "c44_physicians_entries_total",
+  "display": "19,744",
+  "unit": "เหตุการณ์",
+  "source": "outputs/chapter4_4/claims.csv"
+ },
+ {
+  "token": "c44_physicians_exit_entry_ratio",
+  "display": "0.56",
+  "unit": "",
+  "source": "outputs/chapter4_4/claims.csv"
+ },
+ {
+  "token": "c44_physicians_exits_total",
+  "display": "11,136",
+  "unit": "เหตุการณ์",
+  "source": "outputs/chapter4_4/claims.csv"
+ },
+ {
+  "token": "c44_professional_nurses_entries_total",
+  "display": "99,365",
+  "unit": "เหตุการณ์",
+  "source": "outputs/chapter4_4/claims.csv"
+ },
+ {
+  "token": "c44_professional_nurses_exit_entry_ratio",
+  "display": "0.84",
+  "unit": "",
+  "source": "outputs/chapter4_4/claims.csv"
+ },
+ {
+  "token": "c44_professional_nurses_exits_total",
+  "display": "83,706",
+  "unit": "เหตุการณ์",
+  "source": "outputs/chapter4_4/claims.csv"
+ },
+ {
+  "token": "c45_ci_physicians_all_sectors_daly_2025",
+  "display": "-0.111",
+  "unit": "",
+  "source": "outputs/chapter4_5/claims.csv"
+ },
+ {
+  "token": "c45_daly_max",
+  "display": "28,745",
+  "unit": "DALY ต่อ 100,000",
+  "source": "outputs/chapter4_5/claims.csv"
+ },
+ {
+  "token": "c45_daly_min",
+  "display": "17,870",
+  "unit": "DALY ต่อ 100,000",
+  "source": "outputs/chapter4_5/claims.csv"
+ },
+ {
+  "token": "c45_expected_growth_1325",
+  "display": "21.1",
+  "unit": "%",
+  "source": "outputs/chapter4_5/claims.csv"
+ },
+ {
+  "token": "c45_pop_growth_1325",
+  "display": "2.0",
+  "unit": "%",
+  "source": "outputs/chapter4_5/claims.csv"
+ },
+ {
+  "token": "c45_share60_daly",
+  "display": "45.5",
+  "unit": "%",
+  "source": "outputs/chapter4_5/claims.csv"
+ },
+ {
+  "token": "c45_share60_pop",
+  "display": "18.7",
+  "unit": "%",
+  "source": "outputs/chapter4_5/claims.csv"
+ },
+ {
+  "token": "c46_conc_top10_all1",
+  "display": "63.5",
+  "unit": "%",
+  "source": "outputs/chapter4_6/claims.csv"
+ },
+ {
+  "token": "c46_conc_top10_allT",
+  "display": "61.6",
+  "unit": "%",
+  "source": "outputs/chapter4_6/claims.csv"
+ },
+ {
+  "token": "c46_dis_list_all_four",
+  "display": "บึงกาฬ, หนองบัวลำภู, ชัยภูมิ, กำแพงเพชร, อำนาจเจริญ, ยโสธร, เลย, สกลนคร",
+  "unit": "",
+  "source": "outputs/chapter4_6/claims.csv"
+ },
+ {
+  "token": "c46_dis_n_all_four",
+  "display": "8",
+  "unit": "จังหวัด",
+  "source": "outputs/chapter4_6/claims.csv"
+ },
+ {
+  "token": "c46_dis_n_burden_not_service",
+  "display": "11",
+  "unit": "จังหวัด",
+  "source": "outputs/chapter4_6/claims.csv"
+ },
+ {
+  "token": "c46_dis_n_service_not_burden",
+  "display": "11",
+  "unit": "จังหวัด",
+  "source": "outputs/chapter4_6/claims.csv"
+ },
+ {
+  "token": "c47_pos100k_ratio",
+  "display": "3.4",
+  "unit": "เท่า",
+  "source": "outputs/chapter4_7/claims.csv"
+ },
+ {
+  "token": "c47_vacrate_level_A",
+  "display": "5.6",
+  "unit": "%",
+  "source": "outputs/chapter4_7/claims.csv"
+ },
+ {
+  "token": "c47_vacrate_level_F3",
+  "display": "18.9",
+  "unit": "%",
+  "source": "outputs/chapter4_7/claims.csv"
+ },
+ {
+  "token": "c51_H0_total",
+  "display": "22,685",
+  "unit": "คน",
+  "source": "outputs/chapter5/claims_5_1.csv"
+ },
+ {
+  "token": "c51_attain_2025",
+  "display": "0.38",
+  "unit": "",
+  "source": "outputs/chapter5/claims_5_1.csv"
+ },
+ {
+  "token": "c51_pool",
+  "display": "2,000",
+  "unit": "คนต่อปี",
+  "source": "outputs/chapter5/claims_5_1.csv"
+ },
+ {
+  "token": "c51_target_2025",
+  "display": "59,316",
+  "unit": "คน",
+  "source": "outputs/chapter5/claims_5_1.csv"
+ },
+ {
+  "token": "c53_adaptive_replanning_bq_P",
+  "display": "0.444",
+  "unit": "",
+  "source": "outputs/chapter5/claims_5_3.csv"
+ },
+ {
+  "token": "c53_blocked_adaptive_replanning_P-R",
+  "display": "1,003",
+  "unit": "คนต่อเส้นทาง",
+  "source": "outputs/chapter5/claims_5_3.csv"
+ },
+ {
+  "token": "c53_blocked_mean_P-R",
+  "display": "1,193",
+  "unit": "คนต่อเส้นทาง",
+  "source": "outputs/chapter5/claims_5_3.csv"
+ },
+ {
+  "token": "c53_fixed_schedule_same_paths_bq_P",
+  "display": "0.422",
+  "unit": "",
+  "source": "outputs/chapter5/claims_5_3.csv"
+ },
+ {
+  "token": "c53_n_paths",
+  "display": "500",
+  "unit": "เส้นทาง",
+  "source": "outputs/chapter5/claims_5_3.csv"
+ },
+ {
+  "token": "c54_committed_not_home_PR",
+  "display": "3",
+  "unit": "คน",
+  "source": "outputs/chapter5/claims_5_4.csv"
+ },
+ {
+  "token": "c54_gapnat_PR_P",
+  "display": "26,193",
+  "unit": "คน",
+  "source": "outputs/chapter5/claims_5_4.csv"
+ },
+ {
+  "token": "c54_gapsp_PR_P",
+  "display": "0",
+  "unit": "คน",
+  "source": "outputs/chapter5/claims_5_4.csv"
+ },
+ {
+  "token": "c54_nat_PR_P",
+  "display": "0.527",
+  "unit": "",
+  "source": "outputs/chapter5/claims_5_4.csv"
+ },
+ {
+  "token": "c54_positions_added_PR",
+  "display": "4,559",
+  "unit": "ตำแหน่ง",
+  "source": "outputs/chapter5/claims_5_4.csv"
+ },
+ {
+  "token": "c54_positions_added_first_PR",
+  "display": "1,446",
+  "unit": "ตำแหน่ง",
+  "source": "outputs/chapter5/claims_5_4.csv"
+ },
+ {
+  "token": "c54_stock2040_PR",
+  "display": "29,214",
+  "unit": "คน",
+  "source": "outputs/chapter5/claims_5_4.csv"
+ },
+ {
+  "token": "c54_worst_province_H0",
+  "display": "72",
+  "unit": "คน",
+  "source": "outputs/chapter5/claims_5_4.csv"
+ },
+ {
+  "token": "c54_worst_province_attain_2025",
+  "display": "0.169",
+  "unit": "",
+  "source": "outputs/chapter5/claims_5_4.csv"
+ },
+ {
+  "token": "c54_worst_province_exit",
+  "display": "13.4",
+  "unit": "% ต่อปี",
+  "source": "outputs/chapter5/claims_5_4.csv"
+ },
+ {
+  "token": "c55_gainB_first_1",
+  "display": "0.88",
+  "unit": "",
+  "source": "outputs/chapter5/claims_5_4.csv"
+ },
+ {
+  "token": "c55_ngain1_first_1",
+  "display": "16",
+  "unit": "จังหวัด",
+  "source": "outputs/chapter5/claims_5_4.csv"
+ },
+ {
+  "token": "c5a_hc_c2_value",
+  "display": "0.44",
+  "unit": "",
+  "source": "outputs/chapter5/claims_5_4.csv"
+ },
+ {
+  "token": "c5a_hc_jac_persistence_h3",
+  "display": "0.72",
+  "unit": "",
+  "source": "outputs/chapter5/claims_5_4.csv"
+ },
+ {
+  "token": "c5a_hc_jac_sf_unconditional_h3",
+  "display": "0.59",
+  "unit": "",
+  "source": "outputs/chapter5/claims_5_4.csv"
+ },
+ {
+  "token": "c5a_hc_mae_persistence_h3",
+  "display": "33.3",
+  "unit": "คน",
+  "source": "outputs/chapter5/claims_5_4.csv"
+ },
+ {
+  "token": "c5a_hc_mae_poponly_h3",
+  "display": "32.8",
+  "unit": "คน",
+  "source": "outputs/chapter5/claims_5_4.csv"
+ },
+ {
+  "token": "c5a_hc_mae_sf_unconditional_h3",
+  "display": "28.1",
+  "unit": "คน",
+  "source": "outputs/chapter5/claims_5_4.csv"
+ },
+ {
+  "token": "c5f_BR_F0_bq_P",
+  "display": "0.337",
+  "unit": "",
+  "source": "outputs/chapter5/claims_5_frame.csv"
+ },
+ {
+  "token": "c5f_K0",
+  "display": "28,925",
+  "unit": "ตำแหน่ง",
+  "source": "outputs/chapter5/claims_5_frame.csv"
+ },
+ {
+  "token": "c5f_NR_F0_bq_P",
+  "display": "0.337",
+  "unit": "",
+  "source": "outputs/chapter5/claims_5_frame.csv"
+ },
+ {
+  "token": "c5f_PR_F0_bq_P",
+  "display": "0.337",
+  "unit": "",
+  "source": "outputs/chapter5/claims_5_frame.csv"
+ },
+ {
+  "token": "c5f_PR_F0_first_unplaced",
+  "display": "2572",
+  "unit": "",
+  "source": "outputs/chapter5/claims_5_frame.csv"
+ },
+ {
+  "token": "c5f_PR_F0_unplaced",
+  "display": "5,442",
+  "unit": "คน",
+  "source": "outputs/chapter5/claims_5_frame.csv"
+ },
+ {
+  "token": "c5f_PR_F1_bq_P",
+  "display": "0.390",
+  "unit": "",
+  "source": "outputs/chapter5/claims_5_frame.csv"
+ },
+ {
+  "token": "c5f_PR_F1_committed_unplaced",
+  "display": "590",
+  "unit": "คน",
+  "source": "outputs/chapter5/claims_5_frame.csv"
+ },
+ {
+  "token": "c5f_PR_F1_gini_P",
+  "display": "0.127",
+  "unit": "",
+  "source": "outputs/chapter5/claims_5_frame.csv"
+ },
+ {
+  "token": "c5f_PR_GDc5_bq_P",
+  "display": "0.488",
+  "unit": "",
+  "source": "outputs/chapter5/claims_5_frame.csv"
+ },
+ {
+  "token": "c5f_PR_GDh5_bq_P",
+  "display": "0.396",
+  "unit": "",
+  "source": "outputs/chapter5/claims_5_frame.csv"
+ },
+ {
+  "token": "c5f_PR_bq_P",
+  "display": "0.437",
+  "unit": "",
+  "source": "outputs/chapter5/claims_5_frame.csv"
+ },
+ {
+  "token": "c5f_PR_gini_P",
+  "display": "0.090",
+  "unit": "",
+  "source": "outputs/chapter5/claims_5_frame.csv"
+ },
+ {
+  "token": "c5f_core_commit_n",
+  "display": "8",
+  "unit": "จังหวัด",
+  "source": "outputs/chapter5/claims_5_frame.csv"
+ },
+ {
+  "token": "c5f_core_need_n",
+  "display": "16",
+  "unit": "จังหวัด",
+  "source": "outputs/chapter5/claims_5_frame.csv"
+ },
+ {
+  "token": "c5f_gd_PR_GDc5_exit_stockloss",
+  "display": "839",
+  "unit": "คน",
+  "source": "outputs/chapter5/claims_5_frame.csv"
+ },
+ {
+  "token": "c5f_gd_PR_GDh5_exit_stockloss",
+  "display": "1,018",
+  "unit": "คน",
+  "source": "outputs/chapter5/claims_5_frame.csv"
+ },
+ {
+  "token": "c5f_gdc_low19_share",
+  "display": "49",
+  "unit": "%",
+  "source": "outputs/chapter5/claims_5_frame.csv"
+ },
+ {
+  "token": "c5f_gdh_low19_share",
+  "display": "17",
+  "unit": "%",
+  "source": "outputs/chapter5/claims_5_frame.csv"
+ },
+ {
+  "token": "c5f_occ",
+  "display": "26,112",
+  "unit": "คน",
+  "source": "outputs/chapter5/claims_5_frame.csv"
+ },
+ {
+  "token": "c5f_phi_nat",
+  "display": "0.87",
+  "unit": "",
+  "source": "outputs/chapter5/claims_5_frame.csv"
+ },
+ {
+  "token": "c5f_prorata_equiv_added",
+  "display": "8,996",
+  "unit": "ตำแหน่ง",
+  "source": "outputs/chapter5/claims_5_frame.csv"
+ },
+ {
+  "token": "c5f_prorata_equiv_ratio",
+  "display": "2.0",
+  "unit": "เท่า",
+  "source": "outputs/chapter5/claims_5_frame.csv"
+ },
+ {
+  "token": "c5f_pw_F0",
+  "display": "0.238",
+  "unit": "",
+  "source": "outputs/chapter5/claims_5_frame.csv"
+ },
+ {
+  "token": "c5f_pw_F1",
+  "display": "0.275",
+  "unit": "",
+  "source": "outputs/chapter5/claims_5_frame.csv"
+ },
+ {
+  "token": "c5f_pw_K0",
+  "display": "137",
+  "unit": "ตำแหน่ง",
+  "source": "outputs/chapter5/claims_5_frame.csv"
+ },
+ {
+  "token": "c5f_pw_K_main",
+  "display": "223",
+  "unit": "ตำแหน่ง",
+  "source": "outputs/chapter5/claims_5_frame.csv"
+ },
+ {
+  "token": "c5f_pw_main",
+  "display": "0.387",
+  "unit": "",
+  "source": "outputs/chapter5/claims_5_frame.csv"
+ },
+ {
+  "token": "c5f_pw_need",
+  "display": "0.446",
+  "unit": "",
+  "source": "outputs/chapter5/claims_5_frame.csv"
+ },
+ {
+  "token": "c5f_pw_vacant0",
+  "display": "30",
+  "unit": "ตำแหน่ง",
+  "source": "outputs/chapter5/claims_5_frame.csv"
+ },
+ {
+  "token": "c5f_robust_core_n",
+  "display": "24",
+  "unit": "จังหวัด",
+  "source": "outputs/chapter5/claims_5_frame.csv"
+ },
+ {
+  "token": "c5f_room0",
+  "display": "2,444",
+  "unit": "คน",
+  "source": "outputs/chapter5/claims_5_frame.csv"
+ },
+ {
+  "token": "c5f_vacant0",
+  "display": "2,813",
+  "unit": "ตำแหน่ง",
+  "source": "outputs/chapter5/claims_5_frame.csv"
+ },
+ {
+  "token": "c77_dis_career_path",
+  "display": "44",
+  "unit": "%",
+  "source": "outputs/chapter7_7/claims.csv"
+ },
+ {
+  "token": "c77_dis_coworkers",
+  "display": "9",
+  "unit": "%",
+  "source": "outputs/chapter7_7/claims.csv"
+ },
+ {
+  "token": "c77_dis_income",
+  "display": "41",
+  "unit": "%",
+  "source": "outputs/chapter7_7/claims.csv"
+ },
+ {
+  "token": "c77_dis_moph_policy",
+  "display": "60",
+  "unit": "%",
+  "source": "outputs/chapter7_7/claims.csv"
+ },
+ {
+  "token": "c77_dis_quality_of_life",
+  "display": "17",
+  "unit": "%",
+  "source": "outputs/chapter7_7/claims.csv"
+ },
+ {
+  "token": "c77_dis_recognition",
+  "display": "16",
+  "unit": "%",
+  "source": "outputs/chapter7_7/claims.csv"
+ },
+ {
+  "token": "c77_dis_training",
+  "display": "25",
+  "unit": "%",
+  "source": "outputs/chapter7_7/claims.csv"
+ },
+ {
+  "token": "c77_dis_workload",
+  "display": "35",
+  "unit": "%",
+  "source": "outputs/chapter7_7/claims.csv"
+ },
+ {
+  "token": "c77_dr_itl_3y_career_path",
+  "display": "1.26",
+  "unit": "",
+  "source": "outputs/chapter7_7/claims.csv"
+ },
+ {
+  "token": "c77_dr_itl_3y_coworkers",
+  "display": "2.86",
+  "unit": "",
+  "source": "outputs/chapter7_7/claims.csv"
+ },
+ {
+  "token": "c77_dr_itl_3y_income",
+  "display": "1.21",
+  "unit": "",
+  "source": "outputs/chapter7_7/claims.csv"
+ },
+ {
+  "token": "c77_dr_itl_3y_moph_policy",
+  "display": "1.01",
+  "unit": "",
+  "source": "outputs/chapter7_7/claims.csv"
+ },
+ {
+  "token": "c77_dr_itl_3y_quality_of_life",
+  "display": "2.25",
+  "unit": "",
+  "source": "outputs/chapter7_7/claims.csv"
+ },
+ {
+  "token": "c77_dr_itl_3y_recognition",
+  "display": "1.94",
+  "unit": "",
+  "source": "outputs/chapter7_7/claims.csv"
+ },
+ {
+  "token": "c77_dr_itl_3y_training",
+  "display": "1.96",
+  "unit": "",
+  "source": "outputs/chapter7_7/claims.csv"
+ },
+ {
+  "token": "c77_dr_itl_3y_workload",
+  "display": "1.12",
+  "unit": "",
+  "source": "outputs/chapter7_7/claims.csv"
+ },
+ {
+  "token": "c77_early_retire_all",
+  "display": "34",
+  "unit": "%",
+  "source": "outputs/chapter7_7/claims.csv"
+ },
+ {
+  "token": "c77_itl_3y_all",
+  "display": "16",
+  "unit": "%",
+  "source": "outputs/chapter7_7/claims.csv"
+ },
+ {
+  "token": "c77_n",
+  "display": "734",
+  "unit": "คน",
+  "source": "outputs/chapter7_7/claims.csv"
+ },
+ {
+  "token": "c77_or_itl3B_employment_temporary",
+  "display": "2.26",
+  "unit": "",
+  "source": "outputs/chapter7_7/claims.csv"
+ },
+ {
+  "token": "c77_or_itl3B_remote",
+  "display": "2.35",
+  "unit": "",
+  "source": "outputs/chapter7_7/claims.csv"
+ },
+ {
+  "token": "c77_or_leave_areaB_home_province_match",
+  "display": "0.44",
+  "unit": "",
+  "source": "outputs/chapter7_7/claims.csv"
+ },
+ {
+  "token": "c77_pct_primary_carer",
+  "display": "43",
+  "unit": "%",
+  "source": "outputs/chapter7_7/claims.csv"
+ },
+ {
+  "token": "c77_pct_target",
+  "display": "43",
+  "unit": "%",
+  "source": "outputs/chapter7_7/claims.csv"
+ },
+ {
+  "token": "c77_provinces",
+  "display": "66",
+  "unit": "จังหวัด",
+  "source": "outputs/chapter7_7/claims.csv"
+ },
+ {
+  "token": "c77_units",
+  "display": "110",
+  "unit": "หน่วย",
+  "source": "outputs/chapter7_7/claims.csv"
+ },
+ {
+  "token": "lit.c2_hi",
+  "display": "0.98",
+  "unit": "",
+  "source": "research config/validation.toml c2_coverage_range (pre-declared before the hindcast)"
+ },
+ {
+  "token": "lit.c2_lo",
+  "display": "0.80",
+  "unit": "",
+  "source": "research config/validation.toml c2_coverage_range (pre-declared before the hindcast)"
+ },
+ {
+  "token": "lit.c3_min",
+  "display": "0.60",
+  "unit": "",
+  "source": "research config/validation.toml c3_min_jaccard (pre-declared before the hindcast)"
+ },
+ {
+  "token": "lit.cabinet_posts_2020",
+  "display": "45,684",
+  "unit": "",
+  "source": "monograph 04_situation.md:357 and 01_scarcity.md:107; Thai PBS 2020 (Cabinet resolution of 3 April 2020)"
+ },
+ {
+  "token": "lit.gap_1979",
+  "display": "21",
+  "unit": "",
+  "source": "monograph 01_scarcity.md:115; Wibulpolprasert & Pengpaibon 2003"
+ },
+ {
+  "token": "lit.gap_1986",
+  "display": "8.6",
+  "unit": "",
+  "source": "monograph 01_scarcity.md:115; Wibulpolprasert & Pengpaibon 2003"
+ },
+ {
+  "token": "lit.gap_1996",
+  "display": "13.8",
+  "unit": "",
+  "source": "monograph 01_scarcity.md:115; Wibulpolprasert & Pengpaibon 2003"
+ },
+ {
+  "token": "lit.rural_hosp_end",
+  "display": "425",
+  "unit": "",
+  "source": "monograph 01_scarcity.md:115; Wibulpolprasert & Pengpaibon 2003"
+ },
+ {
+  "token": "lit.rural_hosp_start",
+  "display": "200",
+  "unit": "",
+  "source": "monograph 01_scarcity.md:115; Wibulpolprasert & Pengpaibon 2003"
+ },
+ {
+  "token": "lit.rural_md_end",
+  "display": "1,162",
+  "unit": "",
+  "source": "monograph 01_scarcity.md:115; Wibulpolprasert & Pengpaibon 2003"
+ },
+ {
+  "token": "lit.rural_md_start",
+  "display": "300",
+  "unit": "",
+  "source": "monograph 01_scarcity.md:115; Wibulpolprasert & Pengpaibon 2003"
+ },
+ {
+  "token": "lit.target_ratio",
+  "display": "1:1,000",
+  "unit": "",
+  "source": "monograph 05_allocation.md:84"
+ }
+]

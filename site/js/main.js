@@ -1,6 +1,8 @@
 // Boot: choose a release, load it, and hand the same data to whichever mode the
 // URL asks for. Story, Present, Explore and Print share the scene registry, the
-// chart components and the release; only layout and navigation differ.
+// chart components and the release; only layout and navigation differ. Read (the
+// default landing) and Talks are editorial pages built from story/reader/ and
+// story/talks/; the WS2 scene sequence stays reachable from Talks.
 
 import { h, clear } from "./util/dom.js";
 import { loadIndex, chooseRelease, loadRelease } from "./data.js";
@@ -9,12 +11,19 @@ import { initPresent } from "./modes/present.js";
 import { initStory } from "./modes/story.js";
 import { initExplore } from "./modes/explore.js";
 import { initPrint } from "./modes/print.js";
+import { initReader, applyTheme, toggleTheme } from "./modes/reader.js";
+import { initTalks } from "./modes/talks.js";
 import { openDrawer, sourcesContent, releaseContent, appendixContent, helpContent } from "./ui/drawer.js";
 import { stepView } from "./engine.js";
-import { initText, t, tp, pin, uiLoc } from "./util/i18n.js";
+import { initText, t, tp, pin, uiLoc, hasText } from "./util/i18n.js";
 
-const MODE_INIT = { present: initPresent, story: initStory, explore: initExplore, print: initPrint };
-const MODE_KEYS = ["story", "present", "explore", "lab"];
+const MODE_INIT = { present: initPresent, story: initStory, explore: initExplore, print: initPrint, read: initReader, talks: initTalks };
+const MODE_KEYS = ["read", "talks", "explore", "lab"];
+// Releases built before Read/Talks existed label them with the older keys.
+const MODE_LABEL = { read: ["mode.read", "mode.story"], talks: ["mode.talks", "mode.present"], explore: ["mode.explore"], lab: ["mode.lab"] };
+// The topbar button that stands for each mode (the WS2 sequence lives under Talks).
+const MODE_TAB = { read: "read", talks: "talks", present: "talks", story: "talks", explore: "explore", lab: "lab", print: "talks" };
+const EDITORIAL = new Set(["read", "talks"]);
 
 async function boot() {
   const main = document.getElementById("main");
@@ -30,9 +39,10 @@ async function boot() {
       h("p", { text: "ตรวจว่ารันคำสั่ง make story-data แล้ว และเปิดผ่าน make story-serve (ไม่ใช่เปิดไฟล์โดยตรง)" })));
     return;
   }
+  if (st.talk && !R.applyTalk(st.talk)) st.talk = null;
   initText(R.bundle, { locate: new URLSearchParams(location.search).has("locate") });
   document.title = t("top.brand");
-  if (!st.mode) st.mode = "story";
+  if (!st.mode) st.mode = "read";
   if (!st.scene || !R.scene(st.scene)) st.scene = st.mode === "explore" ? R.scenes[2].id : st.mode === "present" ? R.scenes[0].id : null;
   const pinned = !!st.release;
 
@@ -71,7 +81,8 @@ async function boot() {
     enterLab(context = null) {
       if (app.state.mode !== "lab") saveLabReturn({ ...app.state, release: R.id });
       app.labEntryContext = context || { kind: "main_menu" };
-      app.state = { ...app.state, mode: "lab", labView: null,
+      // The menu opens the Lab home (four ways in); a slide opens Explore with its prepared plan.
+      app.state = { ...app.state, mode: "lab", labView: context ? null : "hub",
         labPreset: context?.preset_id || (context?.scene ? `scene:${context.scene}` : null) };
       writeState({ ...app.state, release: R.id }, { push: true });
       mount();
@@ -84,7 +95,7 @@ async function boot() {
     returnToPresenter() {
       const snap = loadPresenter();
       if (!snap) return app.switchMode("present");
-      if (snap.release && snap.release !== R.id) { location.search = `?mode=present&scene=${snap.scene}&step=${snap.step}&release=${snap.release}`; return; }
+      if (snap.release && snap.release !== R.id) { location.search = `?mode=present&scene=${snap.scene}&step=${snap.step}&release=${snap.release}${R.talk ? `&talk=${R.talk.id}` : ""}`; return; }
       app.state = { ...app.state, mode: "present", scene: snap.scene, step: snap.step, ov: {} };
       writeState({ ...app.state, release: R.id }, { push: true });
       mount();
@@ -109,7 +120,7 @@ async function boot() {
     openHelp() { openDrawer(t("drawer.help_title"), helpContent(R)); },
     openNotes() {
       if (!R.capabilities.notes) return;
-      const url = `notes.html?release=${encodeURIComponent(R.id)}`;
+      const url = `notes.html?release=${encodeURIComponent(R.id)}${R.talk ? `&talk=${encodeURIComponent(R.talk.id)}` : ""}`;
       window.open(url, "story-notes", "width=760,height=900");
     },
     toggleFullscreen() {
@@ -127,7 +138,9 @@ async function boot() {
     initText(R.bundle, { locate: new URLSearchParams(location.search).has("locate") });
     document.documentElement.lang = app.state.mode === "lab" ? app.state.lang || "th" : "th";
     document.body.className = `mode-${app.state.mode}`;
-    document.querySelectorAll(".modes button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.mode === app.state.mode)));
+    applyTheme(EDITORIAL.has(app.state.mode));
+    const tab = MODE_TAB[app.state.mode] || app.state.mode;
+    document.querySelectorAll(".modes button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.mode === tab)));
     if (app.state.mode === "lab") {
       clear(main).append(h("p", { class: "loading", text: "กำลังเปิด Workforce Lab…" }));
       try {
@@ -144,7 +157,7 @@ async function boot() {
       }
     } else app.current = MODE_INIT[app.state.mode](app);
   }
-  window.addEventListener("popstate", () => { app.state = readState(); if (!app.state.mode) app.state.mode = "story"; mount(); });
+  window.addEventListener("popstate", () => { app.state = readState(); if (!app.state.mode) app.state.mode = "read"; mount(); });
   // SVG margins are measured from text. Draw after the local font is ready.
   await document.fonts.ready;
   mount();
@@ -161,11 +174,15 @@ function buildTopbar(app, R, pinned) {
     f === "stale" ? h("strong", { text: t("top.fresh_stale") }) : f !== "fresh" ? h("span", { text: t("top.fresh_check") }) : "",
     pinned ? h("span", { text: t("top.pinned") }) : ""), uiLoc("top.release_draft"));
   bar.append(
-    tp(h("a", { class: "topbar__brand", href: "?mode=story" }), "top.brand"),
+    tp(h("a", { class: "topbar__brand", href: "?mode=read" }), "top.brand"),
     h("div", { class: "topbar__where", "aria-live": "polite" }),
-    h("nav", { class: "modes", "aria-label": t("top.modes") }, ...MODE_KEYS.map((m) =>
-      tp(h("button", { type: "button", "data-mode": m, "aria-pressed": "false", title: m === "lab" ? "ทดลองแผนจัดสรรกำลังคน" : null, onclick: () => app.switchMode(m) }), `mode.${m}`))),
+    h("nav", { class: "modes", "aria-label": t("top.modes") }, ...MODE_KEYS.map((m) => {
+      const key = MODE_LABEL[m].find((k) => hasText(k)) || MODE_LABEL[m][0];
+      return tp(h("button", { type: "button", "data-mode": m, "aria-pressed": "false", title: m === "lab" ? "ทดลองแผนจัดสรรกำลังคน" : null, onclick: () => app.switchMode(m) }), key);
+    })),
     h("div", { class: "topbar__tools" },
+      h("button", { class: "btn btn--ghost btn--icon only-editorial theme-toggle", type: "button", "aria-label": "สลับโหมดสว่างหรือมืด",
+        title: "สว่าง / มืด", onclick: () => toggleTheme(), html: '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>' }),
       R.capabilities.notes ? tp(h("button", { class: "btn btn--ghost only-present", type: "button", onclick: () => app.openNotes() }), "top.notes") : "",
       tp(h("button", { class: "btn btn--ghost only-present", type: "button", onclick: () => app.toggleFullscreen() }), "top.fullscreen"),
       h("button", { class: "btn btn--ghost", type: "button", "aria-label": t("top.help"), onclick: () => app.openHelp(), text: "?" }),

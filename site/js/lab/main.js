@@ -12,8 +12,21 @@ import { copy, localized } from './copy.js';
 import { renderPolicyLibrary } from './policies.js';
 import { renderServiceModules } from './modules.js';
 import { policyOptions, policyCatalogueVersion } from './policy-data.js';
+// Lab system (design doc docs/workforce_lab_system_design_th.md): home, rooms, accounts, regional scope, submissions.
+import { getAccount, accountChip, requireSignIn, isActive, isReviewer, requiredFor, openAuthDialog } from './account.js';
+import { renderHub } from './hub.js';
+import { renderMyData, summaryOf } from './mydata.js';
+import { renderWorkspaceRoom } from './workspace-room.js';
+import { renderReview } from './review.js';
+import { renderConnect } from './connect.js';
+import { openSubmitDialog } from './submit.js';
+import { scopeSelector, scopePayload, scopeIsRegional, regionalBlockers, NATIONAL } from './scope.js';
 
 const clone=structuredClone;
+// Views that are rooms of their own; choosing a policy never moves the user out of them.
+const ROOMS=['modules','hub','data','workspace','connect','review'];
+// Items per account (design doc 8.1): a physician result is about 2 MB compressed.
+const WORKSPACE_LIMIT=30;
 const configOf=run=>run?.config || run?.resolved_config;
 const frozen=value=>{if(value&&typeof value==='object'&&!Object.isFrozen(value)){Object.freeze(value);for(const v of Object.values(value))frozen(v);}return value;};
 function stylesheet(name) {
@@ -27,7 +40,7 @@ async function json(url,hash) {
   return JSON.parse(new TextDecoder().decode(bytes));
 }
 export async function initLab(app,{isCurrent=()=>true}={}) {
-  stylesheet('lab.css');stylesheet('lab-results.css');stylesheet('lab-policies.css');stylesheet('lab-fields.css');stylesheet('lab-modules.css');
+  stylesheet('lab.css');stylesheet('lab-results.css');stylesheet('lab-policies.css');stylesheet('lab-fields.css');stylesheet('lab-modules.css');stylesheet('lab-system.css');
   const release=app.R;
   if(!release.bundle.lab)throw new Error('ชุดเผยแพร่นี้ยังไม่มี Workforce Lab กรุณาเปิดชุดเผยแพร่ปัจจุบัน');
   const releaseURL=new URL(`../../data/releases/${encodeURIComponent(release.id)}/`,import.meta.url);
@@ -48,6 +61,11 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
   let controlTab='overview',controlGroup={future:'services',analysis:'planning'},extraOpen=false,advancedOpen=false,selectedPolicyId=null;
   // Study Lab (Tier 1) modes: reproduce the study baseline, or explore policies.
   let labMode='explore',reproduction=null,check=null,classNote=null;
+  // Lab system state: planning scope of Explore, the My data room's datasets, and the room controller.
+  let labScope=NATIONAL,myData={},roomController=null;
+  const account=getAccount();
+  await account.init().catch(()=>{});
+  const workspaceOps=!!lab.capabilities?.workspace_ops;
   let lang=app.state.lang || 'th',T=copy(lang),root,form,results,feedback,actions,changeList,pinsBox,storageNote,batchBox;
   const entryContext=app.labEntryContext;
   app.labEntryContext=null;
@@ -57,6 +75,7 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
     selected=persisted.selected?frozen(persisted.selected):selected;
     pins=(persisted.pins||[]).map(frozen);archivedRuns=(persisted.archivedRuns||[]).map(frozen);batch=persisted.batch||[];lastRuntime=persisted.lastRuntime;comparisonAnalysis=persisted.comparisonAnalysis||null;experimentSummary=persisted.experimentSummary||null;
     labMode=persisted.labMode==='reproduce'?'reproduce':'explore';
+    labScope=persisted.labScope||NATIONAL;myData=persisted.myData||{};
   }
   if(entryContext?.kind==='main_menu'){archiveRuns([selected]);draft=clone(defaultConfig);selected=baseline;comparisonAnalysis=null;}
   if(app.state.labPreset&&entryContext)labMode='explore';
@@ -79,7 +98,7 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
   function edited(id){status='dirty';saveSoon();showStatus();showChanges();if(id==='mobility.enabled'){const hint=form?.querySelector('[data-transfer-hint]');if(hint)hint.hidden=!!draft.parameters[id];}}
   function saveSoon(){clearTimeout(saveTimer);if(storageNote?.isConnected)storageNote.textContent=lang==='en'?'Saving this tab’s draft…':'กำลังบันทึกฉบับร่างของแท็บนี้…';saveTimer=setTimeout(save,350);}
   async function save(){
-    savedStatus=await writeWorkspace(key,{versions:lab.versions,draft,selected,pins,archivedRuns,batch,lastRuntime,comparisonAnalysis,experimentSummary,labMode});
+    savedStatus=await writeWorkspace(key,{versions:lab.versions,draft,selected,pins,archivedRuns,batch,lastRuntime,comparisonAnalysis,experimentSummary,labMode,labScope,myData});
     if(storageNote?.isConnected)storageNote.textContent=T(savedStatus?'saved':'notSaved');
   }
   async function loadEntry(presetId,redraw=true){
@@ -128,18 +147,32 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
     const language=h('select',{'aria-label':'Language / ภาษา',onchange:async e=>{if(!validateForm()){e.target.value=lang;return;}lang=e.target.value;app.state.lang=lang;app.persist();clearTimeout(saveTimer);await save();if(alive)render();}},h('option',{value:'th',selected:lang==='th',text:'ไทย'}),h('option',{value:'en',selected:lang==='en',text:'English'}));
     root.append(h('header',{class:'lab-header'},h('div',{},h('p',{class:'lab-eyebrow',text:'WORKFORCE LAB'}),
       h('h1',{text:T('title')}),
-      h('p',{text:lang==='en'?'Adjust assumptions, calculate, then compare the results below.':'ปรับสมมติฐาน กดคำนวณ แล้วเปรียบเทียบผลด้านล่าง'})),
+      h('p',{text:roomLead()})),
       h('div',{class:'lab-header__actions'},language,
-        app.state.labView!=='present'&&button(app.state.labView==='modules'?(lang==='en'?'Allocation Lab':'Lab การจัดสรร'):(lang==='en'?'Service modules (experimental)':'โมดูลบริการ (ทดลอง)'),
-          ()=>{app.state.labView=app.state.labView==='modules'?null:'modules';app.persist();render();},{'data-action':'service-modules'}),
+        app.state.labView!=='present'&&accountChip(account,{lang,onWorkspace:()=>openRoom('workspace'),onChange:()=>render()}),
         button(T('back'),app.returnFromLab))));
-    root.append(h('div',{class:'lab-scope-row'},h('p',{class:'lab-scope',text:T('scope'),title:T('provisional')}),h('details',{class:'lab-scope-note'},h('summary',{text:lang==='en'?'Provisional MOPH / OPS scope':'ขอบเขตชั่วคราว: ใช้จำนวนแพทย์ สธ. เป็นตัวแทน สป.สธ.'}),h('p',{class:'lab-scope--detail',text:T('provisional')}))));
+    if(app.state.labView!=='present')root.append(roomNav());
+    if(!['hub','workspace','connect','review'].includes(app.state.labView))root.append(h('div',{class:'lab-scope-row'},h('p',{class:'lab-scope',text:T('scope'),title:T('provisional')}),h('details',{class:'lab-scope-note'},h('summary',{text:lang==='en'?'Provisional MOPH / OPS scope':'ขอบเขตชั่วคราว: ใช้จำนวนแพทย์ สธ. เป็นตัวแทน สป.สธ.'}),h('p',{class:'lab-scope--detail',text:T('provisional')}))));
     const origin=draft.origin?.source_scene_id;if(origin)root.append(h('p',{class:'lab-origin',text:`${T('source')} ${origin} · ${release.scene(origin)?.title || ''}`}));
     const update=h('div',{class:'lab-release-update',hidden:true});root.append(update);
     checkNewRelease(update);
+    roomController?.destroy?.();roomController=null;
+    const room=app.state.labView;
+    if(['hub','data','workspace','connect','review'].includes(room)){
+      const host=h('div',{class:'lab-room-host','data-room':room});root.append(host);
+      if(room==='hub')roomController=renderHub(host,{lang,account,release,lab,onOpen:openRoom});
+      else if(room==='data')roomController=workspaceOps?renderMyData(host,{lang,client,account,release,lab,store:myData,draftConfig:()=>clone(draft),
+        onResult:showUserResult,onSave:saveToWorkspace,onSubmit:submitRun,onChange:()=>saveSoon()}):host.append(h('p',{class:'lab-help',text:lang==='en'?'This release predates the My data room; open the latest release.':'ชุดเผยแพร่นี้ยังไม่มีห้องข้อมูลของฉัน เปิดชุดเผยแพร่ล่าสุด'}));
+      else if(room==='workspace')roomController=renderWorkspaceRoom(host,{lang,account,lab,onOpenRun:openSavedRun,onUseDataset:useSavedDataset,onSubmitRun:submitRun,onChange:()=>render()});
+      else if(room==='connect')roomController=renderConnect(host,{lang,lab});
+      else roomController=renderReview(host,{lang,account});
+      return;
+    }
     if(app.state.labView==='modules'){
       const host=h('div',{class:'lab-service-host'});root.append(host);
-      serviceController=renderServiceModules(host,{client,lang,onBack:()=>{app.state.labView=null;app.persist();render();}});
+      serviceController=renderServiceModules(host,{client,lang,onBack:()=>openRoom('hub'),
+        canUpload:()=>isActive(account)||!requiredFor('service_upload'),
+        onNeedSignIn:()=>requireSignIn(account,lang,lang==='en'?'Uploading your own data to a module needs an account; synthetic demonstration data stay open.':'การอัปโหลดข้อมูลของคุณเข้าโมดูลต้องเข้าสู่ระบบ ข้อมูลสังเคราะห์สาธิตใช้ได้โดยไม่ต้องเข้าสู่ระบบ').then(()=>render())});
       return;
     }
     if(app.state.labView==='present'){
@@ -147,13 +180,14 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
       results=h('div',{class:'lab-output'});root.append(results);showResults();return;
     }
     root.append(modeSwitch());
+    if(labMode==='explore'&&workspaceOps)root.append(scopeSelector({lang,scope:labScope,release,params:draft.parameters,compact:true,onChange:next=>{labScope=next;status='dirty';saveSoon();render();}}));
     if(labMode==='reproduce'){
       form=null;changeList=null;storageNote=null;classNote=null;root.append(reproducePanel());
       const output=h('section',{class:'lab-output'});root.append(output);
       results=h('div',{class:'lab-result-host'});output.append(results);
       const downloads=h('div',{class:'lab-downloads'});
       for(const [label,method] of [['exportPlan','downloadPlan'],['exportResults','downloadResults'],['exportPackage','downloadPackage']])downloads.append(button(T(label),()=>exportRun(method),{'data-export':method}));
-      downloads.append(button(T('pin'),pinSelected,{'data-action':'pin'}));
+      downloads.append(button(T('pin'),pinSelected,{'data-action':'pin'}),...systemButtons());
       pinsBox=h('section',{class:'lab-pins'});batchBox=null;output.append(downloads,pinsBox,methodsPanel(),validationPanel());
       showStatus();showPins();showResults();return;
     }
@@ -190,7 +224,7 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
     const output=h('section',{class:'lab-output'});root.append(output);
     const downloads=h('div',{class:'lab-downloads'});
     for(const [label,method] of [['exportPlan','downloadPlan'],['exportResults','downloadResults'],['exportPackage','downloadPackage']])downloads.append(button(T(label),()=>exportRun(method),{'data-export':method}));
-    downloads.append(button(T('pin'),pinSelected,{'data-action':'pin'}));
+    downloads.append(button(T('pin'),pinSelected,{'data-action':'pin'}),...systemButtons());
     pinsBox=h('section',{class:'lab-pins'});
     results=h('div',{class:'lab-result-host'});output.append(results);
     output.append(downloads,pinsBox);
@@ -207,7 +241,7 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
   function reproducePanel(){
     const box=h('section',{class:'lab-reproduce','data-mode-panel':'reproduce'},h('h2',{text:T('modeReproduce')}),h('p',{class:'lab-help',text:T('reproduceLead')}));
     const list=h('dl',{class:'lab-reproduce__settings'});
-    for(const id of ['allocation.family','supply.available_appointments','targets.reference_per_1000','allocation.floor','allocation.cap_mode','allocation.cap_fraction','mobility.enabled','services.op_minutes','services.adjrw_minutes','demography.scenario']){
+    for(const id of ['allocation.family','frame.rule','frame.growth','targets.responsibility_population','supply.available_appointments','targets.reference_per_1000','mobility.enabled','services.op_minutes','services.adjrw_minutes','demography.scenario']){
       const p=entryById.get(id);if(!p)continue;const unit=localized(p,'unit',lang);
       list.append(h('div',{},h('dt',{text:localized(p,'label',lang)}),h('dd',{text:`${displayValue(p,defaultConfig.parameters[id]??p.default,lang)}${unit?` ${unit}`:''}`})));
     }
@@ -227,17 +261,19 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
     catch(error){if(error.name==='AbortError'){status='cancelled';statusDetail='';}else showError(error);}
     finally{busy=false;showStatus();paintCheck();saveSoon();}
   }
-  // Compare with the published P-R: identical integer decisions per province-year, and each solver
-  // stage objective against the accepted relative MILP gap. Near-optimal plans are not unique, so a
-  // plan with different destinations but objectives within the gap is reported as equivalent, not exact.
+  // Compare with the published P-R: the same decisions per province-year (within 1e-6: plans under the positions
+  // frame are linear programmes with continuous decisions), and each solver stage objective against the accepted
+  // relative gap. Near-optimal plans are not unique, so a plan with different destinations but objectives within the
+  // gap is reported as equivalent, not exact.
   function reproductionCheck(run){
     const key=r=>`${r.year_ce}|${r.prov_code}`,ref=new Map(runLedger(baseline).map(r=>[key(r),r]));
     let matched=0,total=0,maxStock=0;
     for(const r of runLedger(run)){const b=ref.get(key(r));if(!b)continue;total++;
-      if(['new_appointments_accepted_starts','transfers_in_planned','transfers_out_planned'].every(k=>Number(r[k]??0)===Number(b[k]??0)))matched++;
+      if(['new_appointments_accepted_starts','transfers_in_planned','transfers_out_planned'].every(k=>Math.abs(Number(r[k]??0)-Number(b[k]??0))<=1e-6))matched++;
       maxStock=Math.max(maxStock,Math.abs(Number(r.expected_closing_stock)-Number(b.expected_closing_stock)));}
     const published=baseline.diagnostics?.solver_stages||[],mine=run.diagnostics?.solver_stages||[];
-    const objective=published.map(s=>{const m=mine.find(x=>x.stage===s.stage);return m?Math.abs(m.objective-s.objective)/Math.max(Math.abs(s.objective),1e-12):Infinity;});
+    // a stage without a published objective (not solved when the study ran) cannot be compared: skip it
+    const objective=published.filter(s=>Number.isFinite(s.objective)).map(s=>{const m=mine.find(x=>x.stage===s.stage);return m&&Number.isFinite(m.objective)?Math.abs(m.objective-s.objective)/Math.max(Math.abs(s.objective),1e-12):Infinity;});
     const gap=Number(defaultConfig.parameters['solver.mip_gap']??0),maxObjective=objective.length?Math.max(...objective):Infinity;
     const match=total>0&&matched===total?'exact':maxObjective<=gap?'equivalent':'different';
     return {run_id:run.run_id,matched,total,maxStock,maxObjective,gap,match};
@@ -255,7 +291,7 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
   function syncPolicyContext(){
     selectedPolicyId=draft.origin?.policy_option_id||null;
     controlTab=selectedPolicyId?'policy':'overview';
-    app.state.labPolicy=selectedPolicyId;if(app.state.labView!=='modules')app.state.labView=selectedPolicyId?'policies':null;app.persist();
+    app.state.labPolicy=selectedPolicyId;if(!ROOMS.includes(app.state.labView))app.state.labView=selectedPolicyId?'policies':null;app.persist();
   }
   function setPolicyContext(policy){
     // Choosing a policy records context only; there is no evidence-to-effect
@@ -266,7 +302,7 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
     if(policy?.route){draft.origin.policy_option_id=policy.id;draft.origin.policy_catalog_version=policyCatalogueVersion;}
     controlTab=policy?.route?'policy':'overview';extraOpen=false;
     app.state.labPolicy=selectedPolicyId;
-    if(!['present','modules'].includes(app.state.labView))app.state.labView=policy?'policies':null;
+    if(!['present',...ROOMS].includes(app.state.labView))app.state.labView=policy?'policies':null;
   }
   function selectPolicy(policy){
     if(busy||!validateForm()){policyController?.update?.({selectedId:selectedPolicyId});return;}
@@ -302,8 +338,10 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
       if(['supply','training'].includes(policy.route))content.append(h('p',{class:'lab-help',text:lang==='en'?'The supply input mode determines which inputs enter the calculation. Choose the intended mode before editing graduate or student numbers.':'วิธีระบุจำนวนผู้เข้าเป็นตัวกำหนดว่าค่าใดถูกนำไปคำนวณ เลือกวิธีที่ต้องการก่อนปรับจำนวนผู้สำเร็จการศึกษาหรือนักศึกษา'}));
       if(policy.route==='mobility')content.append(h('p',{class:'lab-help','data-transfer-hint':'',hidden:!!draft.parameters['mobility.enabled'],text:lang==='en'?'Enable transfers to include these transfer assumptions in the calculation.':'เปิดการโอนย้ายเพื่อนำสมมติฐานการย้ายไปคำนวณ'}));
     }else if(controlTab==='overview'){
-      const primary=['supply.input_mode','supply.available_appointments','allocation.family','targets.reference_per_1000','allocation.cap_mode','allocation.cap_fraction'];
-      controls=[...byIds(primary),...entries.filter(p=>!primary.includes(p.id)&&(['allocation','targets'].includes(p.group)||p.id==='mobility.enabled'))];
+      // the positions frame is the principal constraint set (Chapter 5); the onboarding cap and the floor apply only
+      // when the frame is switched off (appendix plans), so they follow in the additional settings
+      const primary=['supply.available_appointments','allocation.family','frame.rule','frame.growth','targets.responsibility_population','targets.reference_per_1000'];
+      controls=[...byIds(primary),...entries.filter(p=>!primary.includes(p.id)&&(['frame','allocation','targets'].includes(p.group)||['mobility.enabled','supply.input_mode'].includes(p.id)))];
     }else if(controlTab==='supply')controls=byGroups(['supply']);
     else if(controlTab==='retention')controls=[...byGroups(['retention']),...byGroups(['departures'])];
     else if(controlTab==='mobility')controls=byGroups(['mobility']);
@@ -366,7 +404,9 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
     invalid.reportValidity();return false;
   }
   async function execute(config){
-    const result=await client.run(clone(config));
+    const regional=labMode==='explore'&&workspaceOps&&scopeIsRegional(labScope);
+    if(regional){const blockers=regionalBlockers(config.parameters,lang);if(blockers.length)throw new Error((lang==='en'?'Not available for a regional plan: ':'วางแผนระดับเขตไม่ได้: ')+blockers.join('; '));}
+    const result=await client.run(clone(config),regional?{workspace:{scope:scopePayload(labScope)}}:{});
     if(!alive)return null;
     status=/infeasible/.test(result.status)?'infeasible':isCompleted(result)?'completed':'failed';
     if(isCompleted(result)){selected=frozen(result);failedRun=null;comparisonAnalysis=null;}
@@ -511,6 +551,65 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
     for(const row of batch)list.append(h('article',{class:'lab-pin'},h('b',{text:row.config.name}),h('p',{text:runSummary(row.result,lang)}),button(T('show'),()=>{if(isCompleted(row.result)){selected=frozen(row.result);showResults();showStatus();saveSoon();}else{failedRun=row.result;showError(new Error(JSON.stringify(row.result.diagnostics||row.result.validation)));}})));
     batchBox.append(list);
   }
+  // ------------------------------------------------------------------ Lab system: rooms, workspace, submissions
+  function roomNav(){
+    const current=['hub','data','workspace','connect','review','modules'].includes(app.state.labView)?app.state.labView:'explore';
+    const rooms=[['hub','หน้าแรก Lab','Lab home'],['explore','สำรวจนโยบาย','Explore policy'],['modules','โมดูลบริการ','Service modules'],
+      ['data','ข้อมูลของฉัน','My data'],['workspace','พื้นที่ส่วนตัว','My workspace'],['connect','เชื่อมต่อข้อมูล','Data connections'],
+      ...(isReviewer(account)?[['review','ทีมวิจัย','Team review']]:[])];
+    const nav=h('nav',{class:'lab-rooms','aria-label':lang==='en'?'Lab rooms':'ห้องใน Lab'});
+    for(const [id,th,en] of rooms)nav.append(h('button',{type:'button',class:'btn lab-rooms__item','data-room-nav':id,...(id==='modules'?{'data-action':'service-modules'}:{}),
+      'aria-current':current===id?'page':null,text:lang==='en'?en:th,onclick:()=>{if(busy||(current==='explore'&&labMode==='explore'&&!validateForm()))return;openRoom(id);}}));
+    return nav;
+  }
+  function roomLead(){
+    const leads={hub:['ห้องทดลองวางแผนกำลังคน: เลือกทางเข้าตามสิ่งที่คุณมี','A workforce planning laboratory: choose a way in by what you have'],
+      data:['แทนข้อมูลของโครงการด้วยข้อมูลของคุณ แล้วคำนวณใหม่','Replace project data with yours and recompute'],
+      workspace:['ผลและชุดข้อมูลที่บันทึกในบัญชีของคุณ','Results and datasets saved in your account'],
+      connect:['แผนเชื่อมต่อข้อมูลอัตโนมัติจากหน่วยงาน','The plan for automatic data feeds from agencies'],
+      review:['ทบทวนงานที่ผู้ใช้ส่งมา','Review work submitted by users'],
+      modules:['โมดูลบริการและโรคที่พร้อมรับข้อมูล','Data-ready service and disease modules']};
+    const pair=leads[app.state.labView]||['ปรับสมมติฐาน กดคำนวณ แล้วเปรียบเทียบผลด้านล่าง','Adjust assumptions, calculate, then compare the results below.'];
+    return lang==='en'?pair[1]:pair[0];
+  }
+  function openRoom(id,opts={}){
+    if(opts.scope){labScope=opts.scope;labMode='explore';}
+    app.state.labView=id==='explore'?(selectedPolicyId?'policies':null):id;
+    if(id==='explore')labMode=labMode||'explore';
+    app.persist();saveSoon();render();window.scrollTo?.({top:0});
+  }
+  function systemButtons(){
+    return [button(lang==='en'?'Save to my workspace':'บันทึกในพื้นที่ส่วนตัว',()=>{if(isCompleted(selected))saveToWorkspace({kind:'run',title:resultTitle(selected,lang),summary:summaryOf(selected)},selected);},{'data-action':'save-run','data-export':'save-run'}),
+      button(lang==='en'?'Submit to the research team':'ส่งให้ทีมวิจัย',()=>{if(isCompleted(selected))submitRun(selected);},{'data-action':'submit-run','data-export':'submit-run'})];
+  }
+  async function saveToWorkspace(meta,payload){
+    if(!(await requireSignIn(account,lang,lang==='en'?'Saving to your private workspace needs an account.':'การบันทึกในพื้นที่ส่วนตัวต้องเข้าสู่ระบบ')))return null;
+    try{if((await account.listItems()).length>=WORKSPACE_LIMIT)throw new Error(lang==='en'?`Your workspace holds up to ${WORKSPACE_LIMIT} items; delete older ones first.`:`พื้นที่ส่วนตัวเก็บได้สูงสุด ${WORKSPACE_LIMIT} รายการ กรุณาลบรายการเก่าก่อน`);
+      const item=await account.saveItem({...meta,versions:payload.versions||lab.versions,release_id:release.id},payload);
+      status='completed';statusDetail='';flash(lang==='en'?`Saved to your workspace: ${item.title}`:`บันทึกในพื้นที่ส่วนตัวแล้ว: ${item.title}`);return item;}
+    catch(error){showError(error);flash(String(error.message||error),true);return null;}
+  }
+  function flash(text,error=false){
+    const box=root?.querySelector('[data-lab-flash]')||h('p',{class:'lab-flash','data-lab-flash':'',role:'status','aria-live':'polite'});
+    box.textContent=text;box.classList.toggle('lab-flash--error',!!error);if(!box.isConnected)root?.prepend(box);
+    clearTimeout(flash.timer);flash.timer=setTimeout(()=>box.remove(),6000);
+  }
+  function submitRun(run){return openSubmitDialog({lang,account,run,lab,release,onDone:sub=>{if(sub)flash(lang==='en'?'Submitted. Follow it in your workspace.':'ส่งแล้ว ติดตามสถานะได้ในพื้นที่ส่วนตัว');}});}
+  function showUserResult(result){
+    archiveRuns([selected]);selected=frozen(result);comparisonAnalysis=null;labMode='explore';
+    if(result.scope?.level==='health_region')labScope={level:'health_region',health_region:result.scope.health_region,family:result.scope.family===result.scope.national_family?'':result.scope.family,pool:null};
+    status='completed';statusDetail='';app.state.labView=selectedPolicyId?'policies':null;app.persist();render();saveSoon();
+    root.querySelector('.lab-output')?.scrollIntoView?.({behavior:'smooth',block:'start'});
+  }
+  function openSavedRun(run){
+    if(run.cadre){myData.tab='cadre';myData.cadreResult=run;openRoom('data');return;}
+    if(!isCompleted(run)){flash(lang==='en'?'This saved item has no completed plan.':'รายการนี้ไม่มีแผนที่คำนวณเสร็จ',true);return;}
+    showUserResult(run);
+  }
+  function useSavedDataset(payload){
+    if(!payload?.contract)return;myData.tab='physicians';myData.datasets||={};
+    myData.datasets[payload.contract]={name:payload.name,text:payload.text,report:payload.report};openRoom('data');
+  }
   async function checkNewRelease(box){
     clearTimeout(newReleaseTimer);
     try{const index=await json(new URL('../../data/releases.json',import.meta.url));if(!alive||!box.isConnected)return;const id=index.current||index.latest;if(id&&id.localeCompare(release.id)>0){box.hidden=false;clear(box).append(h('span',{text:T('newer')}),button(T('reload'),async()=>{await save();const url=new URL(location.href);url.searchParams.delete('release');location.assign(url);}));}}
@@ -518,5 +617,5 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
     if(alive)newReleaseTimer=setTimeout(()=>checkNewRelease(box),60000);
   }
   return {get draft(){return clone(draft);},get result(){return clone(selected);},get lab(){return lab;},get client(){return client;},
-    destroy(){alive=false;clearTimeout(saveTimer);clearTimeout(newReleaseTimer);save();client.dispose();resultController?.destroy?.();policyController?.destroy?.();serviceController?.destroy?.();document.body.classList.remove('lab-presenting');}};
+    destroy(){alive=false;clearTimeout(saveTimer);clearTimeout(newReleaseTimer);save();client.dispose();resultController?.destroy?.();policyController?.destroy?.();serviceController?.destroy?.();roomController?.destroy?.();document.body.classList.remove('lab-presenting');}};
 }

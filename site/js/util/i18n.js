@@ -26,6 +26,9 @@ export function t(key, vars = {}) {
 
 export const locating = () => LOCATE;
 
+// True when the release ships this key (older releases lack newer labels).
+export const hasText = (key) => UI[key] != null;
+
 // "config/web/ui_text.toml:123"
 export function uiLoc(key) {
   const n = LOC?.ui?.ui?.[key];

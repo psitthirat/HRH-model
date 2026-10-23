@@ -115,3 +115,5 @@ a { color: inherit; text-decoration: none; }
 .print__stage .province-verification { grid-template-columns: repeat(2,minmax(0,1fr)); grid-template-rows: 1fr; }
 .print-scene:has(.pstage:is(.has-context,.has-change,.has-matrix,.has-discordance)) .meta-src,
 .print-scene:has(.province-verification) .meta-src { margin-top: 2mm; font-size: 8pt; line-height: 1.3; overflow-wrap: anywhere; }
+.print__funding { display: flex; align-items: center; gap: 3mm; margin: 2mm 0 0; font-size: 9pt; color: #333; }
+.print__funding img { height: 7mm; width: auto; }

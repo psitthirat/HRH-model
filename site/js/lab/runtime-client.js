@@ -74,7 +74,7 @@ export class LabRuntimeClient {
     const manifest = await this._manifest();
     // Cancellation can happen while fetching the manifest, before a worker
     // exists. Do not accidentally start that cancelled run after fetch returns.
-    if (action === 'run' && this.runs.get(id)?.status === 'cancelled') throw cancelled();
+    if ((action === 'run' || action === 'workspace') && this.runs.get(id)?.status === 'cancelled') throw cancelled();
     return new Promise((resolve, reject) => {
       try {
         this.pending.set(id, { resolve, reject, onProgress });
@@ -92,14 +92,16 @@ export class LabRuntimeClient {
     run.onProgress?.(status);
   }
 
-  submit_run(config, { runId = crypto.randomUUID(), onProgress = null } = {}) {
+  // workspace: {datasets, cadre, scope} routes the run through workspace.lab_data (user data, other cadres, regions).
+  submit_run(config, { runId = crypto.randomUUID(), onProgress = null, workspace = null } = {}) {
     if (this.activeId) throw new Error('A computation is already running; cancel it before starting another');
     if (this.runs.has(runId)) throw new Error('A run ID cannot be reused');
     this.activeId = runId;
     const run = { run_id: runId, status: 'queued', stage: 'queued', config: clone(config), started_at: new Date().toISOString(), onProgress };
     this.runs.set(runId, run);
     this._status(runId, {});
-    run.promise = this._request('run', run.config, {
+    const payload = workspace ? { ...clone(workspace), op: 'run', config: run.config } : run.config;
+    run.promise = this._request(workspace ? 'workspace' : 'run', payload, {
       id: runId,
       onProgress: event => this._status(runId, { status: event.stage === 'validating' ? 'validating' : 'running', stage: event.stage, detail: event.detail }),
     }).then(({ result, runtime }) => {
@@ -165,6 +167,12 @@ export class LabRuntimeClient {
   async service(op, payload = {}) {
     if (this.activeId || this.pending.size) throw new Error('Wait for the active computation before starting another');
     return (await this._request('service', { ...clone(payload), op }, { id: `service-${crypto.randomUUID()}` })).result;
+  }
+
+  // Lab data layer: op = templates | validate.  Uploaded files arrive as text and are parsed by pandas in the worker.
+  async workspace(op, payload = {}) {
+    if (this.activeId || this.pending.size) throw new Error('Wait for the active computation before starting another');
+    return (await this._request('workspace', { ...clone(payload), op }, { id: `workspace-${crypto.randomUUID()}` })).result;
   }
 
   cancel_run(runId = this.activeId) {

@@ -4,6 +4,7 @@ import { mountView } from '../engine.js';
 import { num } from '../util/format.js';
 import { buildOutcomeViews, assertResult, isCompleted, resultTables, resultTitle, runSummary, selectedRuns, outcomeRegistry, yearsOf, csvForRows, figureMetadata } from './results.js';
 import { allocationFigureRows } from '../charts/alloc.js';
+import { provenanceRows } from './labels.js';
 
 const encoder=new TextEncoder();
 const L=(lang,th,en)=>lang==='en'?en:th;
@@ -31,11 +32,27 @@ function readmeRows(run,options) {const registry=assertResult(run,options.lab);r
  {item:'Workforce scope / ขอบเขต',value:run.methods?.scope||registry.metrics[0].workforce_scope},
  {item:'Years CE / ปี ค.ศ.',value:yearsOf(run).join(', ')},
  {item:'Province-year keys',value:'run_id + plan_id + prov_code + year_ce; one row per province and year'},
- {item:'Quantities',value:'Appointments/transfers are integers. Departures and closing stocks are expected quantities and may be fractional.'},
+ {item:'Quantities',value:'Plans within the positions frame are linear programmes: appointments may be fractional and are rounded when used. Plans without the frame use whole appointments and transfers. Departures and closing stocks are expected quantities. / แผนภายใต้กรอบตำแหน่งแก้ด้วย LP จำนวนแพทย์ใหม่จึงมีทศนิยมได้และต้องปัดเมื่อนำไปใช้ ส่วนการออกและจำนวนปลายปีเป็นค่าคาดหมาย'},
  {item:'Missing values',value:'Blank means unavailable, not zero.'},
  {item:'Summary TH',value:runSummary(run,'th')},{item:'Summary EN',value:runSummary(run,'en')},
+ ...provenanceRows(run),
  ...Object.entries(run.versions||{}).map(([item,value])=>({item,value:scalar(value)})),
  ];}
+// User datasets (workspace.lab_data) and regional plans carry their own sheets: what was replaced, and the region's
+// national-versus-regional comparison.
+function profileSheets(run){
+  const out={};const profile=run.data_profile;
+  if(profile?.source==='user'){
+    out.Data_Profile=(profile.datasets||[]).map(d=>({contract:d.contract,title_th:d.title_th,sha256:d.sha256,provinces_supplied:d.provinces_supplied,provinces_changed:d.provinces_changed,warnings:(d.warnings||[]).join(' | ')}));
+    const changed=(profile.datasets||[]).flatMap(d=>(d.changed||[]).map(c=>({contract:d.contract,...c})));
+    if(changed.length)out.Data_Changes=changed;
+  }
+  if(run.regional){
+    out.Region_Summary=run.regional.provinces;out.Region_Annual=run.regional.annual;
+    out.Region_Method=[{item:'health_region',value:run.regional.health_region},{item:'allotment',value:run.scope?.pool_source},{item:'criterion inside the region',value:run.scope?.family},{item:'method',value:run.regional.method_th},...(run.regional.limitations_th||[]).map((value,i)=>({item:`limitation ${i+1}`,value})),...(run.regional.note_th?[{item:'note',value:run.regional.note_th}]:[])];
+  }
+  return out;
+}
 function definitionsRows(registry){return Object.entries(registry.column_definitions||{}).map(([column,d])=>({column,...d}));}
 function addRun(rows,run){return rows.map(row=>({run_id:run.run_id,...Object.fromEntries(Object.entries(row).map(([k,v])=>[k,scalar(v)]))}));}
 function displayColumns(rows) {return [...new Set(rows.flatMap(row=>Object.keys(row)))];}
@@ -57,6 +74,7 @@ export async function workbookBytes(run,options) {
   if(run.context_tables?.context_units)sheetTables.Context_Units=rowsOf(run.context_tables.context_units);
   if(run.service_outcomes?.length)sheetTables.Service_Outcomes=addRun(run.service_outcomes,run);
   sheetTables.Cumulative_Allocations=addRun(cumulative,run);
+  for(const [key,rows]of Object.entries(profileSheets(run)))sheetTables[key]=addRun(rows,run);
   if(options.experimentRuns?.length){
     sheetTables.Experiment_Manifest=[...(sheetTables.Experiment_Manifest||[]),...options.experimentRuns.map((item,index)=>({kind:'experiment_cell',cell:index+1,policy_id:item.policy_id,future_id:item.future_id,run_id:item.result?.run_id,status:item.result?.status||item.status||'not_executed',config:JSON.stringify(item.config||item.result?.config),versions:JSON.stringify(item.result?.versions||{})}))];
     sheetTables.Experiment_Summary=options.experimentSummary?.summary||[];

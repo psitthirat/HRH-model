@@ -44,6 +44,7 @@ export class Release {
     this._rows = new Map();
     this._appendix = null;
     this.scenes = bundle.scenes;
+    this.talk = null;
     this.cases = bundle.case_studies || [];                 // [{key, code, name, role, role_type, role_ok}]
     this.caseStudies = this.cases.map((c) => c.code);
     this.caseByCode = new Map(this.cases.map((c) => [c.code, c]));
@@ -84,8 +85,21 @@ export class Release {
     return out;
   }
 
+  // A talk is one event's timed subset of the scenes, in its own order ([[talk]] in scenes.toml).
+  // Applying it replaces the sequence this page steps through; the release itself is unchanged.
+  applyTalk(id) {
+    const talk = (this.bundle.talks || []).find((x) => x.id === id);
+    if (!talk) return false;
+    const byId = new Map(this.bundle.scenes.map((s) => [s.id, s]));
+    this.scenes = talk.scenes.map((x, i) => ({ ...byId.get(x.id), order: i + 1, duration_seconds: x.seconds,
+      start_seconds: x.start_seconds, end_seconds: x.start_seconds + x.seconds }));
+    this.talk = talk;
+    return true;
+  }
+
   fact(id) { return this.bundle.facts[id]; }
-  scene(id) { return this.scenes.find((s) => s.id === id); }
+  // Scenes outside a talk stay reachable (evidence links, Q&A backup) but are not in its sequence.
+  scene(id) { return this.scenes.find((s) => s.id === id) ?? this.bundle.scenes.find((s) => s.id === id); }
   sceneIndex(id) { return this.scenes.findIndex((s) => s.id === id); }
   chapter(id) { return this.bundle.chapters.find((c) => c.id === id); }
   get appendices() { return this.capabilities.appendix ? this.bundle.appendix || [] : []; }

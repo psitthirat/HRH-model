@@ -16,9 +16,14 @@ export function initPrint(app) {
   const meta = R.bundle.meta;
   const withNotes = R.capabilities.notes && new URLSearchParams(location.search).get("notes") === "1";
   const root = h("div", { class: "print" });
+  // Funder acknowledgement on every printed page section (HSRI agreement), as on the slides.
+  const funding = () => !R.bundle.ui?.["present.funding"] ? "" : h("p", { class: "print__funding" },
+    h("img", { src: "assets/logos/05_HSRI.svg", alt: t("present.funding_logo"), decoding: "async" }),
+    h("span", { text: t("present.funding") }));
   root.append(h("header", { class: "print__cover" },
     h("h1", { text: meta.title }), h("p", { class: "story__question", text: meta.question }),
     h("p", { text: meta.take_home }), h("p", { class: "chart-note", text: t("story.source", { report: R.bundle.project?.report ?? "", title: meta.source_title }) }),
+    funding(),
     releaseSummary(R),
     h("p", { class: "no-print" },
       h("button", { class: "btn btn--primary", type: "button", onclick: () => window.print(), text: t("print.print") }), " ",
@@ -41,7 +46,7 @@ export function initPrint(app) {
       sc.caveats.length ? h("ul", { class: "scene__caveats" }, ...sc.caveats.map((c) => h("li", { text: c }))) : "",
       sc.sources?.length ? h("p", { class: "meta-src" }, t("print.sources") + ": ", ...sc.sources.map((s) => h("span", {
         text: [s.report_number || s.asset_id, s.file ? `(${s.file})` : s.caption_th].filter(Boolean).join(" ") + "; " }))) : "",
-      withNotes ? h("pre", { class: "print__notes", text: sc.notes }) : "");
+      withNotes ? h("pre", { class: "print__notes", text: sc.notes }) : "", funding());
     if (current.view.comparison_table) sec.append(giniTable(R));
     root.append(sec);
     stages.push([stage, sc]);

@@ -85,7 +85,6 @@
   .present [data-scene="S24"] .alloc__table { font-size: var(--fs-label); }
   .present [data-scene="S24"] .alloc__table th,
   .present [data-scene="S24"] .alloc__table td { padding: 7px 12px; }
-  .present [data-scene="S30"] .tp-questions li { padding-top: 14px; padding-bottom: 14px; }
 }
 
 @media (min-width: 1101px) and (max-height: 950px) {
@@ -96,6 +95,10 @@
   .present [data-layout="overview"] .scene__caveats { font-size: .9rem; }
   .present [data-scene="S17"] .card { padding: 10px 14px; }
   .present [data-scene="S17"] .card__role { margin: 2px 0 4px; }
+  /* room for the funder footer on 900-px-high screens */
+  .present [data-scene="S17"] .cards__grid { gap: 10px; }
+  .present [data-scene="S17"] .card__bar { height: 16px; }
+  .present [data-scene="S17"] .card__head h3 { font-size: clamp(1.3rem, 1.45vw, 1.7rem); }
 }
 
 @media (max-width: 820px) {
@@ -132,4 +135,50 @@
 @media print {
   .tp-definition { color: #111; background: transparent; border-color: #555; }
   .change-ranking td { color: #111 !important; }
+}
+
+/* Funder acknowledgement on every presentation slide (HSRI agreement). The
+   navigation buttons float over its right end, so the content sits left. */
+.present__funding { flex: none; display: flex; align-items: center; gap: 8px; min-height: 32px;
+  padding: 3px calc(var(--gutter) + 120px) 3px var(--gutter); border-top: 1px solid var(--border-hairline);
+  color: var(--text-secondary); font-size: var(--fs-small); line-height: 1.25; }
+.present__funding img { height: 24px; width: auto; flex: none; }
+@media (max-width: 820px) { .present__funding { padding-right: var(--gutter); } }
+@media print { .present__funding { color: #111; border-color: #999; } }
+
+/* Closing slides of the WS3 talk: dense text must fit a 16:9 projector without scrolling. */
+@media (min-width: 1101px) {
+  .present [data-scene="S30P"] .tp-table { font-size: var(--fs-small); }
+  .present [data-scene="S30P"] .tp-table th, .present [data-scene="S30P"] .tp-table td { padding: 7px 12px; line-height: 1.45; }
+  .present [data-scene="S30P"] .tp-table thead th { padding-top: 0; }
+  .present [data-scene="S30V"] .tp-table td, .present [data-scene="S30V"] .tp-table th { padding: 10px 14px; }
+  .present [data-scene="S30T"] .textpanel--columns { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; align-items: start; }
+  .present [data-scene="S30T"] .tp-figure { grid-column: auto; flex-direction: column; align-items: center; gap: 10px; margin: 0; }
+  .present [data-scene="S30T"] .tp-figure img { width: clamp(150px, 24vh, 260px); }
+  .present [data-scene="S30T"] .tp-figure figcaption { font-size: var(--fs-body); }
+  .present [data-scene="S30Q"] .tp-questions { gap: 8px; }
+  .present [data-scene="S30Q"] .tp-questions li { padding-top: 8px; padding-bottom: 6px; }
+  .present [data-scene="S30Q"] .tp-questions p { margin-bottom: 2px; }
+  .present [data-scene="S30Q"] .tp-links { font-size: var(--fs-label); }
+  .present [data-scene="S30Q"] .tp-questions li::before { top: 6px; }
+  .present [data-scene="S30Q"] .tp-questions p { font-size: var(--fs-body); }
+  .present [data-scene="S01Q"] .tp-col li, .present [data-scene="S23M"] .tp-col li, .present [data-scene="S30L"] .tp-col li { line-height: 1.55; }
+}
+/* On a tall 16:9 screen (1080p projector, D9 export) the closing tables have room for body type. */
+@media (min-width: 1101px) and (min-height: 1000px) {
+  .present [data-scene="S30P"] .tp-table { font-size: var(--fs-body); }
+  .present [data-scene="S30P"] .tp-table th, .present [data-scene="S30P"] .tp-table td { padding: 13px 14px; }
+  .present [data-scene="S30Q"] .tp-questions { gap: 16px; }
+  .present [data-scene="S30Q"] .tp-questions li { padding-top: 16px; padding-bottom: 12px; }
+  .present [data-scene="S30Q"] .tp-questions li::before { top: 12px; }
+  .present [data-scene="S30Q"] .tp-questions p { font-size: var(--fs-lead); }
+  .present [data-scene="S30Q"] .tp-links { font-size: var(--fs-small); }
+}
+/* The funder footer takes ~32px; on screens up to 950px high, take it back from the
+   header, the scene's top padding and the ribbon so compositions keep their fit. */
+@media (min-width: 1101px) and (max-height: 950px) {
+  .mode-present { --presentation-header: 56px; }
+  .mode-present .topbar { padding-block: 4px; }
+  .present .scene { padding-top: 8px; row-gap: 10px; }
+  .present .ribbon { min-height: 46px; }
 }

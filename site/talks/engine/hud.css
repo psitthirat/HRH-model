@@ -1,0 +1,245 @@
+/* Night-sky theme for the HRH WS3 talks, layered on the Peitho engine (deck.css).
+ * Matches the event poster (assets/การประชุมเชิงปฏิบัติการ.mp4, 23 Oct 2026): a deep
+ * space ground with a slowly twinkling starfield (drawn by hud.js on one canvas
+ * behind every slide), bold white Prompt headings, and one key phrase per title
+ * in the poster gradient pink -> coral -> gold. The file keeps its old name so
+ * both decks, the exporter and the publisher find it unchanged.
+ *
+ * Data colours are roles, validated with the dataviz validator on #03040f
+ * (dark, --pairs all): gold #c98500 (highlight), pink #d9509a (the problem
+ * side), blue #3987e5 (comparison) PASS, worst CVD dE 12.3; blue with orange
+ * passes too. Marks use those steps; text in the same role uses the brighter
+ * *-text tint so labels read on the night ground. Status colours carry a label.
+ * Motion is decoration: every slide is complete without it, and
+ * prefers-reduced-motion, Read mode and print show the final state at once.
+ */
+:root, :root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #03040f;
+  --surface: #0b0d20;
+  --surface-2: #151933;
+  --surface-3: #232848;
+  --glass: rgba(3, 4, 15, 0.84);
+  --card: rgba(255, 255, 255, 0.045);
+  --card-strong: rgba(8, 10, 26, 0.86);
+  --line: rgba(255, 255, 255, 0.11);
+  --line-strong: rgba(255, 255, 255, 0.26);
+  --grid: rgba(255, 255, 255, 0.07);
+  --axis: rgba(225, 228, 245, 0.40);
+  --text-1: #f6f6fb;
+  --text-2: #cfd1e2;
+  --muted: #9b9eb9;
+  --inverse: #03040f;
+  --grad: linear-gradient(90deg, #ff5cb8 0%, #ff8f8a 48%, #ffd250 100%);
+  --grad-solid: #ff8f8a;
+  --accent: #c98500;
+  --accent-text: #ffd05a;
+  --accent-soft: rgba(255, 196, 77, 0.15);
+  --focus: #ffd05a;
+  --p1: #3987e5; --p1-text: #8cc2ff; --p1-soft: rgba(57, 135, 229, 0.24);
+  --p2: #9085e9; --p2-text: #bdb5ff; --p2-soft: rgba(144, 133, 233, 0.24);
+  --p3: #d9509a; --p3-text: #ff7ac0; --p3-soft: rgba(217, 80, 154, 0.24);
+  --neutral: #8b8fa8; --neutral-text: #b7bad0; --neutral-soft: rgba(139, 143, 168, 0.22);
+  --good: #2fb383; --good-text: #5fe0ad;
+  --bad: #d9509a; --bad-text: #ff7ac0; --bad-soft: rgba(217, 80, 154, 0.24);
+  --glow: none; --glow-soft: none;
+  --star: 1;
+}
+/* A light theme is kept for reading on paper-like screens: white ground, no stars,
+   the same roles stepped darker. Light steps validated on #ffffff. */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #fbfbfd; --surface: #ffffff; --surface-2: #eceef5; --surface-3: #dcdfea;
+  --glass: rgba(251, 251, 253, 0.94);
+  --card: rgba(15, 20, 50, 0.035); --card-strong: rgba(255, 255, 255, 0.95);
+  --line: rgba(15, 20, 50, 0.13); --line-strong: rgba(15, 20, 50, 0.28);
+  --grid: rgba(15, 20, 50, 0.06); --axis: rgba(15, 20, 50, 0.40);
+  --text-1: #0d1024; --text-2: #343953; --muted: #5d627c; --inverse: #ffffff;
+  --grad: linear-gradient(90deg, #c2187a 0%, #d6452f 50%, #a86b00 100%);
+  --grad-solid: #c63d3d;
+  --accent: #a86b00; --accent-text: #8a5800; --accent-soft: rgba(168, 107, 0, 0.12); --focus: #a86b00;
+  --p1: #2a78d6; --p1-text: #1d5fb0; --p1-soft: rgba(42, 120, 214, 0.14);
+  --p2: #6250d6; --p2-text: #4f3fc0; --p2-soft: rgba(98, 80, 214, 0.13);
+  --p3: #c93d86; --p3-text: #a52b6c; --p3-soft: rgba(201, 61, 134, 0.13);
+  --neutral: #6e7287; --neutral-text: #555a70;
+  --good: #1d8a5a; --good-text: #17714a;
+  --bad: #c93d86; --bad-text: #a52b6c; --bad-soft: rgba(201, 61, 134, 0.13);
+  --glow: none; --glow-soft: none;
+  --star: 0;
+}
+
+/* ---------- ground: the starfield canvas sits behind transparent slides ---------- */
+body {
+  background:
+    radial-gradient(ellipse 55% 45% at 88% 8%, rgba(120, 52, 140, 0.10), transparent 70%),
+    radial-gradient(ellipse 50% 40% at 6% 92%, rgba(150, 70, 40, 0.08), transparent 70%),
+    var(--bg);
+}
+:root[data-theme="light"] body { background: var(--bg); }
+.starfield { position: fixed; inset: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 0; display: block; }
+:root[data-theme="light"] .starfield { display: none; }
+.topbar, .ribbon, .notes-drawer { z-index: 30; }
+.deck { z-index: 1; }
+.slide { background: transparent; }
+.read-notes { position: relative; z-index: 1; }
+.hud-meta { position: absolute; top: calc(var(--u) * 1.05); left: var(--pad-x); pointer-events: none; z-index: 1;
+  font-size: max(10px, calc(var(--u) * .62)); color: var(--muted); opacity: .75; font-variant-numeric: tabular-nums; letter-spacing: .03em; }
+.slide > :not(.hud-meta) { position: relative; z-index: 1; }
+/* The title layout centres its cells; the cover map must still fit the row, not its own width. */
+.slide[data-layout="title"] .slide__fig { align-self: stretch; }
+
+/* ---------- type floor for a ballroom projector (1080p px: kicker 20, body 22, lead 26, badge 19) ---------- */
+body {
+  --fs-kicker: max(13px, calc(var(--u) * 1.05));
+  --fs-body: max(15px, calc(var(--u) * 1.16));
+  --fs-lead: max(17px, calc(var(--u) * 1.34));
+  --fs-badge: max(12.5px, calc(var(--u) * .98));
+}
+.title { text-wrap: balance; }
+/* the gradient phrase of a title never breaks (phones excepted, where the column is too narrow) */
+@media (min-width: 861px) { .title em { white-space: nowrap; } }
+.lead, .body p { text-wrap: pretty; }
+.nobr { white-space: nowrap; }
+/* ws3-next's role table (s10) keeps its size from before the type floor: its cells are set for
+   1.08u, and at 1.16u the Thai cells break inside words. Its size is inline, hence !important. */
+.nx-table { font-size: max(15px, calc(var(--u) * 1.08)) !important; }
+
+/* ---------- type ---------- */
+.kicker { color: var(--muted); letter-spacing: 0; text-transform: none; font-weight: 500; gap: .7em; flex-wrap: wrap; row-gap: .35em; }
+/* the part word (หนึ่ง สอง สาม สี่) carries the poster gradient; the slide that opens a part says it louder */
+.kicker .part { font-weight: 600; color: var(--grad-solid); background: var(--grad); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.slide[data-part-start] .kicker { font-size: calc(var(--fs-kicker) * 1.25); color: var(--text-2); }
+.slide[data-part-start] .kicker::before { width: calc(var(--u) * 3); height: 3px; }
+/* the evidence badge sits beside the kicker, where the room looks first */
+.kicker .badges { display: inline-flex; flex-wrap: wrap; gap: .5em; margin-left: .5em; }
+.kicker .badge { font-size: var(--fs-badge); font-weight: 400; padding: .12em .8em; color: var(--text-2); }
+html.print .kicker .part { background: none !important; -webkit-text-fill-color: currentColor; color: #ff6fae; }
+.kicker::before { content: ""; width: calc(var(--u) * 1.8); height: 2px; border-radius: 2px; background: var(--grad); flex: none; }
+.kicker .dot { display: none; }
+.title, .display { color: var(--text-1); font-weight: 600; }
+.title em, .display em {
+  font-style: normal; color: var(--grad-solid);
+  background: var(--grad); -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; -webkit-box-decoration-break: clone; box-decoration-break: clone;
+}
+.display { font-size: calc(var(--fs-display) * 1.05); line-height: 1.1; }
+.lead { color: var(--text-1); }
+.lead em { font-style: normal; color: var(--accent-text); }
+.body strong, .lead strong { color: var(--text-1); }
+.body li::before { background: var(--grad); border-radius: 50%; }
+.slide__foot { border-top: 1px solid var(--line); }
+.badge { border-color: var(--line-strong); background: var(--card); color: var(--text-2); }
+.badge[data-claim="reading"]::before { border-color: var(--accent-text); background: linear-gradient(90deg, var(--accent-text) 50%, transparent 50%); }
+.funder { display: inline-flex; align-items: center; gap: .6em; white-space: nowrap; color: var(--muted); }
+.funder span.chip-logo { display: inline-grid; place-items: center; background: #fff; border-radius: 4px; padding: 2px 4px; }
+.funder img { height: max(16px, calc(var(--u) * 1.15)); width: auto; display: block; }
+.slide__foot { align-items: center; }
+.slide__foot .foot-right { display: flex; align-items: center; gap: 1.2em; flex: none; }
+.btn[aria-pressed="true"], .modes button[aria-pressed="true"] { background: var(--accent-text); border-color: var(--accent-text); color: var(--inverse); }
+.ribbon__progress span { background: var(--grad); }
+
+/* ---------- cards and numbers (class names kept for both decks) ---------- */
+.hud-panel { position: relative; border: 1px solid var(--line); background: var(--card); border-radius: 12px; }
+.hud-label { font-family: var(--font); font-size: max(11px, calc(var(--u) * .7)); letter-spacing: 0; text-transform: none; color: var(--muted); }
+.hud-num { font-family: var(--display); color: var(--text-1); line-height: 1; font-weight: 600; font-variant-numeric: tabular-nums; }
+.hud-num.hl { color: var(--accent-text); }
+.hud-num.bad { color: var(--bad-text); }
+.hud-num.need { color: var(--p1-text); }
+.hud-num.hosp { color: var(--p3-text); }
+.hud-num.pro { color: var(--neutral-text); }
+
+/* a second figure slot under the text column: the lower-left of a split slide */
+.slide__text .fig-side { flex: 1 1 auto; min-height: 0; margin-top: calc(var(--u) * .6); }
+
+/* grid: on split slides the figure starts on the title line, not on the kicker line */
+.slide[data-layout^="split"] .slide__fig { padding-top: calc(var(--fs-kicker) * 1.55 + var(--u) * 1.1); }
+.slide[data-layout^="split"][data-part-start] .slide__fig { padding-top: calc(var(--fs-kicker) * 1.94 + var(--u) * 1.1); }
+.slide[data-layout="wide"] .body { max-width: 72ch; }
+/* the one line a body exists for, set at lead size above its detail */
+.body .key { display: block; font-size: var(--fs-lead); color: var(--text-1); font-weight: 500; line-height: 1.35; margin-bottom: .2em; }
+/* the four parts of the talk (s03), with the part word in the poster gradient as in the kickers */
+.parts { list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: calc(var(--u) * .7) calc(var(--u) * 1.6); margin-top: calc(var(--u) * .8); font-size: var(--fs-body); color: var(--text-1); }
+.parts li { display: flex; flex-direction: column; gap: .1em; padding-left: calc(var(--u) * .9); border-left: 3px solid var(--line-strong); line-height: 1.3; }
+.parts li::before { display: none; }
+.parts b { font-weight: 600; font-size: var(--fs-lead); color: var(--grad-solid); background: var(--grad); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+html.print .parts b { background: none !important; -webkit-text-fill-color: currentColor; color: #ff6fae; }
+
+/* figure text in SVG */
+.fig svg text { font-family: var(--font); }
+.fig svg .mono { font-family: var(--font); letter-spacing: .02em; font-variant-numeric: tabular-nums; }
+.fig svg .glow { filter: none; }
+.fig svg .t-accent { fill: var(--accent-text); }
+.fig svg .t-bad { fill: var(--bad-text); }
+.fig svg .t-need { fill: var(--p1-text); }
+.fig svg .t-hosp { fill: var(--p3-text); }
+.fig svg .t-pro { fill: var(--neutral-text); }
+.fig svg .t-good { fill: var(--good-text); }
+
+/* cards used by several slides */
+.cards { display: grid; gap: calc(var(--u) * 1.1); }
+.card { padding: calc(var(--u) * 1) calc(var(--u) * 1.2); display: flex; flex-direction: column; gap: calc(var(--u) * .45); min-width: 0; }
+.card .hud-num { font-size: calc(var(--fs-stat) * .78); }
+.card p { font-size: var(--fs-small); color: var(--text-2); line-height: 1.45; }
+.card h4 { font-size: var(--fs-body); color: var(--text-1); font-weight: 500; line-height: 1.35; }
+
+/* debate cards on the closing slide */
+.debates { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: calc(var(--u) * 1.2); }
+.debate { padding: calc(var(--u) * 1.1) calc(var(--u) * 1.3); display: grid; grid-template-columns: calc(var(--u) * 3.2) minmax(0, 1fr); align-items: start; gap: calc(var(--u) * .8); }
+.debate b { font-family: var(--display); font-size: var(--fs-title); color: var(--accent-text); line-height: 1; }
+.debate p { font-size: calc(var(--fs-lead) * 1.22); color: var(--text-1); line-height: 1.38; font-weight: 300; }
+.debate { min-height: calc(var(--u) * 9); align-items: center; }
+/* closing slide: the four debates beside a QR the back rows can scan */
+.close-grid { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: calc(var(--u) * 2.2); align-items: stretch; flex: 1; min-height: 0; }
+.close-grid .debates { grid-auto-rows: 1fr; }
+.closing { display: flex; flex-direction: column; justify-content: center; gap: calc(var(--u) * .9); width: calc(var(--u) * 17); }
+.closing .qr { background: #fff; border-radius: 10px; padding: calc(var(--u) * .5); display: block; width: calc(var(--u) * 16.5); }
+.closing .qr img { width: 100%; height: auto; display: block; }
+.closing p { font-size: var(--fs-lead); color: var(--text-1); font-weight: 300; line-height: 1.35; }
+.closing p b { color: var(--accent-text); font-weight: 500; }
+.closing .url { font-size: var(--fs-lead); color: var(--text-2); font-weight: 400; letter-spacing: .01em; }
+/* a figure's own evidence badge, when it differs from the slide's (s07: the chart is data) */
+.fig { position: relative; }
+.fig-badge { position: absolute; top: 0; right: 0; font-size: var(--fs-badge); background: var(--card); z-index: 2; }
+@media (max-width: 860px) { .close-grid { grid-template-columns: minmax(0, 1fr); } .closing { width: auto; } .closing .qr { width: 220px; } }
+
+/* ---------- topbar link back to the site ---------- */
+.back-site { color: var(--text-2); text-decoration: none; font-size: 13px; border: 1px solid var(--line); border-radius: 999px; padding: 4px 11px; white-space: nowrap; }
+.back-site:hover { border-color: var(--accent-text); color: var(--text-1); }
+
+/* ---------- print (PDF): one slide per 16:9 page, final step, no chrome ---------- */
+html.print { --u: 19.2px; --topbar-h: 0px; --ribbon-h: 0px; --dur: 0ms; }
+html.print body { background: var(--bg); }
+html.print .starfield, html.print .topbar, html.print .ribbon, html.print .notes-drawer, html.print .read-notes, html.print .skip { display: none !important; }
+html.print .deck { height: auto !important; }
+html.print .slide-wrap { break-after: page; page-break-after: always; }
+html.print .slide { display: grid !important; position: relative !important; inset: auto !important; width: 1920px !important; height: 1080px !important; margin: 0 !important; animation: none !important;
+  background-color: var(--bg); background-image: var(--print-stars, none); background-size: 1920px 1080px; background-repeat: no-repeat; }
+html.print [data-step] { opacity: 1 !important; transform: none !important; visibility: visible !important; transition: none !important; }
+@page { size: 1920px 1080px; margin: 0; }
+
+/* Preview and Quick Look draw text clipped to a gradient (background-clip: text) as a solid box,
+   so printed titles use one solid poster colour for the emphasised words. */
+html.print .title em, html.print .display em { background: none !important; -webkit-text-fill-color: currentColor; color: #ff6fae; }
+:root[data-theme="light"] html.print .title em, html.print:root[data-theme="light"] .title em { color: #c2187a; }
+/* PDF viewers (Preview, Quick Look) draw blurred shadows as solid boxes: no shadows in print. */
+html.print *, html.print *::before, html.print *::after { text-shadow: none !important; box-shadow: none !important; }
+html.print .glow, html.print svg [filter], html.print .fig svg .glow { filter: none !important; }
+
+/* Phones: the slide grid stacks (deck.css, < 860px); drop the counter and keep the topbar to one row. */
+@media (max-width: 860px) {
+  .hud-meta { display: none !important; }
+  /* the footer stacks: the source gets the full width, the funder line wraps under it */
+  .slide__foot { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .slide__foot .foot-right { flex-wrap: wrap; }
+  .funder { white-space: normal; }
+  /* figures take the height their drawing needs, not a fixed box */
+  .slide__fig { min-height: 0; }
+  .fig__svg svg { height: auto; max-height: 82vh; }
+  .slide__text .fig-side { min-height: 0; }
+  .debates, .close-grid .debates { grid-template-columns: minmax(0, 1fr); grid-auto-rows: auto; }
+  .debate p { font-size: var(--fs-lead); }
+}
+@media (max-width: 640px) {
+  .topbar { gap: 8px; }
+  .topbar__brand, .topbar__where, #btn-notes, #btn-help, #btn-full, .back-site { display: none !important; }
+}

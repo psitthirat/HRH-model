@@ -1,0 +1,1182 @@
+"""Constrained integer allocation of new appointments and controlled transfers (HiGHS MILP).
+
+Decision variables for province p and year t (all years solved jointly, same deterministic
+stock-flow transition as the simulator):
+
+    x[p,t]    accepted starts from the managed-system pool          integer >= floor
+    zin/zout  controlled transfers in / out (existing staff)          integer >= 0
+    H[p,t]    expected closing stock                                  continuous
+    s[p,t]    proportional shortfall  s >= 1 - H/T, s >= 0
+    y[p,t]    epigraph of s^2 by tangents  y >= 2 a s - a^2           (convex piecewise-linear)
+    u[t]      unplaced pool (0 when full placement is required)
+
+Stock identity   H[p,t] = (1 - d_p + r_p) H[p,t-1] + x + zin - zout
+                 (d = expected external departure probability, r = re-entry rate, both applied
+                 to the opening stock; see supply.py)
+Pool             sum_p x[p,t] + u[t] = A_t
+Gross cap        x + zin + r H[t-1] <= g H[t-1]              (re-entries consume onboarding)
+Net-growth cap   H[t] - H[t-1] <= c H[t-1]                   (alternative)
+Transfers        zout <= tau (1-d) H[t-1];  sum zout <= beta sum (1-d) H[t-1];  sum zin = sum zout
+                 (per health region when the network is regional)
+Origin floor     H[t] >= f (1-d) H[t-1]  (limited drawdown; new appointments may replace transfers)
+                 or H[t] >= min(T, (1-d) H[t-1])  (surplus_only, one binary per province-year)
+
+Frame extension (Chapter 5 experiment F, off unless Problem.frame is set):
+Positions        H[p,t] <= phi_p K[p,c(t)]   (K = funded positions of the province in cycle c of the 5-year
+                 staffing frame; phi = on-site physicians per position holder).  K is fixed, follows a schedule,
+                 or is decided: K[c] = K[c-1] + added[c] - moved_out[c] + moved_in[c] with sum added[c] <= budget[c],
+                 and only vacant positions may move (moved_out[c] <= K[c-1] - H[start of c - 1] / phi).
+Exogenous flows  exo[t] (training moves between provinces) enters the stock identity; with a frame, an inflow that
+                 finds no position spills (w <= max(exo, 0), minimised first, reported as returns without a position).
+Committed        x + v >= committed (bonded graduates owed to their home province; v = those who cannot be
+                 placed there, minimised first with the unplaced pool).
+Employees        H[p,t] <= phi_p K[p,c] + E[p,c] (+ O[p,t]): hospital-employee positions E (on-site units) follow a
+                 schedule or are decided under a budget per cycle (E[c] = E[c-1] + eadd[c]).
+Overflow         O >= 0 lets incumbents stay above a shrinking civil-servant frame (positions abolished when vacated);
+                 O is minimised first with the commitments, so nobody is appointed into a province above its frame.
+cap_mode "none"  no onboarding / net-growth cap (the frame takes its place).
+
+Lexicographic order: placement -> J_short = sum_t sum_p (T/sum T) y -> distribution imbalance
+within a tolerance of J* -> transfers (and changes from an announced plan) within a tolerance of
+the imbalance optimum.  Routing of the aggregate transfers is a separate integer transportation
+problem on the declared network, which always routes when the network is complete and, for the
+regional network, because regional balance is imposed in the allocation stage.
+"""
+from __future__ import annotations
+
+import time
+from dataclasses import dataclass, field
+
+import numpy as np
+import scipy.sparse as sp
+from scipy.optimize import Bounds, LinearConstraint, milp
+
+
+@dataclass
+class Problem:
+    provs: np.ndarray
+    years: list
+    H0: np.ndarray
+    T: np.ndarray                    # [T, P] targets
+    d: np.ndarray                    # [P] or [T, P] departure probability
+    r: np.ndarray                    # [P] or [T, P] re-entry rate
+    A: np.ndarray                    # [T] available pool
+    floor: int = 1
+    cap_mode: str = "gross_arrivals"
+    cap: float = 0.10
+    reentry_consumes: bool = True
+    transfers: bool = False
+    tau: float = 0.0
+    nat_budget: float = 0.0
+    protect_mode: str = "limited_drawdown"
+    protect_frac: float = 0.95
+    network: str = "complete_76"
+    region: np.ndarray | None = None
+    require_full: bool = True
+    tangent_step: float = 0.025
+    discount: float = 1.0
+    rel_tol: float = 5e-4
+    abs_tol: float = 1e-7
+    mip_rel_gap: float = 2e-4
+    time_limit: float = 180.0
+    secondary_time_limit: float = 60.0
+    announced_x: np.ndarray | None = None        # [T, P] for replanning disruption
+    reference_x: np.ndarray | None = None        # [T, P] for the "closest feasible" objective
+    stages: tuple = ("shortfall", "distribution", "operational")
+    label: str = ""
+    population_reserved_share: float = 0.0
+    reservation_population: np.ndarray | None = None  # [T, P], chosen population register
+    exo: np.ndarray | None = None                     # [T, P] exogenous net movements into the stock (training moves)
+    committed: np.ndarray | None = None               # [T, P] appointments owed to the province (bonded programmes)
+    frame: dict | None = None                         # positions frame (experiment F), see module docstring
+    integral_x: bool = True                           # False: appointments continuous (linear programme; experiment F)
+
+    def __post_init__(self):
+        P, T = len(self.provs), len(self.years)
+        self.P, self.nT = P, T
+        self.d = np.broadcast_to(np.asarray(self.d, float), (T, P)).copy()
+        self.r = np.broadcast_to(np.asarray(self.r, float), (T, P)).copy()
+        self.A = np.asarray(self.A, float).reshape(T)
+        self.T = np.asarray(self.T, float).reshape(T, P)
+        assert (self.T > 0).all(), "targets must be positive"
+        self.w = self.T / self.T.sum(1, keepdims=True)
+        if self.exo is not None:
+            self.exo = np.broadcast_to(np.asarray(self.exo, float), (T, P)).copy()
+        if self.committed is not None:
+            self.committed = np.broadcast_to(np.asarray(self.committed, float), (T, P)).copy()
+        if self.frame is not None:
+            f = dict(self.frame)
+            f["phi"] = np.asarray(f["phi"], float).reshape(P)
+            f["K0"] = np.asarray(f["K0"], float).reshape(P)
+            f["cycle"] = np.asarray(f["cycle"], int).reshape(T)
+            f["n_cycles"] = int(f["cycle"].max()) + 1
+            f.setdefault("mode", "fixed")
+            f.setdefault("realloc", 0.0)
+            if f["mode"] == "schedule":
+                f["schedule"] = np.asarray(f["schedule"], float).reshape(f["n_cycles"], P)
+            if f["mode"] == "optimize":
+                f["budget"] = np.asarray(f["budget"], float).reshape(f["n_cycles"])
+            if f["mode"] not in ("fixed", "schedule", "optimize"):
+                raise ValueError("frame mode must be fixed, schedule or optimize")
+            f.setdefault("emp_mode", None)
+            f.setdefault("overflow", False)
+            if f["emp_mode"] == "schedule":
+                f["emp_schedule"] = np.asarray(f["emp_schedule"], float).reshape(f["n_cycles"], P)
+            elif f["emp_mode"] == "optimize":
+                f["emp_budget"] = np.asarray(f["emp_budget"], float).reshape(f["n_cycles"])
+                f["E0"] = np.asarray(f.get("E0", np.zeros(P)), float).reshape(P)     # employee positions in force
+            elif f["emp_mode"] is not None:
+                raise ValueError("employee mode must be schedule or optimize")
+            cap0 = f["phi"] * f["K0"] + (f["emp_schedule"][0] if f["emp_mode"] == "schedule" else
+                                         f["E0"] if f["emp_mode"] == "optimize" else 0.0)
+            # an integer stock realised on a simulated path may exceed the fractional on-site capacity by half a person
+            if not f["overflow"] and (cap0 < self.H0 - 0.5).any():
+                raise ValueError("the opening stock exceeds the opening frame in some province")
+            self.frame = f
+        if not np.isfinite(self.population_reserved_share) or not 0 <= self.population_reserved_share <= 1:
+            raise ValueError("population reserved share must be between zero and one")
+        if self.population_reserved_share:
+            if self.reservation_population is None:raise ValueError("population reservation requires explicit province-year populations")
+            self.reservation_population = np.asarray(self.reservation_population, float).reshape(T, P)
+            if not np.isfinite(self.reservation_population).all() or (self.reservation_population <= 0).any():
+                raise ValueError("reservation populations must be finite and positive")
+            if (self.A < 0).any() or not np.equal(self.A, np.floor(self.A)).all():
+                raise ValueError("population reservation requires nonnegative integer appointment pools")
+
+
+def reservation_quota(pb: Problem):
+    """Optional population protection with quota-constrained integer rounding.
+
+    Reserve round-half-up(A * share) accepted appointments. Each provincial
+    quota lies between floor and ceiling of its exact population-proportional
+    amount; the MILP chooses a feasible rounding within all existing limits.
+    Universal floors overlap this protected component: x >= max(floor, q),
+    never floor + q. Infeasible protection is not silently reduced or reassigned
+    outside these quota bounds. A zero share adds no optimisation variables.
+    """
+    if not pb.population_reserved_share:
+        z = np.zeros((pb.nT, pb.P), int)
+        return np.zeros(pb.nT, int), z, z, z.astype(float)
+    total = np.floor(pb.A * pb.population_reserved_share + 0.5).astype(int)
+    exact = total[:, None] * pb.reservation_population / pb.reservation_population.sum(1, keepdims=True)
+    # Remove floating-point noise only at integer boundaries (one ten-billionth
+    # of an appointment), so mathematically integral quotas stay integral.
+    exact = np.where(np.isclose(exact, np.rint(exact), rtol=0, atol=1e-10), np.rint(exact), exact)
+    return total, np.floor(exact).astype(int), np.ceil(exact).astype(int), exact
+
+
+def reserved_allocations(pb: Problem, x):
+    """An auditable protected subset of the solved accepted appointments.
+
+    Feasibility is independent of how the optimiser rounded auxiliary q.
+    Reconstruct a valid subset using largest remainders among eligible cells,
+    breaking ties by province code; this never changes any appointment decision.
+    """
+    total, lo, hi, exact = reservation_quota(pb)
+    x = np.asarray(x)
+    if (x < lo).any():raise ValueError("accepted appointments violate a protected population lower quota")
+    q = lo.copy()
+    for t in range(pb.nT):
+        remaining = int(total[t] - q[t].sum())
+        eligible = np.flatnonzero((hi[t] > lo[t]) & (x[t] >= hi[t]))
+        order = eligible[np.lexsort((np.asarray(pb.provs)[eligible], -(exact[t, eligible] - lo[t, eligible])))]
+        if remaining > len(order):raise ValueError("appointments cannot contain the required protected national total")
+        q[t, order[:remaining]] += 1
+    return q
+
+
+class _Builder:
+    def __init__(self):
+        self.rows, self.cols, self.vals, self.lo, self.hi = [], [], [], [], []
+        self.n = 0
+
+    def add(self, cols, vals, lo, hi):
+        cols = np.atleast_2d(cols)
+        vals = np.atleast_2d(vals)
+        m = cols.shape[0]
+        r = np.arange(self.n, self.n + m)[:, None] + np.zeros_like(cols)
+        self.rows.append(r.ravel()); self.cols.append(cols.ravel()); self.vals.append(vals.ravel())
+        self.lo.append(np.broadcast_to(np.asarray(lo, float), (m,)))
+        self.hi.append(np.broadcast_to(np.asarray(hi, float), (m,)))
+        self.n += m
+
+    def matrix(self, nvar):
+        A = sp.csr_matrix((np.concatenate(self.vals), (np.concatenate(self.rows), np.concatenate(self.cols))),
+                          shape=(self.n, nvar))
+        return A, np.concatenate(self.lo), np.concatenate(self.hi)
+
+
+def _layout(pb: Problem):
+    P, T = pb.P, pb.nT
+    blocks = ["x", "zin", "zout", "H", "s", "y", "e"] + (["b"] if (pb.transfers and pb.protect_mode == "surplus_only") else [])
+    if pb.population_reserved_share:blocks.append("q")
+    if pb.committed is not None:blocks.append("v")
+    if pb.exo is not None and pb.frame is not None:blocks.append("w")
+    if pb.frame is not None and pb.frame.get("overflow"):blocks.append("O")
+    off, k = {}, 0
+    for b in blocks:
+        off[b] = k
+        k += P * T
+    off["u"] = k
+    k += T
+    off["Ht"] = k          # national closing stock per year (used by the distribution stage)
+    k += T
+    off["mm"] = k          # minimum attainment (used only by the max-min fairness variant)
+    k += 1
+    if pb.frame is not None:
+        C_ = pb.frame["n_cycles"]
+        cyc = []
+        if pb.frame["mode"] == "optimize":
+            cyc += ["K", "fadd"] + (["fout", "fin"] if pb.frame["realloc"] > 0 else [])
+        if pb.frame.get("emp_mode") == "optimize":
+            cyc += ["E", "eadd"]
+        for b in cyc:
+            off[b] = k
+            k += P * C_
+    return off, k
+
+
+def frame_capacity(pb: Problem) -> np.ndarray | None:
+    """[C, P] positions per cycle for a fixed or scheduled frame (None when the frame is decided)."""
+    f = pb.frame
+    if f is None or f["mode"] == "optimize":
+        return None
+    add = f["schedule"] if f["mode"] == "schedule" else np.zeros((f["n_cycles"], pb.P))
+    return f["K0"][None] + np.cumsum(add, axis=0)
+
+
+def _general_frame(pb: Problem) -> bool:
+    """Capacity rows with employees or incumbent overflow (otherwise the original frame rows/bounds apply)."""
+    f = pb.frame
+    return f is not None and (f.get("emp_mode") is not None or bool(f.get("overflow")))
+
+
+def _stock_bounds(pb: Problem):
+    """Loose lower/upper bounds of H (used only to restrict tangent points)."""
+    P, T = pb.P, pb.nT
+    lo = np.zeros((T, P)); hi = np.zeros((T, P))
+    Hl = pb.H0.copy(); Hh = pb.H0.copy()
+    for t in range(T):
+        keep = (1 - pb.d[t])
+        Hl = Hl * keep * (pb.protect_frac if pb.transfers else 1.0)
+        if pb.exo is not None:
+            Hl = np.maximum(Hl + np.minimum(pb.exo[t], 0), 0)
+        if pb.cap_mode == "gross_arrivals":
+            Hh = Hh * (1 - pb.d[t] + pb.cap) + (0 if pb.reentry_consumes else pb.r[t] * Hh)
+        elif pb.cap_mode == "none":
+            Hh = Hh * (1 - pb.d[t] + pb.r[t]) + pb.A[t]
+        else:
+            Hh = Hh * (1 + pb.cap)
+        if pb.exo is not None:
+            Hh = Hh + np.maximum(pb.exo[t], 0)
+        Hh = np.minimum(Hh, (pb.H0 + pb.A[: t + 1].sum() + pb.H0.sum()))
+        if pb.frame is not None and not pb.frame.get("overflow"):
+            f = pb.frame
+            Kc = frame_capacity(pb)
+            cap_t = (f["phi"] * Kc[f["cycle"][t]] if Kc is not None
+                     else f["phi"] * (f["K0"] + f["budget"][: f["cycle"][t] + 1].sum()
+                                      + (f["realloc"] * f["K0"].sum() * (f["cycle"][t] + 1) if f["realloc"] > 0 else 0)))
+            if f.get("emp_mode") == "schedule":
+                cap_t = cap_t + f["emp_schedule"][f["cycle"][t]]
+            elif f.get("emp_mode") == "optimize":
+                cap_t = cap_t + f["E0"] + f["emp_budget"][: f["cycle"][t] + 1].sum()
+            Hh = np.minimum(Hh, cap_t)
+        lo[t], hi[t] = 0.98 * Hl, 1.02 * Hh + 2
+    return lo, hi
+
+
+def build(pb: Problem):
+    P, T = pb.P, pb.nT
+    off, nvar = _layout(pb)
+    V = lambda blk, t: off[blk] + t * P + np.arange(P)
+    B = _Builder()
+    ones = np.ones(P)
+    reserved_total, reserved_lo, reserved_hi, _ = reservation_quota(pb)
+    for t in range(T):
+        a = 1 - pb.d[t] + pb.r[t]
+        x, zi, zo, H, s, y = V("x", t), V("zin", t), V("zout", t), V("H", t), V("s", t), V("y", t)
+        # stock identity
+        ex = pb.exo[t] if pb.exo is not None else 0.0
+        if "w" in off:                         # spilled training inflows leave the identity
+            if t == 0:
+                B.add(np.c_[H, x, zi, zo, V("w", t)], np.c_[ones, -ones, -ones, ones, ones], a * pb.H0 + ex, a * pb.H0 + ex)
+            else:
+                B.add(np.c_[H, V("H", t - 1), x, zi, zo, V("w", t)], np.c_[ones, -a, -ones, -ones, ones, ones], ex, ex)
+        elif t == 0:
+            B.add(np.c_[H, x, zi, zo], np.c_[ones, -ones, -ones, ones], a * pb.H0 + ex, a * pb.H0 + ex)
+        else:
+            Hp = V("H", t - 1)
+            B.add(np.c_[H, Hp, x, zi, zo], np.c_[ones, -a, -ones, -ones, ones], ex, ex)
+        if pb.committed is not None:
+            B.add(np.c_[x, V("v", t)], np.c_[ones, ones], pb.committed[t], np.inf)
+        # pool
+        B.add(np.r_[x, off["u"] + t][None], np.r_[ones, 1.0][None], pb.A[t], pb.A[t])
+        if "q" in off:
+            q = V("q", t)
+            B.add(q[None], ones[None], reserved_total[t], reserved_total[t])
+            B.add(np.c_[x, q], np.c_[ones, -ones], 0, np.inf)
+        # capacity
+        if pb.cap_mode == "none":
+            pass
+        elif pb.cap_mode == "gross_arrivals":
+            coef = pb.cap - (pb.r[t] if pb.reentry_consumes else 0.0)
+            if t == 0:
+                B.add(np.c_[x, zi], np.c_[ones, ones], -np.inf, coef * pb.H0)
+            else:
+                B.add(np.c_[x, zi, V("H", t - 1)], np.c_[ones, ones, -coef], -np.inf, 0)
+        else:
+            if t == 0:
+                B.add(H[:, None], ones[:, None], -np.inf, (1 + pb.cap) * pb.H0)
+            else:
+                B.add(np.c_[H, V("H", t - 1)], np.c_[ones, -(1 + pb.cap) * ones], -np.inf, 0)
+        # transfers
+        if pb.transfers:
+            keep = 1 - pb.d[t]
+            if t == 0:
+                B.add(zo[:, None], ones[:, None], -np.inf, pb.tau * keep * pb.H0)
+                B.add(zo[None], ones[None], -np.inf, pb.nat_budget * (keep * pb.H0).sum())
+            else:
+                Hp = V("H", t - 1)
+                B.add(np.c_[zo, Hp], np.c_[ones, -pb.tau * keep], -np.inf, 0)
+                B.add(np.r_[zo, Hp][None], np.r_[ones, -pb.nat_budget * keep][None], -np.inf, 0)
+            groups = [np.arange(P)] if pb.network == "complete_76" else [np.flatnonzero(pb.region == g) for g in np.unique(pb.region)]
+            for g in groups:
+                B.add(np.r_[zi[g], zo[g]][None], np.r_[np.ones(len(g)), -np.ones(len(g))][None], 0, 0)
+            if pb.protect_mode == "limited_drawdown":
+                if t == 0:
+                    B.add(H[:, None], ones[:, None], pb.protect_frac * keep * pb.H0, np.inf)
+                else:
+                    B.add(np.c_[H, V("H", t - 1)], np.c_[ones, -pb.protect_frac * keep], 0, np.inf)
+            else:  # surplus_only: existing staff after transfers Q = (1-d)H[t-1] + zin - zout >= min(T, (1-d)H[t-1])
+                # (new appointments cannot backfill outward transfers, so a below-target province has no net outflow)
+                b = V("b", t)
+                M = 10 * (pb.H0.max() + pb.A.sum())
+                Tt = pb.T[t]
+                B.add(np.c_[zi, zo, b], np.c_[ones, -ones, M * ones], 0, np.inf)          # Q >= surv - M b
+                if t == 0:
+                    surv = keep * pb.H0
+                    B.add(np.c_[zi, zo, b], np.c_[ones, -ones, -Tt], -surv, np.inf)        # Q >= T b
+                    B.add(b[:, None], (M * ones)[:, None], -np.inf, surv - Tt + M)        # b = 1 only if surv >= T
+                else:
+                    Hp = V("H", t - 1)
+                    B.add(np.c_[Hp, zi, zo, b], np.c_[keep, ones, -ones, -Tt], 0, np.inf)
+                    B.add(np.c_[Hp, b], np.c_[keep, -M * ones], Tt - M, np.inf)
+        # shortfall
+        B.add(np.c_[s, H], np.c_[ones, 1 / pb.T[t]], 1, np.inf)
+    # positions frame
+    VC = lambda blk, c: off[blk] + c * P + np.arange(P)
+    f = pb.frame
+    if f is not None and _general_frame(pb):
+        # H <= phi K + E + O, with each term a decision or a constant
+        Kc_s = frame_capacity(pb)
+        for t in range(T):
+            c_ = f["cycle"][t]
+            cols, vals, rhs = [V("H", t)], [ones], np.zeros(P)
+            if Kc_s is None:
+                cols.append(VC("K", c_)); vals.append(-f["phi"])
+            else:
+                rhs = rhs + f["phi"] * Kc_s[c_]
+            if f["emp_mode"] == "optimize":
+                cols.append(VC("E", c_)); vals.append(-ones)
+            elif f["emp_mode"] == "schedule":
+                rhs = rhs + f["emp_schedule"][c_]
+            if f.get("overflow"):
+                cols.append(V("O", t)); vals.append(-ones)
+            B.add(np.column_stack(cols), np.column_stack(vals), -np.inf, rhs)
+    elif f is not None and f["mode"] == "optimize":
+        for t in range(T):
+            B.add(np.c_[V("H", t), VC("K", f["cycle"][t])], np.c_[ones, -f["phi"]], -np.inf, 0)
+    if f is not None and f.get("emp_mode") == "optimize":
+        for c in range(1, f["n_cycles"]):
+            B.add(np.c_[VC("E", c), VC("E", c - 1), VC("eadd", c)], np.c_[ones, -ones, -ones], 0, 0)
+            B.add(VC("eadd", c)[None], ones[None], -np.inf, f["emp_budget"][c])
+    if f is not None and f["mode"] == "optimize":
+        for c in range(1, f["n_cycles"]):
+            cols = [VC("K", c), VC("K", c - 1), VC("fadd", c)]
+            vals = [ones, -ones, -ones]
+            if f["realloc"] > 0:
+                cols += [VC("fout", c), VC("fin", c)]
+                vals += [ones, -ones]
+            B.add(np.column_stack(cols), np.column_stack(vals), 0, 0)
+            B.add(VC("fadd", c)[None], ones[None], -np.inf, f["budget"][c])
+            if f["realloc"] > 0:
+                B.add(np.r_[VC("fout", c), VC("fin", c)][None], np.r_[ones, -ones][None], 0, 0)
+                B.add(np.c_[VC("fout", c), VC("K", c - 1)], np.c_[ones, -f["realloc"] * ones], -np.inf, 0)
+                t_c = int(np.flatnonzero(f["cycle"] == c)[0])          # vacant positions only (stock before the cycle)
+                if t_c > 0:
+                    B.add(np.c_[VC("fout", c), V("H", t_c - 1), VC("K", c - 1)], np.c_[ones, 1 / f["phi"], -ones], -np.inf, 0)
+    # tangents, restricted to the reachable shortfall range of each province-year
+    lo, hi = _stock_bounds(pb)
+    step = pb.tangent_step
+    tangents = {}
+    for t in range(T):
+        smin = np.clip(1 - hi[t] / pb.T[t], 0, 1)
+        smax = np.clip(1 - lo[t] / pb.T[t], 0, 1)
+        s, y = V("s", t), V("y", t)
+        for p in range(P):
+            k0 = np.floor(smin[p] / step) * step
+            k1 = np.ceil(smax[p] / step) * step
+            pts = np.unique(np.r_[0.0, np.arange(k0, k1 + step / 2, step)].clip(0, 1))
+            tangents[(t, p)] = pts
+            B.add(np.c_[np.full(len(pts), y[p]), np.full(len(pts), s[p])],
+                  np.c_[np.ones(len(pts)), -2 * pts], -pts ** 2, np.inf)
+    Acon, clo, chi = B.matrix(nvar)
+    lb = np.zeros(nvar); ub = np.full(nvar, np.inf)
+    integ = np.zeros(nvar)
+    for t in range(T):
+        lb[V("x", t)] = pb.floor
+        integ[V("x", t)] = 1 if pb.integral_x else 0
+        if "q" in off:
+            lb[V("q", t)] = reserved_lo[t]
+            ub[V("q", t)] = reserved_hi[t]
+            integ[V("q", t)] = 1
+        integ[V("zin", t)] = 1 if pb.integral_x else 0       # a linear programme relaxes transfers too
+        integ[V("zout", t)] = 1 if pb.integral_x else 0
+        ub[V("s", t)] = 1.0
+        if not pb.transfers:
+            ub[V("zin", t)] = 0
+            ub[V("zout", t)] = 0
+        if "b" in off:
+            integ[V("b", t)] = 1 if pb.integral_x else 0
+            ub[V("b", t)] = 1
+    if pb.require_full:
+        ub[off["u"]: off["u"] + T] = 0
+    ub[off["mm"]] = 1e3
+    if "w" in off:
+        for t in range(T):
+            ub[V("w", t)] = np.maximum(pb.exo[t], 0)
+    if f is not None:
+        Kc = frame_capacity(pb)
+        if Kc is not None:
+            if not _general_frame(pb):                       # fixed or scheduled frame: an upper bound on the stock
+                for t in range(T):
+                    ub[V("H", t)] = f["phi"] * Kc[f["cycle"][t]]
+        else:
+            lb[VC("K", 0)] = f["K0"]; ub[VC("K", 0)] = f["K0"]
+            ub[VC("fadd", 0)] = 0
+            if f["realloc"] > 0:
+                ub[VC("fout", 0)] = 0; ub[VC("fin", 0)] = 0
+        if f.get("emp_mode") == "optimize":                  # employee positions in force before the next frame
+            lb[VC("E", 0)] = f["E0"]; ub[VC("E", 0)] = f["E0"]
+            ub[VC("eadd", 0)] = 0
+    return dict(A=Acon, lo=clo, hi=chi, lb=lb, ub=ub, integ=integ, off=off, nvar=nvar, V=V, tangents=tangents,
+                VC=VC if f is not None else None)
+
+
+def full_vector(pb: Problem, M, x, zin, zout):
+    """A complete feasible variable vector from integer decisions (used to inject a known
+    feasible incumbent, e.g. the recruitment-only solution into a transfer problem)."""
+    v = np.zeros(M["nvar"])
+    V = M["V"]
+    H = trajectory(pb, x, zin, zout)
+    reserved = reserved_allocations(pb, x) if "q" in M["off"] else None
+    for t in range(pb.nT):
+        v[V("x", t)] = x[t]; v[V("zin", t)] = zin[t]; v[V("zout", t)] = zout[t]; v[V("H", t)] = H[t]
+        if reserved is not None:v[V("q", t)] = reserved[t]
+        s = np.clip(1 - H[t] / pb.T[t], 0, 1)
+        v[V("s", t)] = s
+        v[V("y", t)] = [max(2 * a * s[p] - a * a for a in M["tangents"][(t, p)]) for p in range(pb.P)]
+        v[M["off"]["Ht"] + t] = H[t].sum()
+        v[M["off"]["u"] + t] = pb.A[t] - x[t].sum()
+    return v
+
+
+def distribution_rows(pb: Problem, M):
+    """e[p,t] >= |H[p,t] - w[p,t] sum_q H[q,t]|  (added only for the distribution stage)."""
+    P, T = pb.P, pb.nT
+    V = M["V"]
+    B = _Builder()
+    ones = np.ones(P)
+    for t in range(T):
+        H, e = V("H", t), V("e", t)
+        ht = M["off"]["Ht"] + t
+        B.add(np.r_[ht, H][None], np.r_[1.0, -ones][None], 0, 0)
+        w = pb.w[t]
+        B.add(np.c_[e, H, np.full(P, ht)], np.c_[ones, -ones, w], 0, np.inf)
+        B.add(np.c_[e, H, np.full(P, ht)], np.c_[ones, ones, -w], 0, np.inf)
+    return B.matrix(M["nvar"])
+
+
+def _objective(pb, M, kind):
+    P, T = pb.P, pb.nT
+    c = np.zeros(M["nvar"])
+    V = M["V"]
+    if kind == "placement":
+        c[M["off"]["u"]: M["off"]["u"] + T] = 1
+    elif kind == "shortfall":
+        for t in range(T):
+            c[V("y", t)] = pb.w[t] * pb.discount ** t
+    elif kind == "distribution":
+        for t in range(T):
+            c[V("e", t)] = 1 / pb.T[t].sum()
+    elif kind == "operational":
+        for t in range(T):
+            c[V("zout", t)] = 1.0
+    elif kind in ("placement_soft", "commitments", "unplaced"):
+        # commitments: bonded graduates without a position at home and returning trainees without a position;
+        # unplaced: the rest of the pool; placement_soft: both (unplaced + 1000 x commitments)
+        if kind in ("placement_soft", "unplaced"):
+            c[M["off"]["u"]: M["off"]["u"] + T] = 1
+        if kind in ("placement_soft", "commitments"):
+            for blk in ("v", "w", "O"):          # O: incumbents above a shrinking frame (no appointment into it)
+                if blk in M["off"]:
+                    for t in range(T):
+                        c[V(blk, t)] = 1000.0 if kind == "placement_soft" else 1.0
+    elif kind == "frame_cost":
+        # positions created, plus 1% per position-year left vacant (phi K + E - H): among equally good frames this
+        # picks positions added where and when they are filled, not early or in provinces where they stay empty;
+        # moving a vacant position costs 1% of creating one; an employee position costs as much as a civil one
+        f = pb.frame
+        eps = 0.01
+        for cc in range(f["n_cycles"]):
+            years_c = float((f["cycle"] == cc).sum())
+            if f["mode"] == "optimize":
+                c[M["VC"]("fadd", cc)] = 1.0
+                c[M["VC"]("K", cc)] += eps * f["phi"] * years_c
+                if f["realloc"] > 0:
+                    c[M["VC"]("fout", cc)] = 0.01
+            if f.get("emp_mode") == "optimize":
+                c[M["VC"]("eadd", cc)] = 1.0
+                c[M["VC"]("E", cc)] += eps * years_c
+        for t in range(T):
+            c[V("H", t)] -= eps
+    return c
+
+
+def _count_tol(pb) -> float:
+    """Slack on a held count (people, positions) in later lexicographic stages: half a person when decisions are
+    integers; numerical only in a linear programme, so nobody leaks into a province the earlier stage kept closed."""
+    return 0.5 if pb.integral_x else 1e-6
+
+
+LOOSEN = 1e-4   # persons (or positions) added to held counts when a later LP stage is numerically infeasible
+
+
+def _loosened(extra):
+    """The held bounds of earlier stages with LOOSEN added to every held count (rows tagged "count": people or
+    positions).  Objective holds with a relative tolerance (shortfall J, distribution) are never loosened: J is about
+    4 with a declared slack of about 0.002, so 1e-4 more would let a later stage trade shortfall for positions."""
+    return [(r[0], r[1], r[2] + LOOSEN) if len(r) > 3 and r[3] == "count" else r for r in extra]
+
+
+def _solve_held(pb, M, c, extra, time_limit=None):
+    """A later lexicographic stage.  In a linear programme HiGHS can declare it infeasible only because a held count
+    sits within 1e-6 of its optimum (the frame_cost stage of P-R, 22 Oct 2569): retry once with the held counts
+    loosened by LOOSEN.  Returns (result, seconds, held bounds to carry forward, loosened?)."""
+    r, sec = _solve(pb, M, c, extra, time_limit=time_limit)
+    if r.x is None and r.status == 2 and not pb.integral_x and extra:
+        loose = _loosened(extra)
+        r2, s2 = _solve(pb, M, c, loose, time_limit=time_limit)
+        if r2.x is not None:
+            return r2, sec + s2, loose, True
+        sec += s2
+    return r, sec, extra, False
+
+
+def _solve(pb, M, c, extra=None, integral=True, time_limit=None):
+    """extra: list of (row vector, lo, hi) or (sparse matrix, lo array, hi array)."""
+    A, lo, hi = M["A"], M["lo"], M["hi"]
+    if extra:
+        mats, los, his = [A], [lo], [hi]
+        for r in extra:
+            if sp.issparse(r[0]):
+                mats.append(r[0]); los.append(np.asarray(r[1])); his.append(np.asarray(r[2]))
+            else:
+                mats.append(sp.csr_matrix(np.asarray(r[0])[None])); los.append(np.array([r[1]])); his.append(np.array([r[2]]))
+        A = sp.vstack(mats).tocsr()
+        lo = np.concatenate(los)
+        hi = np.concatenate(his)
+    t0 = time.time()
+    res = milp(c, constraints=LinearConstraint(A, lo, hi), integrality=M["integ"] if integral else None,
+               bounds=Bounds(M["lb"], M["ub"]),
+               options=dict(mip_rel_gap=pb.mip_rel_gap, time_limit=time_limit or pb.time_limit, presolve=True))
+    return res, time.time() - t0
+
+
+def maximin_rows(pb: Problem, M):
+    """mm <= H[p,t] / T[p,t] for every province-year."""
+    B = _Builder()
+    V = M["V"]
+    for t in range(pb.nT):
+        H = V("H", t)
+        B.add(np.c_[np.full(pb.P, M["off"]["mm"]), H], np.c_[np.ones(pb.P), -1 / pb.T[t]], -np.inf, 0)
+    return B.matrix(M["nvar"])
+
+
+def net_churn(zin, zout):
+    """Remove simultaneous inbound and outbound transfers of one province-year.  Exact: the
+    closing stock, every cap and every protection constraint are unchanged or relaxed."""
+    m = np.minimum(zin, zout)
+    return zin - m, zout - m, int(m.sum())
+
+
+def _l1_reference(pb, M, ref, extra=None):
+    """Extra variables are avoided by bounding: minimise sum |x - ref| via the e-block trick is
+    not available, so solve with a dedicated auxiliary formulation.  extra: rows (c, upper bound) of earlier
+    lexicographic stages that the closest plan must keep (frame plans: commitments, then placement)."""
+    P, T = pb.P, pb.nT
+    nvar0 = M["nvar"]
+    npos = P * T
+    A = sp.hstack([M["A"], sp.csr_matrix((M["A"].shape[0], 2 * npos))]).tocsr()
+    rows, cols, vals = [], [], []
+    k = 0
+    for t in range(T):
+        for p in range(P):
+            xv = M["V"]("x", t)[p]
+            rows += [k, k, k]; cols += [xv, nvar0 + t * P + p, nvar0 + npos + t * P + p]; vals += [1, -1, 1]
+            k += 1
+    E = sp.csr_matrix((vals, (rows, cols)), shape=(k, nvar0 + 2 * npos))
+    A = sp.vstack([A, E]).tocsr()
+    lo = np.r_[M["lo"], ref.ravel()]
+    hi = np.r_[M["hi"], ref.ravel()]
+    for c_, ub_ in extra or []:
+        A = sp.vstack([A, sp.csr_matrix(np.r_[c_, np.zeros(2 * npos)][None])]).tocsr()
+        lo, hi = np.r_[lo, -np.inf], np.r_[hi, ub_]
+    lb = np.r_[M["lb"], np.zeros(2 * npos)]
+    ub = np.r_[M["ub"], np.full(2 * npos, np.inf)]
+    integ = np.r_[M["integ"], np.zeros(2 * npos)]
+    c = np.r_[np.zeros(nvar0), np.ones(2 * npos)]
+    t0 = time.time()
+    res = milp(c, constraints=LinearConstraint(A, lo, hi), integrality=integ, bounds=Bounds(lb, ub),
+               options=dict(mip_rel_gap=pb.mip_rel_gap, time_limit=pb.time_limit))
+    if res.x is not None:
+        res.x = res.x[:nvar0]
+    return res, time.time() - t0
+
+
+@dataclass
+class Solution:
+    status: str
+    x: np.ndarray | None = None
+    zin: np.ndarray | None = None
+    zout: np.ndarray | None = None
+    H: np.ndarray | None = None
+    u: np.ndarray | None = None
+    stages: list = field(default_factory=list)
+    diagnostics: dict = field(default_factory=dict)
+    v: np.ndarray | None = None              # bonded graduates not placed in their home province (experiment F)
+    spill: np.ndarray | None = None          # training inflows without a position (experiment F)
+    frame: dict = field(default_factory=dict)  # K [C, P] positions, added / moved_out / moved_in per cycle
+
+
+def _extract(pb, M, xv):
+    V = M["V"]
+    T = pb.nT
+    get = lambda b: np.array([xv[V(b, t)] for t in range(T)])
+    x, zi, zo = (np.round(get(b)).astype(int) for b in ("x", "zin", "zout"))
+    if not pb.integral_x:                    # linear programme: keep the continuous appointments and transfers
+        x, zi, zo = (np.clip(get(b), 0, None) for b in ("x", "zin", "zout"))
+    u = np.round(xv[M["off"]["u"]: M["off"]["u"] + T], 6)
+    return x, zi, zo, u
+
+
+def trajectory(pb: Problem, x, zin, zout, spill=None):
+    """Expected stock path implied by integer decisions (identical transition to the MILP)."""
+    H = np.zeros((pb.nT, pb.P))
+    Hp = pb.H0.astype(float)
+    for t in range(pb.nT):
+        H[t] = (1 - pb.d[t] + pb.r[t]) * Hp + x[t] + zin[t] - zout[t] + (pb.exo[t] if pb.exo is not None else 0.0) \
+            - (spill[t] if spill is not None else 0.0)
+        Hp = H[t]
+    return H
+
+
+def frame_by_year(pb: Problem, sol: "Solution") -> np.ndarray | None:
+    """[T, P] positions in force each year (J.18 units)."""
+    if pb.frame is None:
+        return None
+    K = sol.frame.get("K") if sol.frame else None
+    if K is None:
+        K = frame_capacity(pb)
+    if K is None:                     # a decided frame without a solved frame (rule plans): the opening positions
+        K = np.repeat(pb.frame["K0"][None], pb.frame["n_cycles"], 0)
+    return np.asarray(K)[pb.frame["cycle"]]
+
+
+def capacity_by_year(pb: Problem, sol: "Solution") -> np.ndarray | None:
+    """[T, P] on-site capacity each year: phi K + E (+ incumbents kept above a shrinking frame)."""
+    if pb.frame is None:
+        return None
+    cap = pb.frame["phi"] * frame_by_year(pb, sol)
+    fr = sol.frame or {}
+    if fr.get("E") is not None:
+        cap = cap + np.asarray(fr["E"])[pb.frame["cycle"]]
+    if fr.get("overflow") is not None:
+        cap = cap + np.asarray(fr["overflow"])
+    return cap
+
+
+def objective_exact(pb: Problem, H):
+    s = np.clip(1 - H / pb.T, 0, None)
+    return float((pb.w * s ** 2 * (pb.discount ** np.arange(pb.nT))[:, None]).sum())
+
+
+def imbalance(pb: Problem, H):
+    tot = H.sum(1, keepdims=True)
+    return float((np.abs(H - pb.w * tot).sum(1) / pb.T.sum(1)).sum())
+
+
+def solve(pb: Problem, objective: str = "lexicographic", incumbent=None) -> Solution:
+    """objective='lexicographic' (placement, shortfall, distribution, operational) or
+    'closest_to_reference' (min sum |x - reference_x| subject to every hard constraint)."""
+    diag = dict(label=pb.label)
+    if pb.population_reserved_share:
+        total, _, _, _ = reservation_quota(pb)
+        diag["population_reserved_share"] = pb.population_reserved_share
+        diag["population_reserved_total_by_year"] = total.tolist()
+        diag["population_reservation_method"] = "integer floor/ceiling population quotas; national total rounded half up; universal floor overlaps; all caps remain hard"
+    if (pb.A < pb.P * pb.floor).any():
+        yrs = [pb.years[i] for i in np.flatnonzero(pb.A < pb.P * pb.floor)]
+        diag["floor_infeasible_years"] = yrs
+        diag["floor_shortfall"] = float((pb.P * pb.floor - pb.A).clip(min=0).max())
+        return Solution(status="infeasible_under_selected_constraints", diagnostics=diag)
+    M = build(pb)
+    diag["n_var"], diag["n_con"] = M["nvar"], M["A"].shape[0]
+    diag["n_int"] = int(M["integ"].sum())
+    stages = []
+    if objective == "closest_to_reference":
+        # frame plans: bonded graduates and returning trainees placed first, then as many graduates as the frame
+        # allows; the closest plan to the reference is chosen among those (it never drops a graduate to stay close)
+        keep, kinds = [], []
+        if ("v" in M["off"]) or ("w" in M["off"]) or ("O" in M["off"]):
+            kinds.append("commitments")
+        if not pb.require_full:
+            kinds.append("unplaced")
+        if kinds:
+            for kind in kinds:
+                c_ = _objective(pb, M, kind)
+                r_, s_ = _solve(pb, M, c_, [(cc, -np.inf, ub) for cc, ub in keep] or None)
+                if r_.x is None:
+                    return Solution(status="infeasible_under_selected_constraints", diagnostics=diag | {"message": r_.message})
+                stages.append(dict(stage=kind, status=int(r_.status), objective=float(r_.fun), seconds=s_))
+                keep.append((c_, float(r_.fun) + _count_tol(pb)))
+        res, sec = _l1_reference(pb, M, pb.reference_x, keep)
+        diag["initial_solver_status"], diag["initial_solver_message"] = int(res.status), str(res.message)
+        if res.status not in (0, 1) or res.x is None:
+            return Solution(status="infeasible_under_selected_constraints", diagnostics=diag | {"message": res.message})
+        stages.append(dict(stage="closest_to_reference", status=int(res.status), objective=float(res.fun),
+                           mip_gap=float(getattr(res, "mip_gap", np.nan) or 0), seconds=sec))
+        xv = res.x
+    else:
+        extra = []
+        if pb.stages and pb.stages[0] == "maximin":
+            cm = np.zeros(M["nvar"]); cm[M["off"]["mm"]] = -1.0
+            mrows = maximin_rows(pb, M)
+            r0, s0 = _solve(pb, M, cm, [mrows])
+            diag["initial_solver_status"], diag["initial_solver_message"] = int(r0.status), str(r0.message)
+            if r0.x is None:
+                return Solution(status="infeasible_under_selected_constraints", diagnostics=diag | {"message": r0.message})
+            m_star = -float(r0.fun)
+            stages.append(dict(stage="maximin", status=int(r0.status), objective=m_star,
+                               mip_gap=float(getattr(r0, "mip_gap", np.nan) or 0), seconds=s0))
+            e = np.zeros(M["nvar"]); e[M["off"]["mm"]] = 1.0
+            extra = [mrows, (e, m_star * (1 - pb.rel_tol) - pb.abs_tol, np.inf)]
+        if ("v" in M["off"]) or ("w" in M["off"]) or ("O" in M["off"]):
+            # frame plans, first priority: bonded graduates placed at home, returning trainees placed and no
+            # appointment into a province above a shrinking frame
+            cP = _objective(pb, M, "commitments")
+            rP, sP = _solve(pb, M, cP, extra or None)
+            if rP.x is None:
+                diag["message"] = f"commitment stage failed: {rP.message}"
+                return Solution(status="infeasible_under_selected_constraints", diagnostics=diag)
+            P_star = float(rP.fun)
+            stages.append(dict(stage="commitments", status=int(rP.status), objective=P_star,
+                               mip_gap=float(getattr(rP, "mip_gap", np.nan) or 0), seconds=sP,
+                               outcome="optimal within gap" if rP.status == 0 else "time limit: best incumbent"))
+            extra = extra + [(cP, -np.inf, P_star + _count_tol(pb), "count")]
+        res, sec = _solve(pb, M, _objective(pb, M, "shortfall"), extra or None)
+        diag["initial_solver_status"], diag["initial_solver_message"] = int(res.status), str(res.message)
+        if res.x is None:
+            # full placement impossible: find the minimum unplaced pool (diagnostic, kept separate)
+            M2 = dict(M)
+            M2["ub"] = M["ub"].copy()
+            M2["ub"][M["off"]["u"]: M["off"]["u"] + pb.nT] = np.inf
+            r0, s0 = _solve(pb, M2, _objective(pb, M2, "placement"))
+            diag["full_placement_feasible"] = False
+            if r0.x is None:
+                diag["message"] = "infeasible even with unplaced balance allowed"
+                return Solution(status="infeasible_under_selected_constraints", diagnostics=diag, stages=[
+                    dict(stage="placement", status=int(r0.status), objective=np.nan, seconds=s0)])
+            u = r0.x[M["off"]["u"]: M["off"]["u"] + pb.nT]
+            diag["min_unplaced_by_year"] = np.round(u, 3).tolist()
+            stages.append(dict(stage="placement", status=int(r0.status), objective=float(r0.fun), seconds=s0))
+            return Solution(status="infeasible_under_selected_constraints", u=np.round(u, 3), stages=stages,
+                            diagnostics=diag)
+        diag["full_placement_feasible"] = True
+        J1 = float(res.fun)
+        stages.append(dict(stage="shortfall", status=int(res.status), objective=J1,
+                           mip_gap=float(getattr(res, "mip_gap", np.nan) or 0),
+                           dual_bound=float(getattr(res, "mip_dual_bound", np.nan) or np.nan), seconds=sec,
+                           outcome="optimal within gap" if res.status == 0 else "time limit: best incumbent"))
+        xv = res.x
+        cS = _objective(pb, M, "shortfall")
+        if incumbent is not None:
+            vi = full_vector(pb, M, *incumbent)
+            Ji = float(cS @ vi)
+            diag["incumbent_objective"] = Ji
+            if Ji < J1:
+                xv, J1 = vi, Ji
+                stages[-1]["outcome"] += "; recruitment-only incumbent is better and is adopted (feasible here)"
+                diag["incumbent_adopted"] = True
+        extra = extra + [(cS, -np.inf, J1 * (1 + pb.rel_tol) + pb.abs_tol)]
+        if not pb.require_full:
+            # experiment F: place as many of the remaining graduates as the shortfall optimum allows (a frame that
+            # binds everywhere leaves some unplaced; placing them first would chase high-turnover provinces)
+            cU = _objective(pb, M, "unplaced")
+            rU, sU, extra, lo_ = _solve_held(pb, M, cU, extra, time_limit=pb.secondary_time_limit)
+            if rU.x is not None:
+                xv = rU.x
+                stages.append(dict(stage="placement", status=int(rU.status), objective=float(rU.fun),
+                                   mip_gap=float(getattr(rU, "mip_gap", np.nan) or 0), seconds=sU,
+                                   outcome=("optimal within gap" if rU.status == 0 else "time limit: best incumbent")
+                                           + (f"; held counts loosened by {LOOSEN:g} after a numerical infeasibility" if lo_ else "")))
+                extra = extra + [(cU, -np.inf, float(rU.fun) + _count_tol(pb), "count")]
+            else:
+                stages.append(dict(stage="placement", status=int(rU.status), objective=np.nan, seconds=sU,
+                                   outcome=f"not solved ({rU.message}): shortfall-stage plan retained"))
+        if "frame_cost" in pb.stages and pb.frame is not None and (pb.frame["mode"] == "optimize"
+                                                                     or pb.frame.get("emp_mode") == "optimize"):
+            cF = _objective(pb, M, "frame_cost")
+            rF, sF, extra, lo_ = _solve_held(pb, M, cF, extra, time_limit=pb.secondary_time_limit)
+            if rF.x is not None:
+                xv = rF.x
+                stages.append(dict(stage="frame_cost", status=int(rF.status), objective=float(rF.fun),
+                                   mip_gap=float(getattr(rF, "mip_gap", np.nan) or 0), seconds=sF,
+                                   outcome=("optimal within gap" if rF.status == 0 else "time limit: best incumbent")
+                                           + (f"; held counts loosened by {LOOSEN:g} after a numerical infeasibility" if lo_ else "")))
+                extra = extra + [(cF, -np.inf, float(rF.fun) * (1 + pb.rel_tol) + _count_tol(pb), "count")]
+            else:
+                stages.append(dict(stage="frame_cost", status=int(rF.status), objective=np.nan, seconds=sF,
+                                   outcome=("no incumbent within the time limit" if rF.status == 1 else
+                                            f"not solved ({rF.message})") + ": placement-stage frame retained"))
+        if "distribution" in pb.stages:
+            cD = _objective(pb, M, "distribution")
+            drows = distribution_rows(pb, M)
+            r2, s2 = _solve(pb, M, cD, extra + [drows], time_limit=pb.secondary_time_limit)
+            if r2.x is not None:
+                xv = r2.x
+                I2 = float(r2.fun)
+                stages.append(dict(stage="distribution", status=int(r2.status), objective=I2,
+                                   mip_gap=float(getattr(r2, "mip_gap", np.nan) or 0), seconds=s2,
+                                   outcome="optimal within gap" if r2.status == 0 else "time limit: best incumbent"))
+                extra = extra + [drows, (cD, -np.inf, I2 * (1 + pb.rel_tol) + pb.abs_tol)]
+            else:
+                stages.append(dict(stage="distribution", status=int(r2.status), objective=np.nan, seconds=s2,
+                                   outcome="no improved incumbent within the time limit: shortfall-stage solution retained"))
+            if incumbent is not None and not (pb.stages and pb.stages[0] == "maximin"):
+                # The recruitment-only incumbent is feasible in every stage of a transfer plan. When it meets the
+                # shortfall tolerance and distributes better than a time-limited distribution stage, it is the better
+                # lexicographic answer: keep it (a transfer plan is then never worse than its recruitment-only plan).
+                vi = full_vector(pb, M, *incumbent)
+                if float(cS @ vi) <= J1 * (1 + pb.rel_tol) + pb.abs_tol:
+                    xc, zic, zoc, _ = _extract(pb, M, xv)
+                    Ii, Ic = imbalance(pb, trajectory(pb, *incumbent)), imbalance(pb, trajectory(pb, xc, zic, zoc))
+                    if Ii < Ic - 1e-9:
+                        xv = vi
+                        diag["incumbent_adopted_distribution"] = True
+                        stages.append(dict(stage="distribution", status=0, objective=Ii, seconds=0.0,
+                                           outcome="recruitment-only incumbent distributes better within the shortfall "
+                                                   "tolerance and is adopted"))
+        if "operational" in pb.stages and pb.transfers:
+            x_, zi_, zo_, _ = _extract(pb, M, xv)
+            inc_ok = False
+            if incumbent is not None and zo_.sum() > 0:
+                # a zero-transfer incumbent that meets the shortfall and distribution tolerances is the exact
+                # optimum of the transfer-minimisation stage: adopt it without solving
+                Hi = trajectory(pb, *incumbent)
+                Ji = float(cS @ full_vector(pb, M, *incumbent))
+                okJ = Ji <= J1 * (1 + pb.rel_tol) + pb.abs_tol
+                okI = ("distribution" not in pb.stages) or not any(st_["stage"] == "distribution" and st_.get("objective") == st_.get("objective") for st_ in stages) \
+                    or imbalance(pb, Hi) <= [st_["objective"] for st_ in stages if st_["stage"] == "distribution"][-1] * (1 + pb.rel_tol) + pb.abs_tol
+                if okJ and okI:
+                    xv = full_vector(pb, M, *incumbent)
+                    inc_ok = True
+                    stages.append(dict(stage="operational", status=0, objective=0.0, seconds=0.0,
+                                       outcome="zero-transfer incumbent meets the earlier tolerances: exact optimum (no transfers)"))
+            if zo_.sum() > 0 and not inc_ok:
+                cO = _objective(pb, M, "operational")
+                r3, s3 = _solve(pb, M, cO, extra, time_limit=pb.secondary_time_limit)
+                if r3.x is not None and r3.fun <= zo_.sum():
+                    xv = r3.x
+                    stages.append(dict(stage="operational", status=int(r3.status), objective=float(r3.fun),
+                                       mip_gap=float(getattr(r3, "mip_gap", np.nan) or 0), seconds=s3,
+                                       outcome="optimal within gap" if r3.status == 0 else "time limit: best incumbent"))
+                else:
+                    stages.append(dict(stage="operational", status=int(r3.status), objective=float(zo_.sum()), seconds=s3,
+                                       outcome="no improved incumbent within the time limit: previous solution retained"))
+    if incumbent is not None and pb.transfers and not (pb.stages and pb.stages[0] == "maximin"):
+        # A transfer plan that ends without transfers is a recruitment-only allocation; any difference from
+        # the recruitment-only plan with the same targets and constraints is solver indeterminacy, not an
+        # effect of permitting transfers. Report that plan (declared convention, final check N-2).
+        _, _, zo_f, _ = _extract(pb, M, xv)
+        vi = full_vector(pb, M, *incumbent)
+        if zo_f.sum() == 0 and not np.array_equal(np.round(vi), np.round(xv)):
+            xv = vi
+            diag["zero_transfer_reported_as_recruitment_only"] = True
+            stages.append(dict(stage="report", status=0, objective=np.nan, seconds=0.0,
+                               outcome="no transfers used: the recruitment-only plan with the same targets and "
+                                       "constraints is reported"))
+    x, zi, zo, u = _extract(pb, M, xv)
+    zi, zo, netted = net_churn(zi, zo)
+    diag["churn_netted_events"] = netted
+    v = None
+    if pb.committed is not None:
+        v = np.round(np.array([xv[M["V"]("v", t)] for t in range(pb.nT)]), 6)
+        diag["committed_unplaced_total"] = float(v.sum())
+    spill = None
+    if "w" in M["off"]:
+        spill = np.round(np.array([xv[M["V"]("w", t)] for t in range(pb.nT)]), 6)
+        diag["training_spill_total"] = float(spill.sum())
+    frame = {}
+    if pb.frame is not None:
+        if pb.frame["mode"] == "optimize":
+            VC, C_ = M["VC"], pb.frame["n_cycles"]
+            get = lambda b: np.array([xv[VC(b, cc)] for cc in range(C_)])
+            frame = dict(K=get("K"), added=get("fadd"))
+            if pb.frame["realloc"] > 0:
+                frame.update(moved_out=get("fout"), moved_in=get("fin"))
+        else:
+            Kc = frame_capacity(pb)
+            frame = dict(K=Kc, added=np.vstack([np.zeros((1, pb.P)), np.diff(Kc, axis=0)]))
+        diag["positions_added_total"] = float(frame["added"].sum())
+        em = pb.frame.get("emp_mode")
+        if em is not None:
+            VC, C_ = M["VC"], pb.frame["n_cycles"]
+            E = (np.array([xv[VC("E", cc)] for cc in range(C_)]) if em == "optimize" else pb.frame["emp_schedule"])
+            frame.update(E=np.round(E, 6), emp_added=np.vstack([np.zeros((1, pb.P)), np.diff(E, axis=0)]))
+            diag["employee_positions_total"] = float(E[-1].sum())
+        if pb.frame.get("overflow"):
+            frame["overflow"] = np.round(np.array([xv[M["V"]("O", t)] for t in range(pb.nT)]), 6)
+            diag["overflow_total"] = float(frame["overflow"].sum())
+    H = trajectory(pb, x, zi, zo, spill)
+    Hs = np.array([xv[M["V"]("H", t)] for t in range(pb.nT)])
+    diag["stock_solver_vs_recomputed_max_abs"] = float(np.abs(Hs - H).max())
+    diag["objective_tangent"] = float(sum(pb.w[t] @ xv[M["V"]("y", t)] for t in range(pb.nT)))
+    diag["objective_exact"] = objective_exact(pb, H)
+    diag["imbalance"] = imbalance(pb, H)
+    diag["transfer_events"] = int(zo.sum())
+    diag["both_in_and_out_province_years"] = int(((zi > 0) & (zo > 0)).sum())
+    return Solution(status="solved", x=x, zin=zi, zout=zo, H=H, u=u, stages=stages, diagnostics=diag, v=v, frame=frame,
+                    spill=spill)
+
+
+# ----------------------------------------------------------------------------- checks and flags
+
+def check(pb: Problem, sol: Solution, tol=1e-6) -> dict:
+    """Independent verification of every hard constraint on the integer decisions."""
+    x, zi, zo = sol.x, sol.zin, sol.zout
+    H = trajectory(pb, x, zi, zo, sol.spill)
+    Hp = np.vstack([pb.H0[None], H[:-1]])
+    out = dict(pool_conservation=bool(np.allclose(x.sum(1) + sol.u, pb.A)),
+               integer=bool(all(np.issubdtype(a.dtype, np.integer) for a in (x, zi, zo))) if pb.integral_x else True,
+               floor=bool((x >= pb.floor).all()),
+               nonnegative_stock=bool((H >= -tol).all()),
+               transfer_balance=bool(np.allclose(zi.sum(1), zo.sum(1))))
+    if pb.population_reserved_share:
+        try:
+            q = reserved_allocations(pb, x)
+            total, lo, hi, _ = reservation_quota(pb)
+            out["population_reservation"] = bool((q >= lo).all() and (q <= hi).all() and (x >= q).all() and np.array_equal(q.sum(1), total))
+        except ValueError:out["population_reservation"] = False
+    if pb.cap_mode == "gross_arrivals":
+        lhs = x + zi + (pb.r * Hp if pb.reentry_consumes else 0)
+        out["cap"] = bool((lhs <= pb.cap * Hp + 1e-6).all())
+    elif pb.cap_mode == "none":
+        out["cap"] = True
+    else:
+        out["cap"] = bool((H - Hp <= pb.cap * Hp + 1e-6).all())
+    if pb.frame is not None:
+        out["frame"] = bool((H <= capacity_by_year(pb, sol) + 1e-5).all())
+        if pb.frame["mode"] == "optimize":
+            out["frame_budget"] = bool((sol.frame["added"].sum(1) <= pb.frame["budget"] + 1e-5).all())
+        if pb.frame.get("emp_mode") == "optimize":
+            out["employee_budget"] = bool((sol.frame["emp_added"].sum(1) <= pb.frame["emp_budget"] + 1e-5).all())
+        if pb.frame.get("overflow"):
+            out["overflow_nonnegative"] = bool((sol.frame["overflow"] >= -1e-6).all())
+    if pb.committed is not None:
+        out["committed"] = bool((x + (sol.v if sol.v is not None else 0) >= pb.committed - 1e-6).all())
+    if pb.transfers:
+        keep = (1 - pb.d) * Hp
+        out["transfer_cap"] = bool((zo <= pb.tau * keep + 1e-6).all())
+        out["national_budget"] = bool((zo.sum(1) <= pb.nat_budget * keep.sum(1) + 1e-6).all())
+        if pb.protect_mode == "limited_drawdown":
+            out["origin_protection"] = bool((H >= pb.protect_frac * keep - 1e-6).all())
+        else:
+            out["origin_protection"] = bool((keep + zi - zo >= np.minimum(pb.T, keep) - 1e-6).all())
+        if pb.network != "complete_76":
+            ok = True
+            for g in np.unique(pb.region):
+                m = pb.region == g
+                ok &= np.allclose(zi[:, m].sum(1), zo[:, m].sum(1))
+            out["regional_balance"] = bool(ok)
+    out["all_ok"] = all(out.values())
+    out["no_simultaneous_in_and_out"] = bool(((zi > 0) & (zo > 0)).sum() == 0)   # quality check, not a hard constraint
+    return out
+
+
+def binding_flags(pb: Problem, sol: Solution):
+    """Province-year flags: which hard constraint binds (integer headroom < 1)."""
+    x, zi, zo = sol.x, sol.zin, sol.zout
+    H = trajectory(pb, x, zi, zo, sol.spill)
+    Hp = np.vstack([pb.H0[None], H[:-1]])
+    fl = {}
+    # the floor binds only where one exists: under the positions frame the floor is 0 and x = 0 is not "at the floor"
+    fl["floor_binding"] = (np.asarray(pb.floor) > 0) & np.isclose(x, pb.floor, rtol=0, atol=1e-6)
+    if pb.cap_mode == "gross_arrivals":
+        head = pb.cap * Hp - (pb.r * Hp if pb.reentry_consumes else 0) - x - zi
+        fl["cap_value"] = np.floor(pb.cap * Hp - (pb.r * Hp if pb.reentry_consumes else 0) + 1e-9)
+    elif pb.cap_mode == "none":
+        head = np.full(x.shape, np.inf)
+        fl["cap_value"] = np.full(x.shape, np.nan)
+    else:
+        head = pb.cap * Hp - (H - Hp)
+        fl["cap_value"] = np.floor((1 + pb.cap) * Hp - (1 - pb.d + pb.r) * Hp + zo - zi + 1e-9)
+    fl["cap_headroom"] = head
+    fl["cap_binding"] = head < 1 - 1e-9
+    if pb.frame is not None:
+        Ky = frame_by_year(pb, sol)
+        fl["frame_positions"] = Ky
+        fl["frame_headroom"] = capacity_by_year(pb, sol) - H
+        fl["frame_binding"] = fl["frame_headroom"] < 1 - 1e-9
+    if pb.transfers:
+        keep = (1 - pb.d) * Hp
+        fl["transfer_cap_value"] = np.floor(pb.tau * keep + 1e-9)
+        fl["transfer_cap_binding"] = (zo > 0) & (pb.tau * keep - zo < 1)
+        fl["protection_floor"] = pb.protect_frac * keep if pb.protect_mode == "limited_drawdown" else np.minimum(pb.T, keep)
+        protected = H if pb.protect_mode == "limited_drawdown" else keep + zi - zo
+        fl["protection_binding"] = (zo > 0) & (protected - fl["protection_floor"] < 1)
+        fl["national_budget_binding"] = np.repeat(((pb.nat_budget * keep.sum(1) - zo.sum(1)) < 1)[:, None], pb.P, 1)
+    else:
+        z = np.zeros_like(x, dtype=bool)
+        fl["transfer_cap_value"] = np.zeros_like(x, dtype=float)
+        fl["transfer_cap_binding"] = z
+        fl["protection_floor"] = np.full(x.shape, np.nan)
+        fl["protection_binding"] = z
+        fl["national_budget_binding"] = z
+    return fl
+
+
+def explanation(pb: Problem, sol: Solution, fl) -> np.ndarray:
+    """A defensible reason for each province-year decision (from the binding constraints)."""
+    out = np.empty(sol.x.shape, dtype=object)
+    protected = reserved_allocations(pb, sol.x) if pb.population_reserved_share else None
+    for t in range(pb.nT):
+        for p in range(pb.P):
+            parts = []
+            if fl.get("frame_binding") is not None and fl["frame_binding"][t, p]:
+                parts.append("positions frame binds (no vacant funded position for more appointments)")
+            elif fl["cap_binding"][t, p]:
+                parts.append("onboarding cap binds (allocation limited by the arrival/net-growth cap)")
+            elif fl["floor_binding"][t, p]:
+                parts.append("universal floor only (one-person minimum; deeper proportional shortfalls elsewhere take priority)")
+            elif sol.x[t, p] < 1e-6:
+                parts.append("no new appointment (deeper proportional shortfalls elsewhere take priority)")
+            elif protected is not None and protected[t, p] > 0:
+                parts.append(f"includes {protected[t, p]} population-protected appointments; remaining appointments follow the selected allocation objective")
+            else:
+                parts.append("shortfall priority (above the floor to reduce the target-weighted squared proportional shortfall)")
+            if sol.zout[t, p] > 0:
+                parts.append("donor of controlled transfers" + (" at the transfer cap" if fl["transfer_cap_binding"][t, p] else "")
+                             + ("; origin protection binds" if fl["protection_binding"][t, p] else ""))
+            if sol.zin[t, p] > 0:
+                parts.append("receives controlled transfers")
+            out[t, p] = "; ".join(parts)
+    return out
+
+
+# ----------------------------------------------------------------------------- routing
+
+def great_circle(lat, lon):
+    la, lo = np.radians(lat), np.radians(lon)
+    dla = la[:, None] - la[None]
+    dlo = lo[:, None] - lo[None]
+    a = np.sin(dla / 2) ** 2 + np.cos(la[:, None]) * np.cos(la[None]) * np.sin(dlo / 2) ** 2
+    return 2 * 6371.0 * np.arcsin(np.sqrt(a))
+
+
+def route(zout_t, zin_t, dist, region=None, network="complete_76"):
+    """Integer transportation problem: min sum dist * f subject to supplies and demands.
+    Returns a list of (origin_index, destination_index, events)."""
+    O = np.flatnonzero(zout_t > 0)
+    D = np.flatnonzero(zin_t > 0)
+    if len(O) == 0:
+        return []
+    pairs = [(i, j) for i in O for j in D if i != j and (network == "complete_76" or region[i] == region[j])]
+    n = len(pairs)
+    c = np.array([dist[i, j] for i, j in pairs])
+    rows, cols, vals, lo, hi = [], [], [], [], []
+    k = 0
+    for i in O:
+        for q, (a, b) in enumerate(pairs):
+            if a == i:
+                rows.append(k); cols.append(q); vals.append(1)
+        lo.append(zout_t[i]); hi.append(zout_t[i]); k += 1
+    for j in D:
+        for q, (a, b) in enumerate(pairs):
+            if b == j:
+                rows.append(k); cols.append(q); vals.append(1)
+        lo.append(zin_t[j]); hi.append(zin_t[j]); k += 1
+    A = sp.csr_matrix((vals, (rows, cols)), shape=(k, n))
+    whole = np.allclose(zout_t, np.round(zout_t)) and np.allclose(zin_t, np.round(zin_t))
+    res = milp(c, constraints=LinearConstraint(A, lo, hi), integrality=np.ones(n) if whole else None,
+               bounds=Bounds(0, np.inf))
+    if res.x is None:
+        raise RuntimeError("transfer routing infeasible on the declared network")
+    if whole:                                # integer transfers: integer routes
+        f = np.round(res.x).astype(int)
+        return [(pairs[q][0], pairs[q][1], int(f[q])) for q in range(n) if f[q] > 0]
+    f = np.round(res.x, 6)                   # continuous transfers (linear programme plans)
+    return [(pairs[q][0], pairs[q][1], float(f[q])) for q in range(n) if f[q] > 1e-6]
+
+
+# ----------------------------------------------------------------------------- benchmark heuristic
+
+def greedy(pb: Problem):
+    """Transparent benchmark: each year give the floor, then assign the remaining pool one
+    physician at a time to the province with the largest one-year reduction of w*s^2, within
+    the cap.  Exact for the myopic one-year problem; ignores future years.  Recruitment only."""
+    if pb.population_reserved_share:raise ValueError("population-protected quotas require the constrained MILP, not the greedy benchmark")
+    import heapq
+    t0 = time.time()
+    x = np.zeros((pb.nT, pb.P), int)
+    Hp = pb.H0.astype(float)
+    unplaced = np.zeros(pb.nT)
+    for t in range(pb.nT):
+        base = (1 - pb.d[t] + pb.r[t]) * Hp
+        if pb.cap_mode == "gross_arrivals":
+            capx = np.floor(pb.cap * Hp - (pb.r[t] * Hp if pb.reentry_consumes else 0) + 1e-9)
+        elif pb.cap_mode == "none":
+            capx = np.full(pb.P, 10 ** 9)
+        else:
+            capx = np.floor((1 + pb.cap) * Hp - base + 1e-9)
+        xt = np.full(pb.P, pb.floor)
+        rem = pb.A[t] - xt.sum()
+        T_, w = pb.T[t], pb.w[t]
+
+        def gain(p, k):
+            s0 = max(0.0, 1 - (base[p] + k) / T_[p]); s1 = max(0.0, 1 - (base[p] + k + 1) / T_[p])
+            return w[p] * (s0 ** 2 - s1 ** 2)
+        h = [(-gain(p, xt[p]), p) for p in range(pb.P) if xt[p] < capx[p]]
+        heapq.heapify(h)
+        while rem > 0 and h:
+            g, p = heapq.heappop(h)
+            xt[p] += 1
+            rem -= 1
+            if xt[p] < capx[p]:
+                heapq.heappush(h, (-gain(p, xt[p]), p))
+        unplaced[t] = rem
+        x[t] = xt
+        Hp = base + xt
+    z = np.zeros_like(x)
+    H = trajectory(pb, x, z, z)
+    return dict(x=x, H=H, unplaced=unplaced, objective_exact=objective_exact(pb, H), seconds=time.time() - t0)
+
+
+def apportion(total: int, shares: np.ndarray) -> np.ndarray:
+    """Largest-remainder (Hamilton) apportionment; preserves the integer total exactly."""
+    q = total * shares / shares.sum()
+    f = np.floor(q).astype(int)
+    rem = int(total - f.sum())
+    order = np.argsort(-(q - f), kind="stable")
+    f[order[:rem]] += 1
+    return f

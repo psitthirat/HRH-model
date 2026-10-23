@@ -37,7 +37,7 @@ export function allocationFigureRows(rows, plans, plan, year) {
   return [...(selectAllocations(rows,plans,year).get(plan)?.values()||[])].map(r=>({plan:r.plan,prov_code:r.prov_code,province:r.province,
     period:all?'cumulative':'annual',year_ce:all?null:year,first_year_ce:all?years[0]:year,last_year_ce:all?years.at(-1):year,
     appointments:r.x,opening_stock:r.opening,departures:r.departures,closing_stock:r.closing,attainment_population:r.attainment_pop,
-    cap_binding:all?null:r.cap_binding,floor_only:all?null:r.floor_only}));
+    cap_binding:all?null:r.cap_binding,floor_only:all?null:r.floor_only,frame_full:all?null:r.frame_full}));
 }
 
 export class Alloc {
@@ -248,7 +248,8 @@ export class Alloc {
     rows.push([all ? t("alloc.departures_total") : t("alloc.departures"), num(rec.departures, 1)]);
     rows.push([all ? t("alloc.closing_last") : t("alloc.closing"), num(rec.closing, 0)]);
     rows.push([t("alloc.attain"), num(rec.attainment_pop, 2)]);
-    if (!all && rec.cap_binding) rows.push([t("alloc.status"), t("alloc.cap")]);
+    if (!all && rec.frame_full) rows.push([t("alloc.status"), t("alloc.frame")]);
+    else if (!all && rec.cap_binding) rows.push([t("alloc.status"), t("alloc.cap")]);
     else if (!all && rec.floor_only) rows.push([t("alloc.status"), t("alloc.floor")]);
     return rows;
   }

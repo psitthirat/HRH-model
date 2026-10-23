@@ -7,6 +7,8 @@
  *   cadres   #3e96ea #c87f2c #16a384 #a56cde  - PASS (worst CVD dE 10.7)
  *   sectors  #796ce0 #13a5b2 #b38c15          - PASS
  *   flows    #13a5b2 #d46568                  - PASS
+ *   series   #13a5b2 #796ce0 #b38c15 #d46568  - PASS all pairs (coral~gold deutan dE 7.3:
+ *            a chart showing --n-3 and --n-4 together must dash one of them)
  * Namespaces never share a chart: a chart encodes cadre OR sector OR flow.
  * Print re-points the same tokens to ink on paper (see print.css).
  */
@@ -65,6 +67,7 @@
   --n-1: #13a5b2;
   --n-2: #796ce0;
   --n-3: #b38c15;
+  --n-4: #d46568;
   --n-neutral: #8a93a0;
   /* membership */
   --member: #8771de;
