@@ -169,3 +169,13 @@
   .lab-hub__doors, .lab-hub__privacy, .lab-connect__ways, .lab-auth__form--grid { grid-template-columns: 1fr; }
   .lab-scope-picker__grid, .lab-workspace__profile, .lab-review__controls { grid-template-columns: 1fr; }
 }
+
+/* Lab trailer (story/js/lab/trailer.js): first-visit dialog and the replay button */
+.lab-hub__trailer { margin: 4px 0 10px; }
+.lab-trailer { width: min(1100px, calc(100vw - 32px)); max-height: calc(100vh - 32px); padding: 16px; border: 1px solid var(--border, rgba(255,255,255,.15));
+  border-radius: 14px; background: var(--surface, #0b0d20); color: var(--text-primary, #f6f6fb); }
+.lab-trailer::backdrop { background: rgba(3, 4, 15, 0.78); }
+.lab-trailer__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.lab-trailer__head h2 { margin: 0; font-size: clamp(1.1rem, 1rem + .6vw, 1.5rem); }
+.lab-trailer__video { display: block; width: 100%; max-height: calc(100vh - 190px); border-radius: 10px; background: #03040f; }
+.lab-trailer__note { margin: 10px 0 0; color: var(--text-secondary); font-size: .9rem; line-height: 1.6; }

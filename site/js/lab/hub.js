@@ -3,6 +3,7 @@
 import { h, clear } from '../util/dom.js';
 import { LAB_SYSTEM } from './system-config.js';
 import { modeNote } from './account.js';
+import { maybeShowTrailer, trailerButton } from './trailer.js';
 
 const L = (lang, th, en) => lang === 'en' ? en : th;
 const DOORS = [
@@ -51,7 +52,9 @@ export function renderHub(host, { lang = 'th', account, release, onOpen }) {
     h('p', { class: 'lab-hub__lead', text: L(lang,
       'เลือกทางเข้าตามสิ่งที่คุณมี ทุกทางใช้ตัวคำนวณชุดเดียวกับงานวิจัย และคำนวณในเบราว์เซอร์ของคุณ ผลทุกชิ้นบอกว่าใช้ข้อมูลของใคร ขอบเขตใด และสมมติฐานแบบไหน',
       'Choose a way in by what you have. Every way uses the same engine as the study and computes in your browser; every result says whose data, which scope and which assumptions it uses.') }),
+    trailerButton(lang),
     modeNote(account, lang) || ''));
+  maybeShowTrailer(lang);
   const doors = h('div', { class: 'lab-hub__doors', role: 'list' });
   DOORS.forEach((d, i) => doors.append(h('article', { class: `lab-door lab-door--${d.route}`, role: 'listitem', 'data-door': d.route },
     h('p', { class: 'lab-door__number', text: String(i + 1) }),

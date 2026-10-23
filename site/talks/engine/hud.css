@@ -249,3 +249,7 @@ html.print .glow, html.print svg [filter], html.print .fig svg .glow { filter: n
   .topbar { gap: 8px; }
   .topbar__brand, .topbar__where, #btn-notes, #btn-help, #btn-full, .back-site { display: none !important; }
 }
+
+/* ws3-findings s20: the Workforce Lab trailer at the end of the talk */
+.trailer { display: flex; justify-content: center; flex: 1; min-height: 0; }
+.trailer video { width: 100%; max-height: 72vh; border-radius: 12px; background: #03040f; }

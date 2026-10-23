@@ -272,6 +272,12 @@
    "source": "outputs/chapter4_6/claims.csv"
   },
   {
+   "token": "c46_trend_window",
+   "display": "2564–2567",
+   "unit": "",
+   "source": "outputs/chapter4_6/claims.csv"
+  },
+  {
    "token": "c47_dis_pos_burden",
    "display": "8.7",
    "unit": "%",
@@ -622,12 +628,6 @@
   {
    "token": "c5f_pw_need",
    "display": "0.446",
-   "unit": "",
-   "source": "outputs/chapter5/claims_5_frame.csv"
-  },
-  {
-   "token": "c5f_pw_noframe",
-   "display": "0.096",
    "unit": "",
    "source": "outputs/chapter5/claims_5_frame.csv"
   },
