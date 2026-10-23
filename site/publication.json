@@ -1,6 +1,6 @@
 {
   "generator": "hrh-publication/1",
-  "generated_at": "2026-10-23T06:17:59+00:00",
+  "generated_at": "2026-10-23T07:26:40+00:00",
   "release_id": "20261023T061523Z-a74b3ca2dbda",
   "publication": {
     "audience": "public",
@@ -853,8 +853,8 @@
       "sha256": "191fe507b3223510aaad0c5a3b2d9b91c351a7123e1a194e4100dfeeb9c62412"
     },
     "data/versions.json": {
-      "bytes": 3096,
-      "sha256": "61131abc1094b01d278a274d2c18ba931dde12a114f2702e5d96bc1bd221c351"
+      "bytes": 3261,
+      "sha256": "dc32960f7982e0f4a8f7490e4a46099a0cc86048e82a9a2bec81da6fd33eade0"
     },
     "downloads/ws3-findings.pdf": {
       "bytes": 2668476,
@@ -1127,6 +1127,10 @@
     "js/util/scale.js": {
       "bytes": 2353,
       "sha256": "09612a9962628bfd44f409d13b2bc4016b83972367c53616ca2e8852b5d39554"
+    },
+    "lab/index.html": {
+      "bytes": 459,
+      "sha256": "047f708bbdf27ade2a3d7f9afe99ec59edcc66dad7d48ccd1e9c4c93c607a5d2"
     },
     "reader/content.json": {
       "bytes": 164728,
