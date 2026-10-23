@@ -114,9 +114,39 @@ export function releaseSummary(R) {
     [t("drawer.schema"), m.schema_version]]));
 }
 
+// The public numbers (v1.0, v1.1, ...) with their dates and changes, newest first; versions this site still
+// hosts open by number.  Release ids stay in the technical details below.
+function versionHistory(R) {
+  const V = R.index.versions;
+  if (!V?.versions?.length) return null;
+  const hosted = new Set(R.index.releases.map((r) => r.id));
+  const mine = V.versions.find((v) => (v.releases || []).includes(R.id));
+  return h("div", { class: "versions" },
+    h("p", { class: "versions__now", text: mine ? t("drawer.version_now", { v: mine.number, date: mine.date_th }) : t("drawer.version_none") }),
+    h("p", { class: "chart-note", text: t("drawer.version_link") }),
+    ...V.versions.map((v) => h("section", { class: `versions__item${v === mine ? " is-current" : ""}` },
+      h("h3", {}, `v${v.number} `, h("span", { class: "versions__date", text: `${v.date_th}${v.title ? ` · ${v.title}` : ""}` })),
+      h("ul", {}, ...v.changes.map((c) => h("li", { text: c })), ...(v.updates || []).map((u) => h("li", { class: "versions__update", text: `${u.date_th}: ${u.note}` }))),
+      v !== mine && (v.releases || []).some((id) => hosted.has(id))
+        ? h("p", {}, h("a", { href: `?release=v${v.number}`, text: t("drawer.version_open", { v: v.number }) })) : "")),
+    V.before ? h("section", { class: "versions__item" }, h("h3", {}, `${V.before.label} `, h("span", { class: "versions__date", text: V.before.period })),
+      h("p", { text: V.before.summary })) : "");
+}
+
 export function releaseContent(R) {
   const m = R.manifest;
+  const history = versionHistory(R);
   const wrap = h("div", {}, releaseSummary(R));
+  if (history) {
+    const details = h("details", { class: "versions__technical" }, h("summary", { text: t("drawer.technical") }), wrap);
+    releaseDetails(R, m, wrap);
+    return h("div", {}, history, details);
+  }
+  releaseDetails(R, m, wrap);
+  return wrap;
+}
+
+function releaseDetails(R, m, wrap) {
   if (m.validation?.warnings?.length) wrap.append(h("h3", { text: t("drawer.warnings") }), h("ul", {}, ...m.validation.warnings.map((w) => h("li", { text: w }))));
   const rec = R.bundle.reconciliation || [];
   if (rec.length) wrap.append(h("h3", { text: t("drawer.reconciled", { ok: rec.filter((r) => r.ok).length, n: rec.length }) }));

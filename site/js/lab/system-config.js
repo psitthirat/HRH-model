@@ -14,8 +14,8 @@ export const LAB_SYSTEM = Object.freeze({
       "workspace",
       "submission"
     ],
-    "supabase_anon_key": "",
-    "supabase_url": ""
+    "supabase_anon_key": "sb_publishable_VlOh3mNSJJO8b5iXZJSoAw_Bl2AoaAG",
+    "supabase_url": "https://ryrizouyxoxcaumpesom.supabase.co"
   },
   "api_pilot": {
     "agency_en": "Ministry of Public Health",

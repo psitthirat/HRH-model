@@ -10,21 +10,30 @@ async function getJSON(url) {
 }
 
 export async function loadIndex() {
-  return getJSON(new URL("releases.json", BASE));
+  const index = await getJSON(new URL("releases.json", BASE));
+  // Public version numbers and notes (data/versions.json); packages built before numbers existed have none.
+  index.versions = await getJSON(new URL("versions.json", BASE)).catch(() => null);
+  return index;
 }
 
-// Which release to show: an explicit ?release= wins; otherwise the promoted
-// "current" release; otherwise the latest draft (labelled as a draft in the UI).
+// The public version (v1.2) that carries a release, or null.
+export function versionOf(index, id) {
+  return (index.versions?.versions || []).find((v) => (v.releases || []).includes(id)) || null;
+}
+
+// Which release to show: an explicit ?release= (an internal id, or a public number such as v1.2) wins
+// while this site still has it; otherwise the promoted "current" release, else the latest draft (labelled
+// as a draft in the UI).  A shared link to a release no longer published opens the current one and
+// carries `missing` so the page can say so, instead of failing.
 export function chooseRelease(index, requested) {
-  if (requested) {
-    const r = index.releases.find((x) => x.id === requested);
-    if (!r) throw new Error(`ไม่พบ release ${requested}`);
-    return r;
-  }
   const id = index.current || index.latest;
-  const r = index.releases.find((x) => x.id === id);
-  if (!r) throw new Error("ยังไม่มี release: รัน make story-data");
-  return r;
+  const fallback = index.releases.find((x) => x.id === id);
+  if (!fallback) throw new Error("ยังไม่มี release: รัน make story-data");
+  if (!requested) return fallback;
+  const asVersion = /^v?(\d+\.\d+)$/.exec(requested);
+  const ids = asVersion ? (index.versions?.versions || []).find((v) => v.number === asVersion[1])?.releases || [] : [requested];
+  const found = ids.map((rid) => index.releases.find((x) => x.id === rid)).find(Boolean);
+  return found || { ...fallback, missing: requested };
 }
 
 export class Release {

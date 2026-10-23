@@ -47,11 +47,24 @@ class SupabaseBackend {
       this.sb = createClient(this.cfg.supabase_url, this.cfg.supabase_anon_key,
         { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: 'hrh-lab-auth' } });
       this.sb.auth.onAuthStateChange((event, session) => {
-        if (event === 'PASSWORD_RECOVERY') this.recovery = true;
+        // The reset link signs the user in for this one purpose: ask for the new password straight away.
+        if (event === 'PASSWORD_RECOVERY') {
+          this.recovery = true;
+          queueMicrotask(() => { if (!document.querySelector('[data-auth-dialog]')) openAuthDialog(this, { lang: document.documentElement.lang === 'en' ? 'en' : 'th' }); });
+        }
         queueMicrotask(() => this._refresh(session));
       });
       const { data } = await this.sb.auth.getSession();
       await this._refresh(data.session);
+      // An expired or already-used email link comes back as #error_code=...: say so and offer a new link.
+      const failed = new URLSearchParams(location.hash.slice(1));
+      if (failed.get('error_code') || failed.get('error_description')) {
+        history.replaceState(history.state, '', location.pathname + location.search);
+        const lang = document.documentElement.lang === 'en' ? 'en' : 'th';
+        queueMicrotask(() => openAuthDialog(this, { lang, initial: 'reset', reason: L(lang,
+          'ลิงก์ในอีเมลหมดอายุหรือถูกใช้ไปแล้ว ขอลิงก์ใหม่ได้ด้านล่าง หรือเข้าสู่ระบบตามปกติถ้ายืนยันอีเมลแล้ว',
+          'The email link has expired or was already used. Ask for a new link below, or sign in if your email is already confirmed.') }));
+      }
     })();
     return this.ready;
   }
@@ -329,7 +342,8 @@ export function openAuthDialog(account, { lang = 'th', reason = '', initial = 's
       dialog.append(h('div', { class: 'lab-auth__head' },
         h('h2', { id: 'lab-auth-title', text: { signin: L(lang, 'เข้าสู่ระบบ Workforce Lab', 'Sign in to the Workforce Lab'), signup: L(lang, 'ลงทะเบียนผู้ใช้ Lab', 'Register for the Lab'),
           reset: L(lang, 'ลืมรหัสผ่าน', 'Reset password'), recovery: L(lang, 'ตั้งรหัสผ่านใหม่', 'Set a new password') }[view] }),
-        h('button', { type: 'button', class: 'btn lab-auth__close', 'aria-label': L(lang, 'ปิด', 'Close'), text: '×', onclick: () => close(account.current()) })));
+        h('button', { type: 'button', class: 'btn lab-auth__close', 'aria-label': L(lang, 'ปิด', 'Close'), onclick: () => close(account.current()),
+          html: '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>' })));
       if (reason) dialog.append(h('p', { class: 'lab-auth__reason', text: reason }));
       dialog.append(modeNote(account, lang) || '');
       if (view !== 'recovery') dialog.append(h('div', { class: 'lab-auth__tabs', role: 'tablist' },

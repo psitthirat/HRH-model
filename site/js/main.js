@@ -5,7 +5,7 @@
 // story/talks/; the WS2 scene sequence stays reachable from Talks.
 
 import { h, clear } from "./util/dom.js";
-import { loadIndex, chooseRelease, loadRelease } from "./data.js";
+import { loadIndex, chooseRelease, loadRelease, versionOf } from "./data.js";
 import { readState, writeState, savePresenter, loadPresenter, saveLabReturn, loadLabReturn, MODES } from "./state.js";
 import { initPresent } from "./modes/present.js";
 import { initStory } from "./modes/story.js";
@@ -28,10 +28,11 @@ const EDITORIAL = new Set(["read", "talks"]);
 async function boot() {
   const main = document.getElementById("main");
   const st = readState();
-  let index, R;
+  let index, R, missing = null;
   try {
     index = await loadIndex();
     const entry = chooseRelease(index, st.release);
+    missing = entry.missing || null;
     R = await loadRelease(entry, index);
   } catch (err) {
     console.error(err);
@@ -44,7 +45,11 @@ async function boot() {
   document.title = t("top.brand");
   if (!st.mode) st.mode = "read";
   if (!st.scene || !R.scene(st.scene)) st.scene = st.mode === "explore" ? R.scenes[2].id : st.mode === "present" ? R.scenes[0].id : null;
-  const pinned = !!st.release;
+  // Shared links stay valid across releases: the URL names a release only when the reader asked for one
+  // (?release=<id or v1.2>) and this site still has it.
+  const pin = st.release && !missing ? st.release : null;
+  const pinned = !!pin;
+  if (missing) { st.release = null; writeState(st); }
 
   const app = {
     R, main, state: st, current: null,
@@ -54,7 +59,7 @@ async function boot() {
         goto: (sid) => app.goto(sid), ...extra };
     },
     persist() {
-      const s = { ...app.state, release: pinned || ["present", "lab"].includes(app.state.mode) ? R.id : null };
+      const s = { ...app.state, release: pin };
       if (app.state.mode === "lab") s.ov = app.state.ov?.prov ? { prov: app.state.ov.prov } : {};
       else if (app.state.mode !== "explore") s.ov = {};
       writeState(s);
@@ -74,7 +79,7 @@ async function boot() {
       if (mode === "present" && !app.state.scene) { app.state.scene = R.scenes[0].id; app.state.step = 1; }
       if (mode !== "explore") app.state.ov = {};
       app.state.mode = mode;
-      writeState({ ...app.state, release: pinned || mode === "present" ? R.id : null }, { push: true });
+      writeState({ ...app.state, release: pin }, { push: true });
       mount();
     },
     labEntry(sceneId) { return R.bundle.lab?.scene_map?.[sceneId]; },
@@ -84,12 +89,12 @@ async function boot() {
       // The menu opens the Lab home (four ways in); a slide opens Explore with its prepared plan.
       app.state = { ...app.state, mode: "lab", labView: context ? null : "hub",
         labPreset: context?.preset_id || (context?.scene ? `scene:${context.scene}` : null) };
-      writeState({ ...app.state, release: R.id }, { push: true });
+      writeState({ ...app.state, release: pin }, { push: true });
       mount();
     },
     returnFromLab() {
       app.state = loadLabReturn() || { mode: "present", scene: R.scenes[0].id, step: 1, ov: {}, lang: app.state.lang };
-      writeState({ ...app.state, release: R.id }, { push: true });
+      writeState({ ...app.state, release: pin }, { push: true });
       mount();
     },
     returnToPresenter() {
@@ -97,7 +102,7 @@ async function boot() {
       if (!snap) return app.switchMode("present");
       if (snap.release && snap.release !== R.id) { location.search = `?mode=present&scene=${snap.scene}&step=${snap.step}&release=${snap.release}${R.talk ? `&talk=${R.talk.id}` : ""}`; return; }
       app.state = { ...app.state, mode: "present", scene: snap.scene, step: snap.step, ov: {} };
-      writeState({ ...app.state, release: R.id }, { push: true });
+      writeState({ ...app.state, release: pin }, { push: true });
       mount();
     },
     goto(sceneId, step = 1) {
@@ -130,6 +135,7 @@ async function boot() {
   };
 
   buildTopbar(app, R, pinned);
+  if (missing) releaseNotice(R, missing);
   let mountGeneration = 0;
   async function mount() {
     const generation = ++mountGeneration;
@@ -168,10 +174,14 @@ function buildTopbar(app, R, pinned) {
   const bar = document.querySelector(".topbar");
   clear(bar);
   const f = R.manifest.freshness?.status || "unknown";
+  // Readers see the public number (v1.2); the internal id stays for drafts and unnumbered releases, and the
+  // re-run reminder only in the authoring workspace.
+  const version = R.status === "promoted" ? versionOf(R.index, R.id) : null;
   const badge = pin(h("button", { class: `release-badge release-badge--${R.status} fresh--${f}`, type: "button", onclick: () => app.openRelease(),
-    title: t("top.release_title") },
-    h("span", { text: R.status === "promoted" ? t("top.release_promoted") : t("top.release_draft") }), " ", h("code", { text: R.id.slice(0, 15) }),
-    f === "stale" ? h("strong", { text: t("top.fresh_stale") }) : f !== "fresh" ? h("span", { text: t("top.fresh_check") }) : "",
+    title: version ? t("top.version_title", { v: version.number, date: version.date_th }) : t("top.release_title") },
+    ...(version ? [h("span", { text: `v${version.number}` })]
+      : [h("span", { text: R.status === "promoted" ? t("top.release_promoted") : t("top.release_draft") }), " ", h("code", { text: R.id.slice(0, 15) })]),
+    !R.capabilities.authoring ? "" : f === "stale" ? h("strong", { text: t("top.fresh_stale") }) : f !== "fresh" ? h("span", { text: t("top.fresh_check") }) : "",
     pinned ? h("span", { text: t("top.pinned") }) : ""), uiLoc("top.release_draft"));
   bar.append(
     tp(h("a", { class: "topbar__brand", href: "?mode=read" }), "top.brand"),
@@ -187,6 +197,16 @@ function buildTopbar(app, R, pinned) {
       tp(h("button", { class: "btn btn--ghost only-present", type: "button", onclick: () => app.toggleFullscreen() }), "top.fullscreen"),
       h("button", { class: "btn btn--ghost", type: "button", "aria-label": t("top.help"), onclick: () => app.openHelp(), text: "?" }),
       badge));
+}
+
+// A shared link named a release this site no longer has: say which version opened instead.
+function releaseNotice(R, requested) {
+  const version = versionOf(R.index, R.id);
+  const note = h("div", { class: "release-notice", role: "status" },
+    h("p", { text: t("notice.release_missing", { v: version ? `v${version.number}` : R.id.slice(0, 15) }) }),
+    h("button", { class: "btn btn--ghost", type: "button", text: t("notice.close"), onclick: () => note.remove() }));
+  note.dataset.requested = requested;
+  document.body.append(note);
 }
 
 boot();

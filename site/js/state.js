@@ -40,10 +40,14 @@ export function toQuery(st, { includeOverrides = true } = {}) {
   return "?" + q.toString();
 }
 
+// A Supabase sign-in, confirmation or password-reset link returns tokens (or an error) in the hash; keep it
+// until the Lab's account client has read it, which happens after the app's first writes.
+const AUTH_HASH = /[#&](access_token|error_description|error_code)=/;
+
 export function writeState(st, { push = false } = {}) {
   const url = location.pathname + toQuery(st);
   if (url === location.pathname + location.search) return;
-  (push ? history.pushState : history.replaceState).call(history, null, "", url);
+  (push ? history.pushState : history.replaceState).call(history, null, "", url + (AUTH_HASH.test(location.hash) ? location.hash : ""));
 }
 
 // The presenter's prepared position, kept apart from Explore's experiments.

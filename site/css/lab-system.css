@@ -24,7 +24,7 @@
 .lab-auth::backdrop, .lab-submit::backdrop { background: rgba(4, 7, 11, .72); }
 .lab-auth__head { display: flex; align-items: start; justify-content: space-between; gap: 12px; }
 .lab-auth__head h2, .lab-submit h2 { font-size: 1.2rem; margin: 0 0 10px; }
-.lab-auth__close { min-width: 36px; justify-content: center; }
+.lab-auth__close { min-width: 36px; height: 36px; padding: 0; justify-content: center; align-items: center; }
 .lab-auth__reason { color: var(--text-secondary); font-size: .9rem; }
 .lab-auth__tabs { display: flex; gap: 8px; margin: 10px 0 14px; }
 .lab-auth__tabs [aria-selected="true"] { border-color: var(--accent); color: var(--accent); background: var(--surface-2); }
