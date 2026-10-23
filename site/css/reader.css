@@ -72,6 +72,11 @@ body.mode-read, body.mode-talks {
 .rd-cta__primary { color: var(--accent); border-bottom-color: var(--accent); }
 .rd-cta__primary:hover, .rd-cta__link:hover { border-bottom-color: var(--accent); }
 .rd-meta { font-size: var(--fs-small); color: var(--text-muted); }
+/* partner logos under the first page's text; the HSRI mark is dark blue, so on the dark theme it sits on a white chip */
+.rd-logos { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 26px; margin-top: 30px; }
+.rd-logo { display: block; height: 58px; width: auto; }
+.rd-logo--chip { height: 50px; }
+html[data-theme="dark"] .rd-logo--chip { box-sizing: content-box; background: #fff; border-radius: 8px; padding: 4px 8px; }
 
 .rd-panel { border-top: 1px solid var(--border-strong); padding-top: 18px; }
 .rd-panel__head { display: flex; justify-content: space-between; gap: 12px; font-size: var(--fs-body); color: var(--text-secondary); }

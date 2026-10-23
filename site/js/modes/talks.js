@@ -57,8 +57,9 @@ export function initTalks(app) {
             onclick: () => { app.state.talk = null; app.state.scene = null; app.state.step = 1; app.switchMode("present"); } }),
           h("button", { class: "tk-btn", type: "button", text: W.story, onclick: () => { app.state.scene = null; app.switchMode("story"); } }),
           h("button", { class: "tk-btn", type: "button", text: W.explore, onclick: () => app.switchMode("explore") }))));
-    const docs = h("section", { class: "tk-docs" }, h("h3", { text: T.documents.title }),
-      h("ul", {}, ...T.documents.items.map((d) => h("li", {}, h("a", { href: d.href, download: "", text: d.label })))));
+    const items = T.documents?.items || [];
+    const docs = items.length ? h("section", { class: "tk-docs" }, h("h3", { text: T.documents.title }),
+      h("ul", {}, ...items.map((d) => h("li", {}, h("a", { href: d.href, download: "", text: d.label }))))) : null;
     clear(main).append(h("div", { class: "talks" },
       h("header", { class: "tk-head" }, h("p", { class: "rd-eyebrow", text: "HRH-MODEL / การนำเสนอ" }),
         h("h1", { class: "tk-h1", text: T.title }), h("p", { class: "tk-intro", text: T.intro })),

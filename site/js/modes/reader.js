@@ -63,6 +63,14 @@ function paintTiles(svg, group) {
   svg.querySelectorAll(".rd-tile").forEach((c) => c.classList.toggle("is-on", c.dataset.group === group));
 }
 
+// The project's partners on the first page (owner request 23 Oct 2569), web-sized copies of story/assets/logos.
+const LOGOS = [
+  ["web/hpsr.png", "หน่วยวิจัยนโยบายและระบบสุขภาพ คณะแพทยศาสตร์โรงพยาบาลรามาธิบดี"],
+  ["web/rama.png", "คณะแพทยศาสตร์โรงพยาบาลรามาธิบดี มหาวิทยาลัยมหิดล"],
+  ["web/moph.png", "กระทรวงสาธารณสุข"],
+  ["web/hsri.svg", "สถาบันวิจัยระบบสาธารณสุข (สวรส.)"],
+];
+
 function hero(C, app) {
   const M = C.meta, H = C.hero;
   const tabs = h("div", { class: "rd-tabs", role: "tablist", "aria-label": "เลือกไม้บรรทัด" });
@@ -85,9 +93,12 @@ function hero(C, app) {
       h("p", { class: "rd-hero__desc", text: M.description }),
       h("div", { class: "rd-cta" },
         h("button", { class: "rd-cta__primary", type: "button", onclick: first, html: `${M.read_cta} <span aria-hidden="true">↓</span>` }),
-        h("a", { class: "rd-cta__link", href: M.newsletter_pdf, download: "", html: `${M.newsletter_cta} ${ICON_DL}` }),
+        M.newsletter_pdf ? h("a", { class: "rd-cta__link", href: M.newsletter_pdf, download: "", html: `${M.newsletter_cta} ${ICON_DL}` }) : "",
         h("button", { class: "rd-cta__link", type: "button", onclick: () => app.switchMode("talks"), html: `${M.talks_cta} ${ICON_OUT}` })),
-      h("p", { class: "rd-meta", text: M.meta_line })),
+      h("p", { class: "rd-meta", text: M.meta_line }),
+      h("div", { class: "rd-logos", role: "group", "aria-label": "หน่วยงานของโครงการ" },
+        ...LOGOS.map(([file, alt]) => h("img", { class: file.endsWith(".svg") ? "rd-logo rd-logo--chip" : "rd-logo",
+          src: `assets/logos/${file}`, alt, decoding: "async" })))),
     h("aside", { class: "rd-panel", "aria-label": H.panel_title },
       h("div", { class: "rd-panel__head" }, h("span", { text: H.panel_title }), h("span", { class: "rd-panel__tag", text: H.panel_tag })),
       tabs, h("div", { class: "rd-panel__map" }, map), stat,
@@ -178,8 +189,8 @@ function footer(C, app) {
   return h("footer", { class: "rd-foot" },
     h("div", { class: "rd-foot__grid" },
       h("div", {}, h("p", { class: "rd-eyebrow", text: "ดาวน์โหลด" }),
-        h("p", {}, h("a", { href: M.newsletter_pdf, download: "", html: `${ICON_DL} จดหมายข่าวสี่หน้า (A4, PDF)` })),
-        h("p", {}, h("a", { href: M.booklet_pdf, download: "", html: `${ICON_DL} ฉบับพิมพ์ A3 พับครึ่ง (PDF)` })),
+        M.newsletter_pdf ? h("p", {}, h("a", { href: M.newsletter_pdf, download: "", html: `${ICON_DL} จดหมายข่าวสี่หน้า (A4, PDF)` })) : "",
+        M.booklet_pdf ? h("p", {}, h("a", { href: M.booklet_pdf, download: "", html: `${ICON_DL} ฉบับพิมพ์ A3 พับครึ่ง (PDF)` })) : "",
         h("p", {}, h("button", { class: "linkbtn", type: "button", onclick: () => app.switchMode("talks"), text: "สไลด์การนำเสนอทั้งหมด" }))),
       h("div", {}, h("p", { class: "rd-eyebrow", text: "อ้างอิง" }), h("p", { class: "rd-cite", text: M.citation }),
         h("p", { class: "rd-cite", text: M.status_note })),

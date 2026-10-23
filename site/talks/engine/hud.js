@@ -5,7 +5,7 @@
  *     a single still frame for reduced motion and Read mode; print gets a static
  *     SVG star layer per page instead);
  *   - decorates every slide after the engine renders it (a quiet slide counter and
- *     the funder acknowledgement in the footer: HSRI agreement, logo and wording
+ *     the funder acknowledgement in the footer: the partner logos (unit, Ramathibodi, MOPH, HSRI, 101) and the HSRI wording
  *     on every presentation page);
  *   - gives figures small helpers: SVG/HTML builders, tweens and counters that
  *     jump to the end in Read mode, print and prefers-reduced-motion, render
@@ -301,8 +301,18 @@
 
   /* ---------- slide decorations ---------- */
   var FUNDER = "ได้รับการสนับสนุนจาก สถาบันวิจัยระบบสาธารณสุข (สวรส.)";
+  // the project's partners on every slide (owner request 23 Oct 2569); the HSRI mark is dark blue, so it keeps its white chip
+  var PARTNERS = [["hpsr", "web/hpsr.png", "หน่วยวิจัยนโยบายและระบบสุขภาพ คณะแพทยศาสตร์โรงพยาบาลรามาธิบดี"],
+    ["rama", "web/rama.png", "คณะแพทยศาสตร์โรงพยาบาลรามาธิบดี มหาวิทยาลัยมหิดล"], ["moph", "web/moph.png", "กระทรวงสาธารณสุข"],
+    ["hsri", "web/hsri.svg", "สถาบันวิจัยระบบสาธารณสุข (สวรส.)"], ["l101", "web/101-white.png", "101"]];
+  function partnerLogos() {
+    var A = (window.TALKDATA && TALKDATA.assets) || {};
+    return PARTNERS.map(function (p) {
+      var img = '<img class="plogo plogo--' + p[0] + '" src="' + (A[p[0]] || "../../assets/logos/" + p[1]) + '" alt="' + p[2] + '" decoding="async">';
+      return p[0] === "hsri" ? '<span class="chip-logo">' + img + "</span>" : img;
+    }).join("");
+  }
   HOOKS.afterRender.push(function (slides) {
-    var logo = (window.TALKDATA && TALKDATA.assets && TALKDATA.assets.hsri) || "../../assets/logos/05_HSRI.svg";
     if (document.documentElement.classList.contains("print")) document.documentElement.style.setProperty("--print-stars", printStars());
     else starfield();
     Array.prototype.forEach.call(document.querySelectorAll(".slide"), function (el, i) {
@@ -318,7 +328,7 @@
         Array.prototype.forEach.call(badges, function (b) { bs.appendChild(b); });
         if (kick) kick.appendChild(bs); else right.appendChild(bs);
       }
-      H("span", "funder", '<span class="chip-logo"><img src="' + logo + '" alt="ตราสถาบันวิจัยระบบสาธารณสุข (สวรส.)" decoding="async"></span>' + FUNDER, right);
+      H("span", "funder", '<span class="plogos" role="group" aria-label="หน่วยงานของโครงการ">' + partnerLogos() + "</span>" + FUNDER, right);
       foot.appendChild(right);
     });
     var back = document.querySelector(".topbar__tools");

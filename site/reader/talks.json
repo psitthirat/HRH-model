@@ -36,9 +36,6 @@
   },
   "documents": {
     "title": "เอกสารประกอบ",
-    "items": [
-      { "label": "จดหมายข่าว (A4 สี่หน้า)", "href": "downloads/hrh-newsletter-ws3.pdf" },
-      { "label": "จดหมายข่าว ฉบับพิมพ์ A3 พับครึ่ง", "href": "downloads/hrh-newsletter-ws3-A3-booklet.pdf" }
-    ]
+    "items": []
   }
 }

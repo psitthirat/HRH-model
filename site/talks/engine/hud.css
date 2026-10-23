@@ -133,6 +133,12 @@ html.print .kicker .part { background: none !important; -webkit-text-fill-color:
 .funder { display: inline-flex; align-items: center; gap: .6em; white-space: nowrap; color: var(--muted); }
 .funder span.chip-logo { display: inline-grid; place-items: center; background: #fff; border-radius: 4px; padding: 2px 4px; }
 .funder img { height: max(16px, calc(var(--u) * 1.15)); width: auto; display: block; }
+.funder .plogos { display: inline-flex; align-items: center; gap: .6em; }
+.funder .plogo { height: max(20px, calc(var(--u) * 1.6)); }
+.funder .plogo--hsri { height: max(14px, calc(var(--u) * 1.1)); }
+.funder .plogo--l101 { height: max(11px, calc(var(--u) * .85)); }
+/* the 101 mark is supplied white for the night ground; the light theme prints it in ink */
+:root[data-theme="light"] .funder .plogo--l101 { filter: invert(1); }
 .slide__foot { align-items: center; }
 .slide__foot .foot-right { display: flex; align-items: center; gap: 1.2em; flex: none; }
 .btn[aria-pressed="true"], .modes button[aria-pressed="true"] { background: var(--accent-text); border-color: var(--accent-text); color: var(--inverse); }
