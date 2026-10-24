@@ -9,6 +9,8 @@
   var U = window.HUD, S = U.S, H = U.H;
   var T = window.TALKDATA || {}, FACTS = T.facts || {};
   function F(id) { var v = FACTS[id]; if (v == null) { if (window.console) console.warn("missing fact " + id); return "?"; } return v; }
+  // adequacy as a percentage of the example target (owner, 24 Oct 2569): a claim id with "|pct" gives 100 x the unrounded ratio
+  var ADEQ = "ความเพียงพอ: จำนวนแพทย์เป็นร้อยละของเป้าหมายตัวอย่าง " + F("lit.target_ratio") + " ประชากร";
   var FIGS = {};
   var DECK_ID = (window.DECK && window.DECK.meta && window.DECK.meta.id) || "ws3-next";
 
@@ -65,6 +67,8 @@
       "html.print .nx-note:empty::before{content:none}",
       ".nx-head .nx-num{display:inline-block;min-width:1.15em}",
       ".nx-progs{gap:calc(var(--u)*1)}",
+      "#slide-7 .slide__fig{margin-top:calc(var(--u)*-1.35)}",
+      ".nx-progs .nx-chip .nx-src{font-size:calc(var(--fs-body)*.86)}",   // s07 card 3: what the two percentages are of
       ".nx-progs .nx-card{padding:calc(var(--u)*.85) calc(var(--u)*1.1);gap:calc(var(--u)*.4)}",
       ".nx-progs .nx-head{align-items:flex-start}",
       ".nx-progs .nx-card h4{font-size:calc(var(--fs-body)*1.06);line-height:1.3;min-height:2.6em}",
@@ -101,6 +105,7 @@
       ".nx-key p{display:flex;align-items:baseline;gap:.55em;margin:0;font-size:var(--fs-body);line-height:1.42;color:var(--text-2)}",
       ".nx-key svg{flex:none;width:1.05em;height:1.05em;transform:translateY(.16em)}",
       ".nx-key p.nx-key__hit{color:var(--accent-text)}",
+      ".nx-key p.nx-key__def{font-size:calc(var(--fs-body)*.88);color:var(--muted)}",
       ".nx-key p.nx-key__hit:not(.is-pending){transition-delay:1.9s}",   // s03: the takeaway lands after callout 6
       ".nx-names{margin-top:auto;margin-bottom:calc(var(--u)*2.7);display:flex;flex-direction:column;gap:calc(var(--u)*.5);padding-left:calc(var(--u)*.9);border-left:2px solid var(--line-strong)}",
       ".nx-names p{margin:0;font-size:var(--fs-body);line-height:1.42;color:var(--text-2)}",
@@ -151,6 +156,8 @@
       "การดูแลระยะยาว ดูแลระยะยาว ด้วยการกวาดตาแบบผสม ฉากทัศน์ แกนแรก แกนที่สอง มาตรการทั่วไป รับไว้ " +
       "ที่มี ก็มี เพื่อขอ กรอบสี่ช่อง ขั้นทดลองที่มีจุดตรวจ ตัวเลขความขาดแคลน การเมืองเชิงสถาบัน คำตอบภายในกติกาเดิม " +
       "แบบจำลองการเลือกของบุคลากร ความเสี่ยงที่ต้องจัดการ หลายเรื่อง ส่งงาน ส่งงานให้กัน สองคอลัมน์ " +
+      "ช่วยให้คนทำงาน ช่วยให้ตัดสินใจ ให้น้ำหนักกับกติกาการเลือกตั้ง มองข้าม ข้อสรุป ข้อสรุปวิชาการ เกิดผล เกิดผลอย่างไร เทียบอะไร ถ่ายโอนให้ท้องถิ่นแล้ว ช่วยให้ คนทำงาน " +
+      "ความสมเหตุสมผล ต่อความสมเหตุสมผล รับฟังกันได้ กติกาการเลือกตั้ง พรรคการเมือง ผู้ให้ทุน เป้าหมายตัวอย่าง " +
       "สวรส. สธ. สพพ. รพ.สต. สป.").split(" ").sort(function (a, b) { return b.length - a.length; });
     var GLUE = new Set("ความ การ ผู้ นัก แต่ และ หรือ จึง ซึ่ง เพราะ ถ้า หาก เมื่อ แม้ โดย ทั้ง ส่วน เชิง แต่ละ ทุก จนกว่า มันคือ ไม่ได้ ที่มี ก็มี เพื่อขอ ออกจาก เพียง".split(" "));
     var SOFT = new Set("ที่ ไม่ ของ ใน จาก กับ ให้ เป็น คือ ต่อ ตาม เพื่อ อย่าง จะ ต้อง ควร ยัง ระหว่าง ว่า ภายใน ภายใต้ ด้วย ถึง แก่ บน สู่ สำหรับ".split(" "));
@@ -343,39 +350,41 @@
 
   /* ---------------- s03 the frame and the findings that hit its walls ---------------- */
   FIGS.s03 = function (host) {
-    var svg = U.svgHost(host, "0 44 640 406", "ผลที่คงทนที่สุดชนผนังของกรอบที่แบบจำลองรับไว้"); U.defs(svg);
+    var svg = U.svgHost(host, "0 44 640 406", "ผลการศึกษาภายใต้เงื่อนไขที่ใช้ในการศึกษา และกติกาที่ผลเหล่านี้ชี้ให้ทบทวน"); U.defs(svg);
     var box = { x: 10, y: 70, w: 300, h: 360 };
     S("rect", { x: box.x, y: box.y, width: box.w, height: box.h, rx: 10, style: "fill:var(--accent-soft);stroke:var(--accent);stroke-width:2", class: "glow" }, svg);
-    txt(svg, box.x + 16, box.y + 30, "กติกาที่แบบจำลองรับไว้", 15, "t-accent");
-    txt(svg, box.x + 16, box.y + 52, "ตำแหน่ง · ผู้จ้าง · ที่ตั้งการฝึก · ตลาด · งานดูแล", 12, "t-muted");
+    txt(svg, box.x + 16, box.y + 30, "เงื่อนไขที่ใช้ในการศึกษา", 15, "t-accent");
+    txt(svg, box.x + 16, box.y + 52, "กรอบตำแหน่ง · ผู้จ้าง · ที่ตั้งการฝึก", 12, "t-muted");
+    txt(svg, box.x + 16, box.y + 70, "ตลาดแรงงาน · งานดูแล", 12, "t-muted");
     // The figure's two captions live in a key under the body (the empty lower left of the text column):
     // the dot, then (with the click) the wall chevron and the line the six findings add up to.
     var col = host.closest(".slide").querySelector(".slide__text");
     var key = H("div", "nx-key", null, col);
-    H("p", "", '<svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="4.5" style="fill:var(--p1)"/></svg><span>จุด = ผลของการศึกษาที่วิ่งอยู่ภายในกติกา</span>', key);
-    H("p", "nx-key__hit", '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M8,3 L15,10 L8,17 M4,10 H15" style="fill:none;stroke:var(--accent);stroke-width:2.2;stroke-linecap:round"/></svg><span>ผลที่คงทนที่สุดชี้ไปนอกกติกาที่เปลี่ยนได้ในรอบการจัดสรร</span>', key).setAttribute("data-step", "2");
+    H("p", "", '<svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="4.5" style="fill:var(--p1)"/></svg><span>จุด = ผลการศึกษาภายใต้เงื่อนไขเหล่านี้</span>', key);
+    H("p", "nx-key__hit", '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M8,3 L15,10 L8,17 M4,10 H15" style="fill:none;stroke:var(--accent);stroke-width:2.2;stroke-linecap:round"/></svg><span>ผลเหล่านี้ช่วยระบุว่ากติกาใดควรทบทวน</span>', key).setAttribute("data-step", "2");
+    H("p", "nx-key__def", '<svg viewBox="0 0 20 20" aria-hidden="true"></svg><span>' + ADEQ + "</span>", key).setAttribute("data-step", "2");
     var parts = [];
     for (var i = 0; i < 26; i++) {
       var a = i * 2.39996;
-      parts.push({ x: box.x + 40 + (i * 37) % (box.w - 80), y: box.y + 90 + (i * 53) % (box.h - 140), vx: Math.cos(a) * 0.09, vy: Math.sin(a) * 0.09,
+      parts.push({ x: box.x + 40 + (i * 37) % (box.w - 80), y: box.y + 100 + (i * 53) % (box.h - 150), vx: Math.cos(a) * 0.09, vy: Math.sin(a) * 0.09,
         el: S("circle", { r: 4, style: "fill:var(--p1)" }, svg) });
     }
     U.loop(svg, function (dt) {
       parts.forEach(function (p) {
         p.x += p.vx * dt; p.y += p.vy * dt;
         if (p.x < box.x + 6 || p.x > box.x + box.w - 6) { p.vx = -p.vx; p.x = Math.max(box.x + 6, Math.min(box.x + box.w - 6, p.x)); }
-        if (p.y < box.y + 66 || p.y > box.y + box.h - 8) { p.vy = -p.vy; p.y = Math.max(box.y + 66, Math.min(box.y + box.h - 8, p.y)); }
+        if (p.y < box.y + 94 || p.y > box.y + box.h - 8) { p.vy = -p.vy; p.y = Math.max(box.y + 94, Math.min(box.y + box.h - 8, p.y)); }
         p.el.setAttribute("cx", p.x); p.el.setAttribute("cy", p.y);
       });
     });
     if (U.isStatic()) parts.forEach(function (p) { p.el.setAttribute("cx", p.x); p.el.setAttribute("cy", p.y); });
     var chips = [
-      "กรอบเต็มแล้ว ทุกหลักคิดให้ " + F("c5f_PR_F0_bq_P"),
-      "วางตำแหน่งถูกที่ = เพิ่ม " + F("c5f_prorata_equiv_ratio") + " เท่า",
-      "ใครจ่าย: " + F("c5f_PR_GDh5_bq_P") + " เทียบ " + F("c5f_PR_GDc5_bq_P"),
-      F("c46_dis_n_all_four") + " จังหวัดต่ำทุกไม้บรรทัด",
+      "กรอบเต็ม: ทุกสูตรได้ " + F("c5f_PR_F0_bq_P|pct") + "% ของเป้าหมาย",
+      ["เพิ่มตามสัดส่วนใช้ตำแหน่ง " + F("c5f_prorata_equiv_ratio") + " เท่า", "ของการวางตามจำเป็น"],
+      ["รพ.จ่าย " + F("c5f_PR_GDh5_bq_P|pct") + "%", "ส่วนกลางจ่ายและจัดตามจำเป็น " + F("c5f_PR_GDc5_bq_P|pct") + "%"],
+      F("c46_dis_n_all_four") + " จังหวัดอยู่กลุ่มต่ำสุดทั้งสี่วิธีวัด",
       // c46_conc_top10_all1 counts specialists (people) among facilities that have any (owner wording, 23 Oct)
-      ["แพทย์เฉพาะทาง " + F("c46_conc_top10_all1") + "% อยู่ในสถานพยาบาล", "หนึ่งในสิบที่มีแพทย์เฉพาะทางมากที่สุด"],
+      ["แพทย์เฉพาะทาง " + F("c46_conc_top10_all1") + "% อยู่ในสถานพยาบาล", "กลุ่มบนหนึ่งในสิบ"],
       "ผู้ตอบ " + F("c77_pct_primary_carer") + "% เป็นผู้ดูแลหลักในครอบครัว"
     ].map(function (s, i) {
       var g = S("g", { style: "opacity:0" }, svg), y = 84 + i * 60, wy = box.y + 40 + i * 56, wx = box.x + box.w;
@@ -404,11 +413,11 @@
     S("path", { d: "M" + (xb - 12) + "," + (my - 14) + " L" + xb + "," + (my - 8) + " L" + (xb - 12) + "," + (my - 2) + "Z", style: "fill:var(--accent)" }, extra);
     S("path", { d: "M" + xb + "," + (my + 12) + " H" + (xa + 10), style: "fill:none;stroke:var(--accent);stroke-width:1.8" }, extra);
     S("path", { d: "M" + (xa + 12) + "," + (my + 6) + " L" + xa + "," + (my + 12) + " L" + (xa + 12) + "," + (my + 18) + "Z", style: "fill:var(--accent)" }, extra);
-    txt(extra, (xa + xb) / 2, my - 18, "ส่งงานให้กัน", 12.5, "t-strong", "middle");
+    txt(extra, (xa + xb) / 2, my - 18, "ใช้ความรู้ประกอบกัน", 12.5, "t-strong", "middle");
     // Lindblom and Etzioni sit at the foot of the text column (they arrive with click 2), so the map gets the figure.
     var col = host.closest(".slide").querySelector(".slide__text");
-    H("div", "nx-names", '<p><b>Lindblom</b> · ปรับทีละน้อย เปรียบเทียบทางเลือกที่ใกล้กัน</p>' +
-      '<p class="nx-names__e"><b>Etzioni</b> · กวาดตาแบบผสม: สำรวจทางเลือกพื้นฐานอย่างกว้าง แล้วลงมือทีละขั้น</p>', col).setAttribute("data-step", "2");
+    H("div", "nx-names", '<p><b>Lindblom</b> · ค่อย ๆ ปรับจากทางเลือกที่ใกล้กัน</p>' +
+      '<p class="nx-names__e"><b>Etzioni</b> · พิจารณาทางเลือกกว้างก่อน แล้วลงมือทีละขั้น</p>', col).setAttribute("data-step", "2");
     return stepper(host, 2, function (k, anim, jobs) {
       if (k === 1) {
         extra.style.opacity = 0;
@@ -425,10 +434,10 @@
     // What the study did in each box, as actions (owner, 24 Oct); quadrant two follows chapter 11:
     // shortage as something defined, organised and shifted onto others. Retention = การธำรงคนในระบบ.
     var items = [
-      [0, ["นับแพทย์และเทียบหลายตัวหาร", "กระทบยอดการไหลเข้าและออก", "สำรวจว่าทำไมคนอยู่หรือออก"], "var(--p1)"],
-      [1, ["ถามว่าใครนิยามความขาดแคลน", "ถามว่าวิชาชีพกำหนดจำนวนอย่างไร", "ถามว่าภาระดูแลถูกผลักไปที่ใคร"], "var(--p2)"],
-      [2, ["จำลองการจัดสรรแพทย์ใหม่", "เสนอชุดมาตรการธำรงคนในระบบ"], "var(--p1)"],
-      [3, ["เสนอวงจรทบทวนกติการายปี"], "var(--accent)"]
+      [0, ["นับแพทย์และเทียบหลายวิธี", "ตรวจยอดคนเข้าออก", "สำรวจเหตุผลที่อยู่หรือคิดออก"], "var(--p1)"],
+      [1, ["ใครนิยามว่าขาดแคลน", "วิชาชีพกำหนดจำนวนอย่างไร", "ใครรับภาระดูแล"], "var(--p2)"],
+      [2, ["จำลองการจัดแพทย์ใหม่", "เสนอมาตรการการธำรงคนในระบบ"], "var(--p1)"],
+      [3, ["เสนอให้ทบทวนกติกาทุกปี"], "var(--accent)"]
     ];
     var dots = [];
     items.forEach(function (it) {
@@ -443,7 +452,8 @@
     var r4 = q.rect(3);
     var empty = S("g", { style: "opacity:0" }, svg);
     S("rect", { x: r4.x + 6, y: r4.y + 6, width: r4.w - 12, height: r4.h - 12, rx: 6, style: "fill:none;stroke:var(--accent);stroke-width:1.5;stroke-dasharray:6 6" }, empty);
-    txt(empty, r4.x + r4.w / 2, r4.y + 130, "เกือบว่าง", 18, "t-accent glow", "middle");
+    txt(empty, r4.x + r4.w / 2, r4.y + 118, "ยังขาดงาน", 17, "t-accent glow", "middle");
+    txt(empty, r4.x + r4.w / 2, r4.y + 142, "เปรียบเทียบทางเลือก", 17, "t-accent glow", "middle");
     var pulse = { stop: function () {} };
     return stepper(host, 1, function (k, anim, jobs) {
       if (k === 1) {
@@ -458,27 +468,28 @@
   /* ---------------- s06 why quadrant four first, and on what conditions ---------------- */
   FIGS.s06 = function (host) {
     // Reasons 1-3 fill the figure; the conditions (click 3) sit under their paragraph in the text column.
-    var svg = U.svgHost(host, "0 0 640 480", "เหตุผลสามข้อที่ช่องที่สี่ควรมาก่อน"); U.defs(svg);
+    var svg = U.svgHost(host, "0 0 640 480", "เหตุผลสามข้อที่ต้องศึกษาวิธีเปลี่ยนระบบ"); U.defs(svg);
     // reason 1: the findings point there
     var g1 = S("g", {}, svg);
-    txt(g1, 0, 22, "เหตุผลที่หนึ่ง · ผลของการศึกษาชี้ไปที่นั่น", 15.5, "t-accent");
-    [["กรอบคือสูตร", F("c5f_PR_F0_bq_P") + " ทุกหลักคิด"], ["ไม่มีตำแหน่งรองรับ", F("c5f_PR_pool2500_unplaced") + " คน*"], ["ต่ำทุกไม้บรรทัด", F("c46_dis_n_all_four") + " จังหวัด"]].forEach(function (c, i) {
+    txt(g1, 0, 22, "เหตุผลที่หนึ่ง · ผลการศึกษาชี้ข้อจำกัดที่ต้องแก้", 15.5, "t-accent");
+    [[["กรอบเต็ม", "ทุกสูตรได้ความเพียงพอ"], F("c5f_PR_F0_bq_P|pct") + "%"], [["ผลจำลอง: ไม่มีตำแหน่งรองรับ", "ในสิบห้าปี"], F("c5f_PR_pool2500_unplaced") + " คน*"], [["อยู่กลุ่มต่ำสุด", "ทั้งสี่วิธีวัด"], F("c46_dis_n_all_four") + " จังหวัด"]].forEach(function (c, i) {
       var x = i * 214;
-      S("rect", { x: x, y: 38, width: 204, height: 96, rx: 6, style: "fill:var(--card);stroke:var(--line-strong)" }, g1);
-      txt(g1, x + 14, 70, c[0], 14, "t-muted");
-      txt(g1, x + 14, 114, c[1], 24, "t-strong");
+      S("rect", { x: x, y: 37, width: 204, height: 98, rx: 6, style: "fill:var(--card);stroke:var(--line-strong)" }, g1);
+      txt(g1, x + 14, 60, c[0][0], 14, "t-muted"); txt(g1, x + 14, 79, c[0][1], 14, "t-muted");
+      txt(g1, x + 14, 119, c[1], 24, "t-strong");
     });
-    txt(g1, 0, 162, "* แพทย์พร้อมจัดสรรปีละสองพันห้าร้อยคน กรอบโตร้อยละห้าต่อรอบ", 13, "t-muted");
+    txt(g1, 0, 154, ADEQ, 13, "t-muted");
+    txt(g1, 0, 172, "* สมมติให้มีแพทย์พร้อมจัดสรรปีละสองพันห้าร้อยคน และเพิ่มตำแหน่งร้อยละห้าต่อรอบ", 13, "t-muted");
     // reasons 2 and 3: time and Thai history
     var g2 = S("g", { style: "opacity:0" }, svg);
     S("line", { x1: 0, y1: 188, x2: 640, y2: 188, style: "stroke:var(--line)" }, g2);
-    txt(g2, 0, 220, "เหตุผลที่สอง · เวลา: “สังคมจะเลือกโดยไม่รู้ว่ากำลังเลือก”", 15.5, "t-accent");
+    txt(g2, 0, 220, "เหตุผลที่สอง · การตัดสินใจวันนี้มีผลอีกหลายปี", 15.5, "t-accent");
     S("line", { x1: 0, y1: 240, x2: 640, y2: 240, style: "stroke:var(--line)" }, g2);
-    txt(g2, 0, 272, "เหตุผลที่สาม · ประวัติศาสตร์ไทย: การเปลี่ยนที่สำคัญมาจากทางเลือกเชิงโครงสร้าง", 15.5, "t-accent");
+    txt(g2, 0, 272, "เหตุผลที่สาม · ไทยเคยเปลี่ยนระบบเพื่อกระจายแพทย์", 15.5, "t-accent");
     var X0 = 20, X1 = 620, AY = 352;
-    function xOf(y) { return X0 + (y - 2510) / (2531 - 2510) * (X1 - X0); }
+    function xOf(y) { return X0 + (y - 2508) / (2531 - 2508) * (X1 - X0); }
     S("line", { x1: X0, y1: AY, x2: X1, y2: AY, class: "axis" }, g2);
-    var marks = [[2511, "บังคับชดใช้ทุน"], [2515, "ใช้ทุนรุ่นแรก"], [2519, "ขยาย รพ.ชนบท"], [2528, ""]];
+    var marks = [[2510, "บังคับชดใช้ทุน"], [2515, "ใช้ทุนรุ่นแรก"], [2519, "ขยาย รพ.ชนบท"], [2528, ""]];
     marks.forEach(function (m) { S("line", { x1: xOf(m[0]), y1: AY - 6, x2: xOf(m[0]), y2: AY + 6, class: "axis" }, g2); txt(g2, xOf(m[0]), AY + 28, String(m[0]), 13, "mono t-muted", "middle"); if (m[1]) txt(g2, xOf(m[0]), AY - 18, m[1], 13.5, "t-muted", "middle"); });
     var band = S("rect", { x: xOf(2519), y: AY - 4, width: 0, height: 8, rx: 3, style: "fill:var(--p1)" }, g2);
     var facts = S("g", { style: "opacity:0" }, g2);
@@ -486,10 +497,10 @@
     txt(facts, 212, 432, "แพทย์ชนบท " + F("lit.rural_md_start") + " → " + F("lit.rural_md_end") + " คน", 16, "t-strong");
     txt(facts, 640, 432, "อีสาน/กทม. " + F("lit.gap_1979") + " เท่า → " + F("lit.gap_1986") + " เท่า", 16, "t-need", "end");
     // conditions: three arrows into quadrant four, in the text column under the click-3 paragraph
-    var side = U.sideHost(host, "0 0 640 262", "เงื่อนไข: ช่องที่สี่ต้องได้งานจากอีกสามช่อง");
+    var side = U.sideHost(host, "0 0 640 262", "เงื่อนไขของข้อเสนอเปลี่ยนระบบ: งานจากช่องที่หนึ่งถึงสามส่งไปยังช่องที่สี่");
     side.closest(".fig-side").setAttribute("data-step", "3");
     var g3 = S("g", {}, side);
-    txt(g3, 0, 24, "เงื่อนไข · ช่องที่สี่ต้องได้งานจากอีกสามช่อง", 18.5, "t-accent");
+    txt(g3, 0, 24, "เงื่อนไขของข้อเสนอเปลี่ยนระบบ", 18.5, "t-accent");
     var mq = quad(g3, { x: 0, y: 46, w: 300, h: 214, labels: false, numSize: 20, gap: 6, rowLabel: false, colLabel: false });
     var q4 = mq.rect(3);
     var ends = [[q4.x + 3, q4.y + 3], [q4.x + q4.w * 0.5, q4.y + 3], [q4.x + 3, q4.y + q4.h * 0.5]];
@@ -517,12 +528,12 @@
   // Titles are broken by hand at their phrase boundary; the level tag is neutral (its words say the level).
   FIGS.s07 = function (host) {
     var progs = [
-      ["ระบบดูแลระดับพื้นที่<br>หลังการกระจายอำนาจ", "ชุมชน", "การกำกับและการเงินแบบใดรักษาทีมปฐมภูมิและเส้นทางอาชีพข้ามนายจ้างได้", "รพ.สต. ในตัวอย่าง <b>" + F("c77_units_P_local") + "</b> จาก <b>" + F("c77_units_P") + "</b> แห่งถ่ายโอนแล้ว"],
-      ["การผลิตจากพื้นที่<br>ที่ผูกกับเส้นทางอาชีพ", "ชุมชนและเศรษฐกิจ", "รับผู้เรียนจากพื้นที่ แหล่งฝึกในภูมิภาค และบันไดอาชีพ ช่วยธำรงคนไว้ในพื้นที่ได้เพียงใด", "บ้านเกิดผูกคนไว้กับพื้นที่ (ออดส์ <b>" + F("c77_or_leave_areaB_home_province_match") + "</b>) ไม่ใช่กับสังกัด"],
-      ["ระบบการจ้าง<br>และกรอบตำแหน่งตามพันธะบริการ", "เศรษฐกิจและรัฐ", "รูปแบบการจ้างแบบใดเปลี่ยนการกระจาย ความมั่นคง และต้นทุน", "ใครจ่าย: <b>" + F("c5f_PR_GDh5_bq_P") + "</b> เทียบ <b>" + F("c5f_PR_GDc5_bq_P") + "</b>"],
-      ["พันธะสาธารณะ<br>ของบริการเอกชนและการทำงานสองภาค", "เศรษฐกิจ", "ระบบหลักประกันและเงื่อนไขอนุญาตทำให้เอกชนรับผิดชอบพื้นที่ขาดได้หรือไม่", "แพทย์เฉพาะทาง <b>" + F("c46_conc_top10_all1") + "%</b> อยู่ในสถานพยาบาลหนึ่งในสิบที่มีมากที่สุด"],
-      ["เศรษฐกิจการดูแล<br>และการสนับสนุนผู้ดูแล", "สังคมและเศรษฐกิจ", "ผู้ดูแลชุมชนที่ได้ค่าตอบแทน การพักทดแทน และการดูแลระยะยาว เปลี่ยนภาระอย่างไร", "ผู้ตอบ\u00a0<b>" + F("c77_pct_primary_carer") + "%</b> เป็นผู้ดูแลหลักในครอบครัว"],
-      ["การตัดสินร่วม<br>เรื่องความเพียงพอและฐานจัดสรร", "สังคม", "กระบวนการตัดสินร่วมที่ใช้แบบจำลองเปิด เปลี่ยนเกณฑ์และการยอมรับผลอย่างไร", "หลักคิดต่างกัน แพทย์ใหม่จังหวัดเดียวต่าง <b>" + F("c54_maxcum_PR_vs_SR") + "</b> คน"]
+      ["บริการสุขภาพในพื้นที่<br>หลังถ่ายโอนให้ท้องถิ่น", "ชุมชน", "ใครกำกับ ใครจัดงบ<br>ให้ทีมปฐมภูมิทำงานต่อและก้าวหน้าได้แม้เปลี่ยนนายจ้าง", "รพ.สต. ที่สำรวจ <b>" + F("c77_units_P_local") + "</b> จาก <b>" + F("c77_units_P") + "</b> แห่ง ถ่ายโอนให้ท้องถิ่นแล้ว"],
+      ["รับคนจากพื้นที่<br>เชื่อมการฝึกกับงานและความก้าวหน้า", "ชุมชนและเศรษฐกิจ", "การรับคนในพื้นที่ ฝึกในภูมิภาค และมีทางก้าวหน้า ช่วยให้คนทำงานในพื้นที่ต่อได้เพียงใด", "ทำงานในจังหวัดภูมิลำเนา สัมพันธ์กับการคิดย้ายออกจากพื้นที่น้อยลง (อัตราส่วนออดส์ <b>" + F("c77_or_leave_areaB_home_province_match") + "</b>) แต่ไม่พบความสัมพันธ์ชัดเจนกับการคิดลาออกจากสังกัด"],
+      ["ผู้จ้างและตำแหน่ง<br>ที่รองรับบริการที่ประชาชนควรได้รับ", "เศรษฐกิจและรัฐ", "ผู้จ้างและผู้จ่ายแบบใดช่วยกระจายคน ใครรับต้นทุน และคนทำงานมั่นคงเพียงใด", "ผลจำลองความเพียงพอ: รพ.จ่ายเอง <b>" + F("c5f_PR_GDh5_bq_P|pct") + "%</b>;<br>ส่วนกลางจ่ายและจัดตามความจำเป็น <b>" + F("c5f_PR_GDc5_bq_P|pct") + "%</b><br><span class=\"nx-src\">ร้อยละของเป้าหมายตัวอย่าง " + F("lit.target_ratio") + " ประชากร</span>"],
+      ["ความรับผิดชอบของเอกชน<br>และแพทย์ที่ทำงานทั้งรัฐและเอกชน", "เศรษฐกิจ", "การจ่ายเงินและเงื่อนไขอนุญาตช่วยให้เอกชนร่วมดูแลพื้นที่ขาดบริการได้หรือไม่", "แพทย์เฉพาะทางทุกสังกัด <b>" + F("c46_conc_top10_all1") + "%</b> อยู่ในสถานพยาบาลกลุ่มที่มีมากที่สุดหนึ่งในสิบ"],
+      ["การจัดงานดูแล<br>และสนับสนุนผู้ดูแล", "สังคมและเศรษฐกิจ", "การจ้างผู้ดูแลในชุมชน คนช่วยดูแลแทนชั่วคราว และบริการระยะยาว ลดภาระให้ใคร อย่างไร", "ผู้ตอบแบบสำรวจ\u00a0<b>" + F("c77_pct_primary_carer") + "%</b> เป็นผู้ดูแลหลักในครอบครัว"],
+      ["ร่วมตัดสินว่าคนพอหรือไม่<br>และจะจัดสรรอย่างไร", "สังคม", "การให้ผู้เกี่ยวข้องใช้แบบจำลองร่วมกัน ช่วยเลือกเกณฑ์และยอมรับผลได้อย่างไร", "ผลจำลอง: ใช้ประชากรหรือปริมาณบริการ<br>แพทย์ใหม่สะสมสิบห้าปีในปทุมธานีต่าง <b>" + F("c54_maxcum_PR_vs_SR") + "</b> คน"]
     ];
     var grid = H("div", "nx-grid nx-progs", null, host);
     grid.style.gridTemplateColumns = "repeat(3, minmax(0, 1fr))";
@@ -552,15 +563,15 @@
     // from the top of the text column, so it stays level however many lines the lead takes).
     var body = host.closest(".slide").querySelector(".slide__text .body");
     if (body) { body.classList.add("nx-row2"); body.setAttribute("data-step", "2"); }
-    var svg = U.svgHost(host, "0 0 640 556", "เกณฑ์ห้าข้อ และการกวาดตาแบบผสม: กล้องมุมกว้างกับกล้องซูม"); U.defs(svg);
+    var svg = U.svgHost(host, "0 0 640 556", "คำถามห้าข้อ และกล้องสองตัวของ Etzioni: กล้องมุมกว้างกับกล้องซูม"); U.defs(svg);
     // click 1: the proposal passes five gates on one track (Wright's three, then this study's two)
     var g1 = S("g", {}, svg);
-    txt(g1, 0, 18, "ห้าคำถามที่ทุกข้อเสนอเชิงโครงสร้างต้องตอบ", 14, "t-muted");
+    txt(g1, 0, 18, "คำถามห้าข้อที่ข้อเสนอเปลี่ยนระบบต้องตอบ", 14, "t-muted");
     S("line", { x1: 0, y1: 109, x2: 636, y2: 109, style: "stroke:var(--line-strong);stroke-width:1.2;stroke-dasharray:2 6" }, g1);
-    var gates = [["พึงปรารถนา", "", "wright"], ["ทำงานได้", "และยั่งยืน", "wright"], ["ไปถึงได้", "มีพันธมิตร", "wright"], ["ต้นทุนและความเสี่ยง", "ตกกับใคร", "plus"], ["เรียนรู้", "และย้อนกลับได้", "plus"]].map(function (gt, i) {
-      var x = 100 + i * 104, g = S("g", {}, g1);
+    var gates = [["ควรทำ", "หรือไม่", "wright"], ["ทำงานได้", "และยั่งยืนหรือไม่", "wright"], ["จะเริ่มได้อย่างไร", "ใครร่วมผลักดัน", "wright"], ["ใครรับต้นทุน", "และความเสี่ยง", "plus"], ["จะเรียนรู้ ปรับ", "หรือย้อนกลับได้หรือไม่", "plus"]].map(function (gt, i) {
+      var x = 100 + i * 104, lx = x + (i === 4 ? 8 : 0), g = S("g", {}, g1);   // label 5 a little right of its bar, clear of label 4
       var bar = S("rect", { x: x - 3, y: 44, width: 6, height: 130, rx: 3, style: "fill:" + (gt[2] === "wright" ? "var(--line-strong)" : "var(--p2-soft)") }, g);
-      txt(g, x, 196, gt[0], 12.5, "t-strong", "middle"); if (gt[1]) txt(g, x, 214, gt[1], 12.5, "t-strong", "middle");
+      txt(g, lx, 196, gt[0], 12.5, "t-strong", "middle"); if (gt[1]) txt(g, lx, 214, gt[1], 12.5, "t-strong", "middle");
       return { x: x, bar: bar, kind: gt[2] };
     });
     function bracket(x0, x1, label) {   // a thin bracket under a group of gates, the label centred on it
@@ -568,7 +579,7 @@
       txt(g1, (x0 + x1) / 2, 248, label, 12.5, "t-muted", "middle");
     }
     bracket(gates[0].x - 40, gates[2].x + 40, "Wright");
-    bracket(gates[3].x - 46, gates[4].x + 46, "เพิ่มโดยการศึกษานี้");
+    bracket(gates[3].x - 46, gates[4].x + 46, "คณะผู้เขียนเพิ่ม");
     var card = S("g", {}, g1);
     S("rect", { x: 0, y: 92, width: 96, height: 34, rx: 6, style: "fill:var(--accent-soft);stroke:var(--accent)" }, card);
     txt(card, 48, 114, "ข้อเสนอ", 13, "t-accent", "middle");
@@ -582,10 +593,11 @@
     // expand, adjust or stop; after five years the wide scan comes round again.
     var g2 = S("g", { style: "opacity:0" }, svg);
     S("line", { x1: 0, y1: 266, x2: 640, y2: 266, style: "stroke:var(--line)" }, g2);
-    txt(g2, 0, 294, "การกวาดตาแบบผสม (Etzioni) · กล้องสองตัวทำงานคู่กัน", 14, "t-muted");
+    txt(g2, 0, 294, "Etzioni · กล้องสองตัวทำงานคู่กัน", 14, "t-muted");
     var wide = S("g", {}, g2);
-    txt(wide, 0, 326, "กล้องมุมกว้าง · ทุกห้าปี", 14, "t-accent");
-    txt(wide, 0, 346, "เห็นทุกทางเลือกพื้นฐานแบบหยาบ แล้วเลือกทิศ", 12, "t-muted");
+    txt(wide, 0, 326, "กล้องมุมกว้าง", 14, "t-accent");
+    txt(wide, 0, 346, "พิจารณาทางเลือกสำคัญทุกห้าปี", 12.5, "t-strong");
+    txt(wide, 0, 364, "เห็นทางเลือกหกทาง แล้วเลือกหนึ่งทาง", 12, "t-muted");
     var A = [134, 530], R = 120, a0 = 220, a1 = 320, CHOSEN = 5;
     function pt(deg, r) { var t = deg * Math.PI / 180; return [A[0] + r * Math.cos(t), A[1] + r * Math.sin(t)]; }
     function angOf(i) { return a0 + i * (a1 - a0) / 5; }
@@ -603,7 +615,7 @@
     S("rect", { x: A[0] - 9, y: A[1] - 18, width: 12, height: 5, rx: 1.5, style: "fill:var(--accent)" }, wide);
     // click 3: the zoom camera on the chosen direction, five yearly legs with a checkpoint at the end of each
     var B = { x: 300, y: 330, w: 316, h: 156 };
-    var zoomHead = txt(g2, B.x, 322, "กล้องซูม · ทุกปีในทิศที่เลือก", 14, "t-accent");
+    var zoomHead = txt(g2, B.x, 322, "กล้องซูม · ติดตามแนวทางที่เลือกทุกปี", 14, "t-accent");
     var zoom = S("g", {}, g2);
     S("path", { d: "M" + cp + " L" + B.x + "," + (B.y + 6) + " M" + cp + " L" + B.x + "," + (B.y + B.h - 6), style: "fill:none;stroke:var(--accent);stroke-width:1;stroke-dasharray:3 4" }, zoom);
     S("rect", { x: B.x, y: B.y, width: B.w, height: B.h, rx: 8, style: "fill:var(--card-strong);stroke:var(--accent);stroke-width:1.2" }, zoom);
@@ -617,7 +629,7 @@
     });
     // the rule at every checkpoint, said once: the same three outcomes, decided by criteria set in advance
     var rule = S("g", {}, zoom);
-    txt(rule, x0, py + 38, "ทุกจุดตรวจ ◇ ตัดสินตามเกณฑ์ที่ประกาศไว้ก่อน", 12.5, "t-strong");
+    txt(rule, x0, py + 38, "ทบทวนผลทุกปี ◇ ตามเกณฑ์ที่ประกาศก่อนเริ่ม", 12.5, "t-strong");
     [["ขยาย", "t-good"], ["ปรับ", "t-need"], ["หยุด", "t-bad"]].forEach(function (o, i) {
       txt(rule, x0 + 2 + i * 82, py + 70, o[0], 15, o[1]);
       if (i) txt(rule, x0 + 2 + i * 82 - 22, py + 70, "·", 15, "t-muted", "middle");
@@ -627,7 +639,7 @@
     var loopG = S("g", {}, g2);
     S("path", { d: "M" + end + " H" + (B.x + B.w + 14) + " V" + A[1] + " H" + (A[0] + 34), style: "fill:none;stroke:var(--muted);stroke-width:1.5;stroke-dasharray:4 4" }, loopG);
     S("path", { d: "M" + (A[0] + 24) + "," + A[1] + " L" + (A[0] + 35) + "," + (A[1] - 5) + " L" + (A[0] + 35) + "," + (A[1] + 5) + "Z", style: "fill:var(--muted)" }, loopG);
-    txt(loopG, A[0] + 190, A[1] - 9, "ครบห้าปี กลับไปกวาดกว้างใหม่", 12.5, "t-muted", "middle");
+    txt(loopG, A[0] + 190, A[1] - 9, "ครบห้าปี ทบทวนทางเลือกใหญ่อีกครั้ง", 12.5, "t-muted", "middle");
     var wideParts = [fan, ring].concat(dots), zoomParts = [zoomHead, zoom, rule, loopG].concat(legs.map(function (l) { return l.mark; })).concat(legs.map(function (l) { return l.lab; }));
     function settleWide() { fanTo(a1 + 8); wideParts.forEach(function (p) { p.style.opacity = 1; }); dots[CHOSEN].style.fill = "var(--accent)"; }
     function settleZoom(on) { zoomParts.forEach(function (p) { p.style.opacity = on ? 1 : 0; }); legs.forEach(function (l) { l.seg.setAttribute("x2", on ? l.x2 : l.x1); }); }
@@ -676,9 +688,9 @@
     // One grid, so a row is as tall as its tallest card in all three columns. Header colours follow the s05 map
     // (boxes 1 and 3 blue, box 2 purple); gold stays for box 4, the hand-off strip.
     var cols = [
-      ["ช่องที่ 1", "วิเคราะห์ปัญหาภายในกติกาเดิม", "var(--p1-text)", ["กระทบยอดจำนวนแพทย์ สป. กับแฟ้มเหตุการณ์เข้าออก", "เชื่อมระเบียนรายบุคคลแบบนิรนาม", "วัดเวลาทำงานจริง: ผู้ตอบ\u00a0<b>" + F("c77_early_retire_all") + "%</b> คิดเกษียณก่อนกำหนดหรือลดชั่วโมงทำงาน", "เก็บหลักฐานจากผู้ที่ออกแล้ว"]],
-      ["ช่องที่ 2", "วิเคราะห์ปัญหาเชิงโครงสร้าง", "var(--p2-text)", ["ใครกำหนดกรอบอัตรากำลัง ด้วยเหตุผลและข้อมูลใด", "ใครผลิตตัวเลขความขาดแคลน เพื่อขอทรัพยากรชนิดใด", "ตลาดเอกชนกับงานดูแลในครัวเรือนดึงคนออกจากพื้นที่ขาดอย่างไร"]],
-      ["ช่องที่ 3", "ข้อเสนอภายในกติกาเดิม", "var(--p1-text)", ["จัดสรรรอบหน้าด้วยหลายเกณฑ์", "วางตำแหน่งใหม่ตามความจำเป็นทุกรอบกรอบ", "ส่งแพทย์ใหม่ทุกปีจากตำแหน่งว่างจริง", "ประกาศกลุ่ม เวลาเริ่ม และผลที่จะวัดไว้ล่วงหน้า <span class=\"nobr\">งานปกติจึงกลายเป็นการทดลอง</span>"]]
+      ["ช่องที่ 1", "วิเคราะห์ปัญหาภายในกติกาเดิม", "var(--p1-text)", ["ตรวจยอดแพทย์กับข้อมูลเข้าออก", "เชื่อมข้อมูลรายคนโดยไม่เปิดเผยตัวตน", "วัดเวลาทำงานจริง: ผู้ตอบ\u00a0<b>" + F("c77_early_retire_all") + "%</b> คิดเกษียณก่อนหรือลดเวลางาน", "ติดตามผู้ที่ออกแล้ว"]],
+      ["ช่องที่ 2", "วิเคราะห์ปัญหาเชิงโครงสร้าง", "var(--p2-text)", ["ใครกำหนดตำแหน่ง ด้วยเหตุผลใด", "ใครนับว่าขาด เพื่อขอทรัพยากรอะไร", "งานเอกชนและงานดูแลมีผลต่อการย้ายหรือไม่ อย่างไร"]],
+      ["ช่องที่ 3", "ข้อเสนอภายในกติกาเดิม", "var(--p1-text)", ["เปรียบเทียบหลายเกณฑ์จัดสรร", "เพิ่มตำแหน่งตามความจำเป็น", "ส่งแพทย์ตามตำแหน่งว่างจริง", "กำหนดกลุ่ม เวลา และผลที่จะวัดก่อนเริ่ม"]]
     ];
     var grid = H("div", "nx-grid nx-agenda", null, host);
     grid.style.gridTemplateColumns = "repeat(3, minmax(0, 1fr))";
@@ -694,7 +706,7 @@
         lis.push(li);
       });
     });
-    var hand = H("div", "nx-card hud-panel nx-hand", '<div class="nx-head"><span class="nx-num">4</span><h4>ทุกงานในสามช่องนี้ส่งหลักฐานให้ช่องที่สี่</h4></div>', grid);
+    var hand = H("div", "nx-card hud-panel nx-hand", '<div class="nx-head"><span class="nx-num">4</span><h4>ใช้หลักฐานจากทั้งสามช่องประเมินข้อเสนอเปลี่ยนกติกา</h4></div>', grid);
     hand.style.gridColumn = "1 / -1"; hand.style.gridRow = "6"; hand.style.borderColor = "var(--accent)";
     lis.push(hand);
     return stepper(host, 1, function (k, anim, jobs) {
@@ -712,27 +724,27 @@
     wrap.style.alignItems = "start";
     var left = H("div", "", null, wrap);
     var svgWrap = H("div", "fig__svg", null, left);
-    var svg = S("svg", { viewBox: "0 0 430 410", role: "img", "aria-label": "งานสี่แบบของ Burawoy และการใช้งานวิจัยของ Weiss บนกรอบสี่ช่อง" });
+    var svg = S("svg", { viewBox: "0 0 430 410", role: "img", "aria-label": "งานสี่แบบของ Burawoy เทียบกับสี่ช่องโดยประมาณ และการใช้งานวิจัยของ Weiss" });
     svgWrap.appendChild(svg); U.defs(svg);
     var q = quad(svg, { x: 0, y: 0, w: 430, h: 330, labels: false, numSize: 20, fs: 14, lw: 122 });
     var bur = ["งานวิชาชีพ", "งานวิพากษ์", "งานนโยบาย", "งานสาธารณะ"];
-    var wei = [null, ["ใช้เพื่อเปิด", "ความเข้าใจ"], ["ใช้แก้", "ปัญหาเฉพาะหน้า"], ["ใช้เพื่อเปิด", "ความเข้าใจ"]];
+    var what = [["สร้างความรู้ในสาขา"], ["ตั้งคำถาม", "ต่อสิ่งที่เชื่อ"], ["เสนอวิธีแก้ปัญหา"], ["เรียนรู้", "ร่วมกับผู้เกี่ยวข้อง"]];
     var labs = [0, 1, 2, 3].map(function (i) {
       var r = q.rect(i), g = S("g", { style: "opacity:0" }, svg);
       txt(g, r.x + 12, r.y + r.h / 2 + 6, bur[i], 17, i === 3 ? "t-accent" : "t-strong");
-      if (wei[i]) { txt(g, r.x + 12, r.y + r.h - 32, wei[i][0], 13.5, "t-muted"); txt(g, r.x + 12, r.y + r.h - 12, wei[i][1], 13.5, "t-muted"); }
+      what[i].forEach(function (s, j) { txt(g, r.x + 12, r.y + r.h - 12 - (what[i].length - 1 - j) * 20, s, 13.5, "t-muted"); });
       return g;
     });
-    txt(svg, 0, 366, "Burawoy · งานสี่แบบตามชนิดความรู้และผู้ฟัง", 13.5, "t-muted");
-    txt(svg, 0, 392, "Weiss · การใช้งานวิจัยสองแบบ", 13.5, "t-muted");
+    txt(svg, 0, 366, "Burawoy · งานสี่แบบ เทียบกับสี่ช่องโดยประมาณ", 13.5, "t-muted");
+    txt(svg, 0, 392, "Weiss · ใช้งานวิจัยแก้ปัญหาเฉพาะหน้า และใช้ทำความเข้าใจปัญหาใหม่", 13.5, "t-muted");
     var right = H("div", "", null, wrap);
     var rows = [
-      ["ผู้วิเคราะห์และผู้ดูแลข้อมูล", "ตัวเลขที่ระบุขอบเขต ตัวหาร และความไม่แน่นอน", "ถือนิยามของผู้จัดเก็บเป็นความจริง", "ประกาศขอบเขตและการกระทบยอด รายงานส่วนที่อธิบายไม่ได้"],
-      ["ผู้วิพากษ์", "ข้อจำกัดที่ถูกทำให้ดูเป็นธรรมชาติ และผู้ที่รับต้นทุน", "หยุดที่อรรถาธิบาย ไม่ทดสอบ", "ระบุกลไก ผู้กระทำ และผลที่สังเกตได้ ยอมปรับเมื่อหลักฐานไม่สนับสนุน"],
-      ["ที่ปรึกษานโยบาย", "ทางเลือกที่ใช้ได้ในรอบตัดสิน พร้อมผลที่แลกกัน", "ตอบคำถามผู้ว่าจ้างโดยไม่ถามว่าคำถามถูกตั้งอย่างไร", "แยกระดับหลักฐาน ประกาศเกณฑ์ล่วงหน้า รายงานผลไม่ผ่าน เปิดเผยแหล่งทุน"],
-      ["ผู้ร่วมสร้างทางเลือกกับสาธารณะ", "ทางเลือกระยะยาวที่ตรวจได้ด้วยเกณฑ์ที่เปิดเผย", "เสนอแทนผู้อื่น หรือใช้ความน่าเชื่อถือทางวิชาการรับรองอุดมการณ์", "ใช้เกณฑ์ห้าข้อ ทำงานร่วมกับผู้ทำงาน <span style=\"white-space:nowrap\">ผู้ดูแล</span> และชุมชน บันทึกความเห็นต่าง"]
+      ["ผู้วิเคราะห์และผู้ดูแลข้อมูล", "ตัวเลขที่บอกว่านับใคร<br>เทียบอะไร<br>และยังไม่แน่ใจเรื่องใด", "คิดว่าข้อมูลที่หน่วยงานเก็บครอบคลุมปัญหาทั้งหมด", "บอกขอบเขต<br>ตรวจยอดกับข้อมูลเข้าออก<br>รายงานส่วนที่ยังอธิบายไม่ได้"],
+      ["ผู้วิพากษ์", "ชี้ว่ากติกาจำกัดใคร เอื้อใคร และให้ใครรับภาระ", "อธิบายอย่างเดียว ยังไม่ตรวจด้วยหลักฐาน", "บอกว่าใครทำอะไร เกิดผลอย่างไร ยอมปรับคำอธิบายเมื่อหลักฐานไม่สนับสนุน"],
+      ["ที่ปรึกษานโยบาย", "ทางเลือกที่ใช้ได้รอบหน้า พร้อมผลดีและภาระที่ต้องแลก", "ตอบตามโจทย์ผู้ว่าจ้าง<br>จนมองข้ามปัญหาของคนอื่น", "แยกผลจริง ผลจำลอง และข้อเสนอ<br>กำหนดเกณฑ์ก่อนเริ่ม<br>รายงานผลไม่ผ่านและแหล่งทุน"],
+      ["ผู้ร่วมพัฒนาทางเลือกกับประชาชน", "ทางเลือกระยะยาวที่ประเมินได้ด้วยเกณฑ์เปิดเผย", "พูดแทนผู้อื่น<br>หรือทำให้ความเชื่อตน<br>ดูเหมือนข้อสรุปวิชาการ", "ตอบคำถามห้าข้อ ร่วมงานกับผู้ทำงาน <span style=\"white-space:nowrap\">ผู้ดูแล</span> ชุมชน และบันทึกความเห็นต่าง"]
     ];
-    var table = H("table", "nx-table nx-roles", '<colgroup><col style="width:21%"><col style="width:24%"><col style="width:25%"><col style="width:30%"></colgroup><thead><tr><th>บทบาท</th><th>สิ่งที่ให้</th><th>ความเสี่ยงเมื่อทำลำพัง</th><th>หลักปฏิบัติ</th></tr></thead>', right);
+    var table = H("table", "nx-table nx-roles", '<colgroup><col style="width:21%"><col style="width:24%"><col style="width:25%"><col style="width:30%"></colgroup><thead><tr><th>บทบาท</th><th>ช่วยเรื่องใด</th><th>สิ่งที่ต้องระวัง</th><th>สิ่งที่ควรทำ</th></tr></thead>', right);
     table.style.fontSize = "var(--fs-body)";
     var tb = H("tbody", "", null, table);
     var trs = rows.map(function (r, i) { var tr = H("tr", "", "<td>" + (i + 1) + " " + r[0] + "</td><td>" + r[1] + "</td><td>" + r[2] + "</td><td>" + r[3] + "</td>", tb); return tr; });
@@ -752,15 +764,15 @@
     wrap.style.alignItems = "stretch";
     var a = H("div", "nx-card hud-panel", null, wrap);
     a.innerHTML = '<div class="nx-grid" style="grid-template-columns:repeat(2,minmax(0,1fr));gap:calc(var(--u)*1.2)">' +
-      '<div><h4>Harris · การยึดรัฐเพื่อการพัฒนา</h4><p>เครือข่ายข้าราชการนักปฏิรูประดมทรัพยากรจนสถาปนาหลักประกันสุขภาพถ้วนหน้า</p></div>' +
-      '<div><h4>Selway · กติกาการเลือกตั้งและพรรค</h4><p>ขบวนการวิชาชีพจำเป็น แต่การเมืองเชิงสถาบันชี้ขาดมากกว่า</p></div></div>' +
-      '<p class="nx-label">ความเสี่ยงของความใกล้ชิด</p>' +
-      '<div class="nx-col"><ul><li>วาระวิจัยถูกกำหนดด้วยคำถามที่หน่วยงานถามได้ภายในอำนาจของตน</li><li>ผู้สร้างความรู้กับผู้ตัดสินเป็นเครือข่ายเดียวกัน การตรวจจากภายนอกอ่อน</li><li>ผู้ที่อยู่นอกเครือข่ายไม่มีช่องทางโต้แย้งเกณฑ์ที่ถูกเลือก</li></ul></div>';
+      '<div><h4>Harris · เครือข่ายข้าราชการนักปฏิรูป</h4><p>ช่วยรวบรวมกำลังและทรัพยากร จนผลักดันหลักประกันสุขภาพถ้วนหน้าได้</p></div>' +
+      '<div><h4>Selway · กติกาการเลือกตั้งและพรรค</h4><p>ขบวนการวิชาชีพสำคัญ<br>แต่ให้น้ำหนักกับกติกาการเลือกตั้ง<br>และพรรคการเมืองมากกว่า</p></div></div>' +
+      '<p class="nx-label">สิ่งที่ต้องระวังเมื่อทำงานใกล้กัน</p>' +
+      '<div class="nx-col"><ul><li>โจทย์วิจัยจำกัดอยู่แค่อำนาจของหน่วยงาน</li><li>คนในเครือข่ายตรวจสอบกันเอง</li><li>คนนอกไม่มีช่องทางโต้แย้งเกณฑ์</li></ul></div>';
     var b = H("div", "nx-card hud-panel", null, wrap);
     // the four A4R conditions are a plain list, the study's actions are checked rows: they are not paired one to one
     b.innerHTML = '<div class="nx-grid" style="grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:calc(var(--u)*1.4)">' +
-      '<div><h4>A4R ใช้กับนักวิชาการด้วย</h4><ul class="nx-plain"><li><b>เปิดเผย</b>เหตุผล</li><li>เหตุผลต้อง<b>เกี่ยวข้อง</b></li><li>มี<b>ช่องทางอุทธรณ์</b></li><li>มี<b>กลไกกำกับ</b></li></ul></div>' +
-      '<div><h4>สิ่งที่การศึกษาครั้งนี้ทำแล้ว</h4><div class="nx-col nx-check"><ul><li>ประกาศเกณฑ์ตรวจแบบจำลองก่อนรัน และรายงานผลที่ไม่ผ่าน</li><li>กำหนดผลลัพธ์หลักของการสำรวจก่อนคำนวณ</li><li>ปรับสถานะข้อเสนอเรื่องภาระงานที่ข้อมูลไม่สนับสนุน</li><li>เปิดโค้ดและเครื่องมือทดลองให้ผู้อื่นตรวจ</li><li>แยกข้อมูลรายบุคคลออกจากผลที่เผยแพร่</li></ul></div></div></div>';
+      '<div><h4>ความรับผิดชอบต่อความสมเหตุสมผล (A4R)</h4><ul class="nx-plain"><li><b>เปิดเผย</b>เหตุผล</li><li>ใช้เหตุผลที่<b>เกี่ยวข้อง</b>และรับฟังกันได้</li><li>มี<b>ช่องทางคัดค้าน</b>และทบทวน</li><li>มี<b>ผู้กำกับ</b>ให้ทำตามหลัก</li></ul></div>' +
+      '<div><h4>สิ่งที่การศึกษาครั้งนี้ทำแล้ว</h4><div class="nx-col nx-check"><ul><li>ประกาศเกณฑ์ก่อนคำนวณและรายงานผลไม่ผ่าน</li><li>กำหนดผลหลักของการสำรวจก่อนวิเคราะห์</li><li>ปรับข้อเสนอเรื่องภาระงานเมื่อข้อมูลไม่สนับสนุน</li><li>เปิดรหัสโปรแกรมและเครื่องมือให้ตรวจ</li><li>แยกข้อมูลรายคนออกจากผลเผยแพร่</li></ul></div></div></div>';
     return stepper(host, 2, function (k, anim, jobs) {
       if (k === 1) { b.style.opacity = 0; if (anim) { a.style.opacity = 0; later(jobs, 80, function () { a.style.opacity = 1; }); } else a.style.opacity = 1; }
       if (k === 2) { if (!anim) b.style.opacity = 1; else later(jobs, 80, function () { b.style.opacity = 1; }); }
@@ -769,7 +781,7 @@
 
   /* ---------------- s12 polycentric learning network (Ostrom) ---------------- */
   FIGS.s12 = function (host) {
-    var svg = U.svgHost(host, "0 0 640 520", "เครือข่ายการเรียนรู้หลายศูนย์"); U.defs(svg);
+    var svg = U.svgHost(host, "0 0 640 520", "เครือข่ายที่พื้นที่และส่วนกลางร่วมเรียนรู้ (Ostrom)"); U.defs(svg);
     var C = [320, 262], R1 = 170, R2 = 236;
     var under = S("g", {}, svg);
     var locals = [];
@@ -795,8 +807,8 @@
     S("circle", { cx: C[0], cy: C[1], r: 66, style: "fill:var(--card-strong);stroke:var(--accent);stroke-width:1.6", class: "glow" }, hubG);
     S("circle", { cx: C[0], cy: C[1], r: 66, style: "fill:var(--accent-soft)" }, hubG);
     txt(hubG, C[0], C[1] - 6, "เวทีทบทวน", 15, "t-strong", "middle");
-    txt(hubG, C[0], C[1] + 16, "กติการะดับประเทศ", 13, "t-accent", "middle");
-    txt(svg, 0, 514, "จุดฟ้า: ผู้วิเคราะห์ระดับเขตและจังหวัด · จุดทอง: ผลการทดลองที่ส่งกลับสู่เวทีทบทวน (Ostrom)", 12, "t-muted");
+    txt(hubG, C[0], C[1] + 16, "กติกาของประเทศ", 13, "t-accent", "middle");
+    txt(svg, 0, 514, "จุดฟ้า: นักวิเคราะห์ในเขตและจังหวัด · จุดทอง: ผลจากพื้นที่ที่ส่งกลับสู่เวทีทบทวน (Ostrom)", 12, "t-muted");
     var pulses = locals.map(function (l, i) { return { l: l, o: i / locals.length, el: S("circle", { r: 3, style: "fill:var(--accent)" }, under) }; });
     U.loop(svg, function (dt, ts) {
       pulses.forEach(function (p) {

@@ -24,12 +24,6 @@
   "source": "outputs/chapter5/claims_5_frame.csv"
  },
  {
-  "token": "c5f_PR_F1_bq_P",
-  "display": "0.390",
-  "unit": "",
-  "source": "outputs/chapter5/claims_5_frame.csv"
- },
- {
   "token": "c5f_PR_GDc5_bq_P",
   "display": "0.488",
   "unit": "",
@@ -38,12 +32,6 @@
  {
   "token": "c5f_PR_GDh5_bq_P",
   "display": "0.396",
-  "unit": "",
-  "source": "outputs/chapter5/claims_5_frame.csv"
- },
- {
-  "token": "c5f_PR_bq_P",
-  "display": "0.437",
   "unit": "",
   "source": "outputs/chapter5/claims_5_frame.csv"
  },
@@ -124,5 +112,11 @@
   "display": "300",
   "unit": "",
   "source": "monograph 01_scarcity.md:115; Wibulpolprasert & Pengpaibon 2003"
+ },
+ {
+  "token": "lit.target_ratio",
+  "display": "1:1,000",
+  "unit": "",
+  "source": "monograph 05_allocation.md:84"
  }
 ]
