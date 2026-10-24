@@ -346,7 +346,7 @@ html[data-theme="dark"] body.mode-read .rd-fig__card { background: #101722; }
 
 /* tooltip: values lead, labels follow */
 .tooltip.rv-tip { max-width: 360px; padding: 9px 12px 10px; }
-.rv-tip__title { display: block; margin-bottom: 5px; font-weight: 500; }
+.rv-tip__title { display: block; margin-bottom: 5px; font-weight: 500; color: #ffffff; }
 .rv-tip__row { display: flex; align-items: baseline; gap: 10px; line-height: 1.45; }
 .rv-tip__row b { font-weight: 600; color: #ffffff; min-width: 3.2em; font-variant-numeric: tabular-nums; }
 .rv-tip__row span { color: #c4ccd6; display: inline-flex; align-items: baseline; gap: 6px; }
@@ -367,7 +367,8 @@ html[data-theme="dark"] body.mode-read .rd-fig__card { background: #101722; }
 
 /* chapter 05: stock and flow with loops */
 .rv .cld-stocklab { fill: var(--rv-ink); font-size: 16px; font-weight: 500; }
-.rv .cld-flow { fill: var(--rv-ink); font-size: 13.5px; font-weight: 500; }
+.rv .cld-flow { fill: var(--rv-ink2); font-size: 14px; font-weight: 400; }
+.rv .cld-pipefill { fill: var(--rv-neutral2); }
 .rv .cld-sub { fill: var(--rv-muted); font-size: 12px; }
 .rv .cld-aux { fill: var(--rv-ink2); font-size: 15px; }
 .rv .cld-lever { fill: var(--rv-ink); font-size: 15px; font-weight: 500; }
@@ -375,14 +376,18 @@ html[data-theme="dark"] body.mode-read .rd-fig__card { background: #101722; }
 .rv .cld-loopid { fill: var(--rv-1); font-size: 16px; font-weight: 600; }
 .rv .cld-looplab { fill: var(--rv-1); font-size: 13.5px; font-weight: 500; }
 .rv .cld-hit { fill: none; stroke: transparent; stroke-width: 16; pointer-events: stroke; cursor: help; }
+.rv .cld-hitbox { fill: transparent; stroke: none; pointer-events: all; cursor: help; }
 .rv .cld-link, .rv .cld-node, .rv .cld-loop { transition: opacity var(--dur) var(--ease); }
 .rv .cld-link.is-dim, .rv .cld-node.is-dim { opacity: .28; }
 .rv .cld-loop { cursor: pointer; outline: none; }
-.rv .cld-loop.is-lit .cld-loopring { stroke-width: 3.4; }
-.rv .cld-loop:focus-visible .cld-loopring { stroke: var(--focus); }
+/* marks are painted with inline styles, so state rules need !important */
+.rv .cld-loop.is-lit .cld-loopring { stroke-width: 3.4 !important; }
+.rv .cld-loop:focus-visible .cld-loopring { stroke: var(--focus) !important; }
+.rv .cld-loop:focus-visible .cld-loophead { fill: var(--focus) !important; }
 .rv svg.cld-focus .cld-link:not(.is-hot), .rv svg.cld-focus .cld-node:not(.is-hot), .rv svg.cld-focus .cld-loop:not(.is-hot) { opacity: .16; }
-.rv svg.cld-focus .cld-link.is-hot .cld-line { stroke: var(--rv-1) !important; }
-.rv svg.cld-focus .cld-link.is-hot .cld-head { fill: var(--rv-1) !important; }
+.rv svg.cld-focus .cld-link.is-hot .cld-line, .rv svg.cld-focus .cld-link.is-hot .cld-pipewall { stroke: var(--rv-1) !important; }
+.rv svg.cld-focus .cld-link.is-hot .cld-head, .rv svg.cld-focus .cld-link.is-hot .cld-pipehead { fill: var(--rv-1) !important; }
+.rv svg.cld-focus .cld-link.is-hot .cld-pipesign, .rv svg.cld-focus .cld-link.is-hot .cld-pipesign + .cld-sign { stroke: var(--rv-1) !important; }
 .cld-notes { display: grid; gap: 6px; }
 .cld-era { font-size: var(--fs-small); line-height: 1.75; color: var(--text-secondary); background: var(--rv-wash); border-left: 3px solid var(--rv-1);
   border-radius: 0 6px 6px 0; padding: 10px 14px; margin: 0; }

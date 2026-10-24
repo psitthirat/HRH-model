@@ -697,6 +697,7 @@ export function legendHTML(items, hidden, onToggle) {
   for (const it of items) {
     const sw = h("span", { class: `rv-sw rv-sw--${it.shape || "line"}`, "aria-hidden": "true" });
     sw.style.setProperty("--k", it.color || C.neutral);
+    if (it.width) sw.style.height = `${it.width}px`;
     const lab = h("span", { text: it.label });
     if (it.toggle && onToggle) {
       const on = !hidden.has(it.key);

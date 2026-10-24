@@ -1,7 +1,7 @@
 {
- "release_id": "20261023T162737Z-3ea94b76b871",
+ "release_id": "20261024T042738Z-518bfb6e458d",
  "schema_version": "1.0.0",
- "generated_at": "2026-10-23T16:27:37+00:00",
+ "generated_at": "2026-10-24T04:27:38+00:00",
  "data_as_of": "2026-10-22T16:59:50Z",
  "status": "promoted",
  "freshness": {
@@ -29,8 +29,8 @@
  },
  "files": {
   "bundle.json": {
-   "sha256": "5ea8817fae2eab2731dea7f6791b9e37c648a7cbca178b968081a02cf27d81f4",
-   "bytes": 5662823
+   "sha256": "4c5e75cf6add492521579c4a7f0d20ccf5b9c041838ffcf9ba82371576d4773b",
+   "bytes": 5662940
   },
   "geo.json": {
    "sha256": "f6244a2deb14d91d9b39fccaaf19c7f35ead459b41acb632bd3992a829adbae7",
@@ -41,7 +41,7 @@
    "bytes": 889776
   },
   "lab/lab.json": {
-   "sha256": "1e033c7fe1f05a3cb0002a439a3ddf70701e9b902892bd68c9520b62870f8d8e",
+   "sha256": "e99aed8ccc191accd92de54b6243858860897a1f11d1b5a2367a7f91c77bfb2e",
    "bytes": 327599
   },
   "lab/engine/chapter4/__init__.py": {
@@ -161,91 +161,91 @@
    "bytes": 8188997
   },
   "lab/presets/NFB0p5-R.json": {
-   "sha256": "9416532f325d063c6c72f916ed567f55462827f311864c9f7ac8fdb80622caf1",
+   "sha256": "ebcb9855d8825e005874443d4ced64995f0fbc7c243cacdc018a7a8f67221155",
    "bytes": 9134790
   },
   "lab/presets/NFB1-R.json": {
-   "sha256": "4007837dd5b3481c8d35f622c7e46b3459c3b90a522d5caf32dde12b7156c1e3",
+   "sha256": "716981efa119e1bea815c9c3a7b6b6fbf2e56cae1a909fc34eedabafad7d51af",
    "bytes": 9121122
   },
   "lab/presets/P-R.json": {
-   "sha256": "4a3242c3bc54249448dc5ff8b47b039785e8157250829ad3c6ad1ac3078c06a5",
+   "sha256": "710442ec9eaa3cee06c64cbab4e7d4c16006a2cc56ef266ef5ea4a41aec2eaa9",
    "bytes": 9074490
   },
   "lab/presets/S-R.json": {
-   "sha256": "fecd4519f8482b714579cfc4313a07701d8f548a0f68cfd1af0b26927e2678e2",
+   "sha256": "1c9c96fea4518e2f98b29f352e033fb13794c0b8e8be03eb78c2660f0495e28f",
    "bytes": 9099371
   },
   "lab/presets/N-R.json": {
-   "sha256": "858634fabe5cebe224458b11139fecf87bc450b9650136a5680ffc9bf16662cc",
+   "sha256": "df5e726ea4553920d30a3d3935dee0786713ada73eb39aec2b3c972912aa48b1",
    "bytes": 9094503
   },
   "lab/presets/P-R_g10.json": {
-   "sha256": "82f517859d46789c43014690ede4d8e25d552bb73c4b23ad0478af0060d80d7d",
+   "sha256": "5fa833a561224039f18f2b86095ecbb0d2054e724b734d8a94bf27d0d922932e",
    "bytes": 9123403
   },
   "lab/presets/P-R_F0.json": {
-   "sha256": "a517f3c9652a38e7657c2d2b88abe75bafd0a526578d48a678ec9ae4d27aed7b",
+   "sha256": "c2b4b884d1ae528b1e70d39db8693d8023e4b8fdd4ccbc2cdfa7ad7114bf744c",
    "bytes": 9092561
   },
   "lab/presets/P-R_F1.json": {
-   "sha256": "cdf5b0f086947cfe475b485a4df02675cca81c4ca3d3bc70f7c3fbbf678903a6",
+   "sha256": "2a4a86078f50f25bdd69cdcd5dbb55f1079773860af5d2fd24856d225a22643f",
    "bytes": 9109263
   },
   "lab/presets/P-R_need.json": {
-   "sha256": "85e971c31f52143b69e5a85f4afce71552ce4cff1c3c46461e8b5f47ad3a7cbe",
+   "sha256": "2153fb496782f0ff0eceeeda9ed0ad52ca0262f3ff75d222e270ab13afa473b0",
    "bytes": 9129248
   },
   "lab/presets/P-R_GDh5.json": {
-   "sha256": "bb14a724625fbb05eda4f676e1a0ba5a86a9fd05f26f1a3933e8d2e8372c9f58",
+   "sha256": "86ad07f3086e0b43494eab6b962e52107175b4545b0d5819d0332778c2dd5c1a",
    "bytes": 9133208
   },
   "lab/presets/P-R_GDc5.json": {
-   "sha256": "1bd42dadb9065008dd11dbbc63a5876cb1987f0804b71d4f985feaf9df619610",
+   "sha256": "c5427b2ca2b5e2092db465a28420c7d19e78aa25549ecd1924a5f972f3b755cf",
    "bytes": 9132083
   },
   "lab/presets/SQ-C.json": {
-   "sha256": "b474ec809361132537096a25ba42c1487e8ccf077e1c97334b3c6f796eb1b2c0",
+   "sha256": "82ceb84696d0219bcc85e1bfef1b96086b9069e7f660243d1ed9e611eaf650c0",
    "bytes": 9106177
   },
   "lab/presets/B-R.json": {
-   "sha256": "68cf046ddd2b93708fefc130e9a293c7aaf4cc2cb9b82382ebf89745523b142c",
+   "sha256": "7b15387cbb630d7b2c48dc4d021fe72f5bf53fd375cae737ec2f9679b6abd32a",
    "bytes": 9094629
   },
   "lab/presets/P-R_resp_all.json": {
-   "sha256": "9336d2f01371bf9cd0c58b851b212deea9432b53861c4a5accb1bcc4637fb805",
+   "sha256": "28ebdcc3dd9148e791553e6db1b625c11b7dbfac04571d2160343db5d0639de4",
    "bytes": 9132515
   },
   "lab/presets/P-R_pool1500.json": {
-   "sha256": "b573154191db8d9d5859c8933c30c5149e35f683c69438d33bad5c269303ccf0",
+   "sha256": "0c628ff05b2621c2294b3cb6a4f7f0cbb55e47874c390ca528af9b64069f2a7a",
    "bytes": 9148594
   },
   "lab/presets/P-R_pool2150.json": {
-   "sha256": "d247b55e8109f8f0a4c85c0690385c16e9f4110744056fdf6d5e41e074847251",
+   "sha256": "9c75ea467db325b15e321feff46a42f46f30a7efe02008a657c522c761563418",
    "bytes": 9137882
   },
   "lab/presets/P-R_noframe.json": {
-   "sha256": "ca4fb719b64ec99c824bf08a76998a5d21c547dea21c779b599ca08e3f902930",
+   "sha256": "43c3e901c33d7f35028be1dfd2b6208b540586a2d313a4616abc01eaa84c5c86",
    "bytes": 8741784
   },
   "lab/presets/P-RT.json": {
-   "sha256": "bb16da7f0e6da7940876f65520e22dfa5f407b4e486f0fee6cfef7c0c6137cb3",
+   "sha256": "2796aa29413e3cf8307edd8ea2fb3f909e1f01b945daa6364c52ad552c6226b0",
    "bytes": 9421841
   },
   "lab/presets/S-RT.json": {
-   "sha256": "d1163788a07c0dbef24afc3ed10a67b9de604b1f9fd01214432245ef45a60a29",
+   "sha256": "b099d18ab8ff3a5eeeb06d814c656c6d993131359afd02abeac88b10f38089a9",
    "bytes": 9401093
   },
   "lab/presets/N-RT.json": {
-   "sha256": "c946b4f3838281f545e81856c916ca99e77cd1327ca6fef3b62d296cd23fc69e",
+   "sha256": "0a25998405a93ce79d0276ac893b9b60f7a1e6e8dae3a6386ba5b33612e44509",
    "bytes": 9430553
   },
   "lab/presets/B-RT.json": {
-   "sha256": "700208ee22971f5af1a62eb14215147f2adf75babc528ab6e67e5f9a5e6fc2b2",
+   "sha256": "f1f99ef47da8f8cef506bd51eb58c4d7bba43bfc88919ff7d86a8b7a576f3aa3",
    "bytes": 9401539
   },
   "lab/presets/P-RT_noframe.json": {
-   "sha256": "53909065a149beb5a09149d6ac588e4fc134f78651875bee2b717ae16e49bad6",
+   "sha256": "3a4743085e9e06afc22601be2ee46989fca88182abcae5f3dbe171275bc6fc9e",
    "bytes": 8772534
   }
  }

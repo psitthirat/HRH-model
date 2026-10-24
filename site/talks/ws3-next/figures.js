@@ -81,7 +81,7 @@
       ".nx-table.nx-roles{table-layout:fixed}",
       ".nx-roles td:first-child{white-space:normal}",
       ".nx-roles tbody tr:last-child td{background:var(--accent-soft)}",
-      ".nx-roles tbody tr:last-child td:first-child{box-shadow:inset 3px 0 0 var(--accent);color:var(--accent-text)}",
+      ".nx-roles tbody tr:last-child td:first-child{background:linear-gradient(var(--accent),var(--accent)) left top/3px 100% no-repeat,var(--accent-soft);color:var(--accent-text)}",   // a background prints; the old inset shadow did not
       ".nx-near .nx-card{gap:calc(var(--u)*.6)}",
       ".nx-near .nx-card .nx-grid{height:auto}",
       ".nx-near .nx-card h4{font-size:calc(var(--fs-body)*1.05)}",
@@ -96,6 +96,19 @@
       ".nx-quote{margin:0}",
       // s13: the closing line in four lines, the last one whole ("ของแต่ละทางเลือกปรากฏชัด")
       "#slide-13 .display{font-size:calc(var(--fs-display)*.9)}",
+      // round 3: use the lower left of the text column (s03 key, s04 names, s06 conditions, s08 two rows)
+      ".nx-key{display:flex;flex-direction:column;gap:calc(var(--u)*.55);margin:auto 0;padding-top:calc(var(--u)*1);border-top:1px solid var(--line)}",
+      ".nx-key p{display:flex;align-items:baseline;gap:.55em;margin:0;font-size:var(--fs-body);line-height:1.42;color:var(--text-2)}",
+      ".nx-key svg{flex:none;width:1.05em;height:1.05em;transform:translateY(.16em)}",
+      ".nx-key p.nx-key__hit{color:var(--accent-text)}",
+      ".nx-key p.nx-key__hit:not(.is-pending){transition-delay:1.9s}",   // s03: the takeaway lands after callout 6
+      ".nx-names{margin-top:auto;margin-bottom:calc(var(--u)*2.7);display:flex;flex-direction:column;gap:calc(var(--u)*.5);padding-left:calc(var(--u)*.9);border-left:2px solid var(--line-strong)}",
+      ".nx-names p{margin:0;font-size:var(--fs-body);line-height:1.42;color:var(--text-2)}",
+      ".nx-names b{color:var(--text-1);font-weight:500}",
+      ".nx-names p.nx-names__e,.nx-names p.nx-names__e b{color:var(--accent-text)}",
+      "@media (min-width:861px){#slide-4.slide[data-layout=\"split\"],#slide-5.slide[data-layout=\"split\"]{grid-template-columns:minmax(0,.74fr) minmax(0,1.46fr)}" +
+        "#slide-8 .slide__text{position:relative}" +
+        "#slide-8 .slide__text .nx-row2{position:absolute;left:0;right:0;top:calc(var(--u)*23.7);margin:0;padding-top:calc(var(--u)*1.1);border-top:1px solid var(--line)}}",
       ".nx-quote cite{display:block;font-style:normal;font-size:var(--fs-kicker);color:var(--muted);margin-top:.35em}"
     ].join("\n");
     var st = document.createElement("style"); st.id = "nx-style"; st.textContent = css; document.head.appendChild(st);
@@ -135,11 +148,11 @@
       "ผู้สูงอายุ ผู้ป่วย ผู้ตอบ ผู้ดูแล ประชากร ตำแหน่ง บุคลากร สาธารณสุข กระทรวง ผู้ร่วมเสวนา การตัดสินร่วม " +
       "ผลที่คงทนที่สุด มันคือ ทำอะไร ขอให้เลือก ธำรงคน ธำรงคนไว้ การธำรงคนในระบบ ธำรงคนในระบบ หนึ่งในสิบ ระบบการจ้าง " +
       "แบบจำลองการเลือก ดูเป็นธรรมชาติ ทุกทางเลือก การกวาดตาแบบผสม กวาดตาแบบผสม ถูกเรียกว่า ช่องอื่น เส้นทางอาชีพ " +
-      "การดูแลระยะยาว ดูแลระยะยาว ด้วยการกวาดตาแบบผสม ฉากทัศน์ " +
+      "การดูแลระยะยาว ดูแลระยะยาว ด้วยการกวาดตาแบบผสม ฉากทัศน์ แกนแรก แกนที่สอง มาตรการทั่วไป รับไว้ " +
       "ที่มี ก็มี เพื่อขอ กรอบสี่ช่อง ขั้นทดลองที่มีจุดตรวจ ตัวเลขความขาดแคลน การเมืองเชิงสถาบัน คำตอบภายในกติกาเดิม " +
       "แบบจำลองการเลือกของบุคลากร ความเสี่ยงที่ต้องจัดการ หลายเรื่อง ส่งงาน ส่งงานให้กัน สองคอลัมน์ " +
       "สวรส. สธ. สพพ. รพ.สต. สป.").split(" ").sort(function (a, b) { return b.length - a.length; });
-    var GLUE = new Set("ความ การ ผู้ นัก แต่ และ หรือ จึง ซึ่ง เพราะ ถ้า หาก เมื่อ แม้ โดย ทั้ง ส่วน เชิง แต่ละ ทุก จนกว่า มันคือ ไม่ได้ ที่มี ก็มี เพื่อขอ".split(" "));
+    var GLUE = new Set("ความ การ ผู้ นัก แต่ และ หรือ จึง ซึ่ง เพราะ ถ้า หาก เมื่อ แม้ โดย ทั้ง ส่วน เชิง แต่ละ ทุก จนกว่า มันคือ ไม่ได้ ที่มี ก็มี เพื่อขอ ออกจาก เพียง".split(" "));
     var SOFT = new Set("ที่ ไม่ ของ ใน จาก กับ ให้ เป็น คือ ต่อ ตาม เพื่อ อย่าง จะ ต้อง ควร ยัง ระหว่าง ว่า ภายใน ภายใต้ ด้วย ถึง แก่ บน สู่ สำหรับ".split(" "));
     var SHORT = 16;                               // longest unit a SOFT word may make, in characters
     var WHOLE = 40;                               // a <strong>/<b> term up to this length never breaks
@@ -216,23 +229,48 @@
     hooks.afterRender.push(run);
   })();
 
+  /* ---------------- print: stars without the glow discs ----------------
+   * The engine's print star layer (hud.js printStars, CSS variable --print-stars) draws each soft glow as
+   * a faint disc with a bright core; in the PDF they print as hard grey dots, one under every title. This
+   * deck keeps the stars (r <= 1.6) and drops the glows (r >= 2.4) after the engine has set the layer. */
+  (function printWithoutGlows() {
+    var hooks = window.PEITHO.hooks = window.PEITHO.hooks || { afterRender: [], onShow: [] };
+    hooks.afterRender.push(function () {
+      var root = document.documentElement;
+      if (!root.classList.contains("print")) return;
+      var m = (root.style.getPropertyValue("--print-stars") || "").match(/^url\("data:image\/svg\+xml;charset=utf-8,(.*)"\)$/);
+      if (!m) return;
+      var svg = decodeURIComponent(m[1]).replace(/<circle [^>]*\br="([\d.]+)"[^>]*\/>/g, function (c, r) { return +r >= 2 ? "" : c; });
+      root.style.setProperty("--print-stars", 'url("data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg) + '")');
+    });
+  })();
+
   /* ---------------- the 2x2 knowledge map ---------------- */
   // Axes and box names as the owner set them (24 Oct 2569): each box is named from its two axes.
   var COLS = ["ภายในกติกาเดิม", "การเปลี่ยนแปลงโครงสร้าง"];
   var ROWS = [["การวินิจฉัยและ", "การวิเคราะห์ปัญหา"], ["การสังเคราะห์", "ข้อเสนอ"]];
   var QNAME = ["วิเคราะห์ปัญหาภายในกติกาเดิม", "วิเคราะห์ปัญหาเชิงโครงสร้าง", "ข้อเสนอภายในกติกาเดิม", "ข้อเสนอเปลี่ยนแปลงโครงสร้าง"];
   // quad(g, {x, y, w, h, labels, lw, fs}) -> {tiles, rect(i), center(i), x0, y0, gw, gh}; i = 0..3 for ช่องที่ 1..4
+  // base: an opaque ground under each tile, so an orbit drawn before the map passes behind it (s01, s13);
+  // halo: labels get a ground-coloured outline for the same reason; top: room between column labels and boxes.
   function quad(g, o) {
-    var fs = o.fs || 14, gap = o.gap == null ? 8 : o.gap, lw = o.rowLabel === false ? 0 : (o.lw || 118), top = o.colLabel === false ? 0 : 26;
+    var fs = o.fs || 14, gap = o.gap == null ? 8 : o.gap, lw = o.rowLabel === false ? 0 : (o.lw || 118), top = o.colLabel === false ? 0 : (o.top || 26);
     var tw = (o.w - lw - gap) / 2, th = (o.h - top - gap) / 2, x0 = o.x + lw, y0 = o.y + top;
+    var halo = o.halo ? { style: "paint-order:stroke;stroke:var(--bg);stroke-width:7px;stroke-linejoin:round" } : null;
     if (o.colLabel !== false) {
-      txt(g, x0 + tw / 2, o.y + 16, COLS[0], fs, "t-muted", "middle");
-      txt(g, x0 + tw + gap + tw / 2, o.y + 16, COLS[1], fs, "t-accent", "middle");
+      txt(g, x0 + tw / 2, o.y + 16, COLS[0], fs, "t-muted", "middle", halo);
+      txt(g, x0 + tw + gap + tw / 2, o.y + 16, COLS[1], fs, "t-accent", "middle", halo);
     }
     if (o.rowLabel !== false) {
       ROWS.forEach(function (lines, r) {
         var cy = y0 + r * (th + gap) + th / 2, lh = fs * 1.3;
-        lines.forEach(function (s, j) { txt(g, o.x, cy + (j - (lines.length - 1) / 2) * lh + fs * 0.35, s, fs, "t-muted"); });
+        lines.forEach(function (s, j) { txt(g, o.x, cy + (j - (lines.length - 1) / 2) * lh + fs * 0.35, s, fs, "t-muted", "start", halo); });
+      });
+    }
+    if (o.base) {
+      var bases = S("g", {}, g);
+      [0, 1, 2, 3].forEach(function (i) {
+        S("rect", { x: x0 + (i % 2) * (tw + gap), y: y0 + Math.floor(i / 2) * (th + gap), width: tw, height: th, rx: 6, style: "fill:var(--bg)" }, bases);
       });
     }
     var tiles = [0, 1, 2, 3].map(function (i) {
@@ -259,7 +297,7 @@
     wrap.appendChild(svg); U.defs(svg);
     var ring = S("g", { transform: "translate(260,280)" }, svg);    // drawn first: it passes behind the boxes
     [290, 320].forEach(function (r, i) { S("circle", { r: r, style: "fill:none;stroke:var(--line-strong);stroke-width:1;stroke-dasharray:" + (i ? "2 10" : "70 18") }, ring); });
-    var q = quad(svg, { x: 0, y: 60, w: 520, h: 420, labels: false, numSize: 54, gap: 14, fs: 17, lw: 152 });
+    var q = quad(svg, { x: 0, y: 60, w: 520, h: 420, labels: false, numSize: 54, gap: 14, fs: 17, lw: 152, top: 34, base: true, halo: true });
     var q4 = q.tiles[3].querySelector("rect");
     var a = 0;
     U.loop(svg, function (dt, ts) {
@@ -305,12 +343,17 @@
 
   /* ---------------- s03 the frame and the findings that hit its walls ---------------- */
   FIGS.s03 = function (host) {
-    var svg = U.svgHost(host, "0 0 640 520", "ผลที่คงทนที่สุดชนผนังของกรอบที่แบบจำลองรับไว้"); U.defs(svg);
+    var svg = U.svgHost(host, "0 44 640 406", "ผลที่คงทนที่สุดชนผนังของกรอบที่แบบจำลองรับไว้"); U.defs(svg);
     var box = { x: 10, y: 70, w: 300, h: 360 };
     S("rect", { x: box.x, y: box.y, width: box.w, height: box.h, rx: 10, style: "fill:var(--accent-soft);stroke:var(--accent);stroke-width:2", class: "glow" }, svg);
     txt(svg, box.x + 16, box.y + 30, "กติกาที่แบบจำลองรับไว้", 15, "t-accent");
     txt(svg, box.x + 16, box.y + 52, "ตำแหน่ง · ผู้จ้าง · ที่ตั้งการฝึก · ตลาด · งานดูแล", 12, "t-muted");
-    txt(svg, box.x + 16, box.y + box.h - 14, "จุด = ผลของการศึกษาที่วิ่งอยู่ภายในกติกา", 12, "t-muted");
+    // The figure's two captions live in a key under the body (the empty lower left of the text column):
+    // the dot, then (with the click) the wall chevron and the line the six findings add up to.
+    var col = host.closest(".slide").querySelector(".slide__text");
+    var key = H("div", "nx-key", null, col);
+    H("p", "", '<svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="4.5" style="fill:var(--p1)"/></svg><span>จุด = ผลของการศึกษาที่วิ่งอยู่ภายในกติกา</span>', key);
+    H("p", "nx-key__hit", '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M8,3 L15,10 L8,17 M4,10 H15" style="fill:none;stroke:var(--accent);stroke-width:2.2;stroke-linecap:round"/></svg><span>ผลที่คงทนที่สุดชี้ไปนอกกติกาที่เปลี่ยนได้ในรอบการจัดสรร</span>', key).setAttribute("data-step", "2");
     var parts = [];
     for (var i = 0; i < 26; i++) {
       var a = i * 2.39996;
@@ -321,7 +364,7 @@
       parts.forEach(function (p) {
         p.x += p.vx * dt; p.y += p.vy * dt;
         if (p.x < box.x + 6 || p.x > box.x + box.w - 6) { p.vx = -p.vx; p.x = Math.max(box.x + 6, Math.min(box.x + box.w - 6, p.x)); }
-        if (p.y < box.y + 66 || p.y > box.y + box.h - 34) { p.vy = -p.vy; p.y = Math.max(box.y + 66, Math.min(box.y + box.h - 34, p.y)); }
+        if (p.y < box.y + 66 || p.y > box.y + box.h - 8) { p.vy = -p.vy; p.y = Math.max(box.y + 66, Math.min(box.y + box.h - 8, p.y)); }
         p.el.setAttribute("cx", p.x); p.el.setAttribute("cy", p.y);
       });
     });
@@ -343,7 +386,6 @@
       else txt(g, 354, y + 8, s, 12.5, "t-strong");
       return g;
     });
-    txt(svg, box.x, 466, "ผลที่คงทนที่สุดชี้ไปนอกกติกาที่เปลี่ยนได้ในรอบการจัดสรร", 13, "t-muted");
     return stepper(host, 2, function (k, anim, jobs) {
       if (k === 1) chips.forEach(function (c) { c.style.opacity = 0; });
       if (k === 2) chips.forEach(function (c, i) { fade(c, true, anim ? 380 : 0, jobs, 150 + i * 260); });
@@ -352,9 +394,9 @@
 
   /* ---------------- s04 the four boxes of knowledge ---------------- */
   FIGS.s04 = function (host) {
-    var svg = U.svgHost(host, "0 0 640 520", "กรอบสี่ช่อง: การวินิจฉัยและการวิเคราะห์ปัญหาหรือการสังเคราะห์ข้อเสนอ ภายในกติกาเดิมหรือการเปลี่ยนแปลงโครงสร้าง"); U.defs(svg);
+    var svg = U.svgHost(host, "0 0 640 424", "กรอบสี่ช่อง: การวินิจฉัยและการวิเคราะห์ปัญหาหรือการสังเคราะห์ข้อเสนอ ภายในกติกาเดิมหรือการเปลี่ยนแปลงโครงสร้าง"); U.defs(svg);
     var g = S("g", {}, svg);
-    var q = quad(g, { x: 0, y: 0, w: 640, h: 420, lfs: 13.5 });
+    var q = quad(g, { x: 0, y: 0, w: 640, h: 420, lfs: 13.5, lw: 128 });   // same grid as s05
     var extra = S("g", { style: "opacity:0" }, svg);
     var r3 = q.rect(2), r4 = q.rect(3), my = r3.y + r3.h / 2, xa = r3.x + r3.w - 70, xb = r4.x + 70;
     S("rect", { x: xa - 8, y: my - 34, width: xb - xa + 16, height: 68, rx: 8, style: "fill:var(--bg);stroke:var(--accent);stroke-width:1" }, extra);
@@ -363,8 +405,10 @@
     S("path", { d: "M" + xb + "," + (my + 12) + " H" + (xa + 10), style: "fill:none;stroke:var(--accent);stroke-width:1.8" }, extra);
     S("path", { d: "M" + (xa + 12) + "," + (my + 6) + " L" + xa + "," + (my + 12) + " L" + (xa + 12) + "," + (my + 18) + "Z", style: "fill:var(--accent)" }, extra);
     txt(extra, (xa + xb) / 2, my - 18, "ส่งงานให้กัน", 12.5, "t-strong", "middle");
-    txt(extra, q.x0, 452, "Lindblom · ปรับทีละน้อย เปรียบเทียบทางเลือกที่ใกล้กัน", 13.5, "t-muted");
-    txt(extra, q.x0, 476, "Etzioni · กวาดตาแบบผสม: สำรวจทางเลือกพื้นฐานอย่างกว้าง แล้วลงมือทีละขั้น", 13.5, "t-accent");
+    // Lindblom and Etzioni sit at the foot of the text column (they arrive with click 2), so the map gets the figure.
+    var col = host.closest(".slide").querySelector(".slide__text");
+    H("div", "nx-names", '<p><b>Lindblom</b> · ปรับทีละน้อย เปรียบเทียบทางเลือกที่ใกล้กัน</p>' +
+      '<p class="nx-names__e"><b>Etzioni</b> · กวาดตาแบบผสม: สำรวจทางเลือกพื้นฐานอย่างกว้าง แล้วลงมือทีละขั้น</p>', col).setAttribute("data-step", "2");
     return stepper(host, 2, function (k, anim, jobs) {
       if (k === 1) {
         extra.style.opacity = 0;
@@ -376,8 +420,8 @@
 
   /* ---------------- s05 where this study sits ---------------- */
   FIGS.s05 = function (host) {
-    var svg = U.svgHost(host, "0 0 640 520", "งานของการศึกษาครั้งนี้ในสี่ช่อง"); U.defs(svg);
-    var q = quad(svg, { x: 0, y: 0, w: 640, h: 420, lfs: 13.5 });   // same geometry as s04
+    var svg = U.svgHost(host, "0 0 640 424", "งานของการศึกษาครั้งนี้ในสี่ช่อง"); U.defs(svg);
+    var q = quad(svg, { x: 0, y: 0, w: 640, h: 420, lfs: 13.5, lw: 128 });   // same grid, viewBox and column split as s04
     // What the study did in each box, as actions (owner, 24 Oct); quadrant two follows chapter 11:
     // shortage as something defined, organised and shifted onto others. Retention = การธำรงคนในระบบ.
     var items = [
@@ -413,57 +457,58 @@
 
   /* ---------------- s06 why quadrant four first, and on what conditions ---------------- */
   FIGS.s06 = function (host) {
-    var svg = U.svgHost(host, "0 0 640 520", "เหตุผลสามข้อและเงื่อนไขของช่องที่สี่"); U.defs(svg);
+    // Reasons 1-3 fill the figure; the conditions (click 3) sit under their paragraph in the text column.
+    var svg = U.svgHost(host, "0 0 640 480", "เหตุผลสามข้อที่ช่องที่สี่ควรมาก่อน"); U.defs(svg);
     // reason 1: the findings point there
     var g1 = S("g", {}, svg);
-    txt(g1, 0, 18, "เหตุผลที่หนึ่ง · ผลของการศึกษาชี้ไปที่นั่น", 14, "t-accent");
+    txt(g1, 0, 22, "เหตุผลที่หนึ่ง · ผลของการศึกษาชี้ไปที่นั่น", 15.5, "t-accent");
     [["กรอบคือสูตร", F("c5f_PR_F0_bq_P") + " ทุกหลักคิด"], ["ไม่มีตำแหน่งรองรับ", F("c5f_PR_pool2500_unplaced") + " คน*"], ["ต่ำทุกไม้บรรทัด", F("c46_dis_n_all_four") + " จังหวัด"]].forEach(function (c, i) {
       var x = i * 214;
-      S("rect", { x: x, y: 30, width: 204, height: 74, rx: 6, style: "fill:var(--card);stroke:var(--line-strong)" }, g1);
-      txt(g1, x + 12, 56, c[0], 13, "t-muted");
-      txt(g1, x + 12, 88, c[1], 20, "t-strong");
+      S("rect", { x: x, y: 38, width: 204, height: 96, rx: 6, style: "fill:var(--card);stroke:var(--line-strong)" }, g1);
+      txt(g1, x + 14, 70, c[0], 14, "t-muted");
+      txt(g1, x + 14, 114, c[1], 24, "t-strong");
     });
-    txt(g1, 0, 126, "* แพทย์พร้อมจัดสรรปีละสองพันห้าร้อยคน กรอบโตร้อยละห้าต่อรอบ", 12.5, "t-muted");
+    txt(g1, 0, 162, "* แพทย์พร้อมจัดสรรปีละสองพันห้าร้อยคน กรอบโตร้อยละห้าต่อรอบ", 13, "t-muted");
     // reasons 2 and 3: time and Thai history
     var g2 = S("g", { style: "opacity:0" }, svg);
-    S("line", { x1: 0, y1: 140, x2: 640, y2: 140, style: "stroke:var(--line)" }, g2);
-    txt(g2, 0, 164, "เหตุผลที่สอง · เวลา: “สังคมจะเลือกโดยไม่รู้ว่ากำลังเลือก”", 14, "t-accent");
-    S("line", { x1: 0, y1: 178, x2: 640, y2: 178, style: "stroke:var(--line)" }, g2);
-    txt(g2, 0, 202, "เหตุผลที่สาม · ประวัติศาสตร์ไทย: การเปลี่ยนที่สำคัญมาจากทางเลือกเชิงโครงสร้าง", 14, "t-accent");
-    var X0 = 20, X1 = 620;
+    S("line", { x1: 0, y1: 188, x2: 640, y2: 188, style: "stroke:var(--line)" }, g2);
+    txt(g2, 0, 220, "เหตุผลที่สอง · เวลา: “สังคมจะเลือกโดยไม่รู้ว่ากำลังเลือก”", 15.5, "t-accent");
+    S("line", { x1: 0, y1: 240, x2: 640, y2: 240, style: "stroke:var(--line)" }, g2);
+    txt(g2, 0, 272, "เหตุผลที่สาม · ประวัติศาสตร์ไทย: การเปลี่ยนที่สำคัญมาจากทางเลือกเชิงโครงสร้าง", 15.5, "t-accent");
+    var X0 = 20, X1 = 620, AY = 352;
     function xOf(y) { return X0 + (y - 2510) / (2531 - 2510) * (X1 - X0); }
-    S("line", { x1: X0, y1: 250, x2: X1, y2: 250, class: "axis" }, g2);
+    S("line", { x1: X0, y1: AY, x2: X1, y2: AY, class: "axis" }, g2);
     var marks = [[2511, "บังคับชดใช้ทุน"], [2515, "ใช้ทุนรุ่นแรก"], [2519, "ขยาย รพ.ชนบท"], [2528, ""]];
-    marks.forEach(function (m) { S("line", { x1: xOf(m[0]), y1: 244, x2: xOf(m[0]), y2: 256, class: "axis" }, g2); txt(g2, xOf(m[0]), 276, String(m[0]), 12.5, "mono t-muted", "middle"); if (m[1]) txt(g2, xOf(m[0]), 234, m[1], 12.5, "t-muted", "middle"); });
-    var band = S("rect", { x: xOf(2519), y: 246, width: 0, height: 8, rx: 3, style: "fill:var(--p1)" }, g2);
+    marks.forEach(function (m) { S("line", { x1: xOf(m[0]), y1: AY - 6, x2: xOf(m[0]), y2: AY + 6, class: "axis" }, g2); txt(g2, xOf(m[0]), AY + 28, String(m[0]), 13, "mono t-muted", "middle"); if (m[1]) txt(g2, xOf(m[0]), AY - 18, m[1], 13.5, "t-muted", "middle"); });
+    var band = S("rect", { x: xOf(2519), y: AY - 4, width: 0, height: 8, rx: 3, style: "fill:var(--p1)" }, g2);
     var facts = S("g", { style: "opacity:0" }, g2);
-    txt(facts, 0, 306, "รพ.ชนบท " + F("lit.rural_hosp_start") + " → " + F("lit.rural_hosp_end") + " แห่ง", 15, "t-strong");
-    txt(facts, 220, 306, "แพทย์ชนบท " + F("lit.rural_md_start") + " → " + F("lit.rural_md_end") + " คน", 15, "t-strong");
-    txt(facts, 440, 306, "อีสาน/กทม. " + F("lit.gap_1979") + " เท่า → " + F("lit.gap_1986") + " เท่า", 15, "t-need");
-    // conditions: three arrows into quadrant four
-    var g3 = S("g", { style: "opacity:0" }, svg);
-    S("line", { x1: 0, y1: 330, x2: 640, y2: 330, style: "stroke:var(--line)" }, g3);
-    txt(g3, 0, 356, "เงื่อนไข · ช่องที่สี่ต้องได้งานจากอีกสามช่อง", 14, "t-accent");
-    var mq = quad(g3, { x: 430, y: 364, w: 210, h: 150, labels: false, numSize: 16, gap: 6, rowLabel: false, colLabel: false });
+    txt(facts, 0, 432, "รพ.ชนบท " + F("lit.rural_hosp_start") + " → " + F("lit.rural_hosp_end") + " แห่ง", 16, "t-strong");
+    txt(facts, 212, 432, "แพทย์ชนบท " + F("lit.rural_md_start") + " → " + F("lit.rural_md_end") + " คน", 16, "t-strong");
+    txt(facts, 640, 432, "อีสาน/กทม. " + F("lit.gap_1979") + " เท่า → " + F("lit.gap_1986") + " เท่า", 16, "t-need", "end");
+    // conditions: three arrows into quadrant four, in the text column under the click-3 paragraph
+    var side = U.sideHost(host, "0 0 640 262", "เงื่อนไข: ช่องที่สี่ต้องได้งานจากอีกสามช่อง");
+    side.closest(".fig-side").setAttribute("data-step", "3");
+    var g3 = S("g", {}, side);
+    txt(g3, 0, 24, "เงื่อนไข · ช่องที่สี่ต้องได้งานจากอีกสามช่อง", 18.5, "t-accent");
+    var mq = quad(g3, { x: 0, y: 46, w: 300, h: 214, labels: false, numSize: 20, gap: 6, rowLabel: false, colLabel: false });
     var q4 = mq.rect(3);
     var ends = [[q4.x + 3, q4.y + 3], [q4.x + q4.w * 0.5, q4.y + 3], [q4.x + 3, q4.y + q4.h * 0.5]];
     var n4 = mq.tiles[3].querySelector("text");                   // the 4 moves to the corner the arrows do not use
     n4.setAttribute("x", q4.x + q4.w - 10); n4.setAttribute("y", q4.y + q4.h - 10); n4.setAttribute("text-anchor", "end");
-    [[0, "หลักฐานกลไก ← ช่องที่หนึ่ง"], [1, "ใครได้ ใครรับต้นทุน ← ช่องที่สอง"], [2, "ขั้นทดลองที่มีจุดตรวจ ← ช่องที่สาม"]].forEach(function (c, i) {
-      var ci = mq.center(c[0]), e = ends[i], ang = Math.atan2(e[1] - ci[1], e[0] - ci[0]);
-      S("path", { d: "M" + ci[0] + "," + ci[1] + " L" + e[0] + "," + e[1], style: "fill:none;stroke:var(--accent);stroke-width:1.8" }, g3);
-      var hx = e[0] - 9 * Math.cos(ang), hy = e[1] - 9 * Math.sin(ang), px = 5 * Math.sin(ang), py = -5 * Math.cos(ang);
+    // the paragraph above names the three conditions; the map shows them arriving in box 4 from boxes 1-3
+    [0, 1, 2].forEach(function (from, i) {
+      var ci = mq.center(from), e = ends[i], ang = Math.atan2(e[1] - ci[1], e[0] - ci[0]);
+      S("path", { d: "M" + ci[0] + "," + ci[1] + " L" + e[0] + "," + e[1], style: "fill:none;stroke:var(--accent);stroke-width:2" }, g3);
+      var hx = e[0] - 10 * Math.cos(ang), hy = e[1] - 10 * Math.sin(ang), px = 5.5 * Math.sin(ang), py = -5.5 * Math.cos(ang);
       S("path", { d: "M" + e[0] + "," + e[1] + " L" + (hx + px) + "," + (hy + py) + " L" + (hx - px) + "," + (hy - py) + "Z", style: "fill:var(--accent)" }, g3);
-      txt(g3, 0, 392 + i * 34, c[1], 15, "t-strong");
     });
     return stepper(host, 3, function (k, anim, jobs) {
-      if (k === 1) { g2.style.opacity = 0; g3.style.opacity = 0; if (anim) { g1.style.opacity = 0; fade(g1, true, 400, jobs); } else g1.style.opacity = 1; }
+      if (k === 1) { g2.style.opacity = 0; if (anim) { g1.style.opacity = 0; fade(g1, true, 400, jobs); } else g1.style.opacity = 1; }
       if (k === 2) {
         fade(g2, true, anim ? 350 : 0, jobs);
         jobs.add(U.tween(anim ? 1400 : 0, function (t) { band.setAttribute("width", (xOf(2528) - xOf(2519)) * t); }, { delay: 300 }));
         fade(facts, true, anim ? 400 : 0, jobs, 1500);
       }
-      if (k === 3) fade(g3, true, anim ? 450 : 0, jobs);
     });
   };
 
@@ -502,6 +547,11 @@
 
   /* ---------------- s08 checkable structural proposals: gates and mixed scanning ---------------- */
   FIGS.s08 = function (host) {
+    // Two rows: the lead sits beside the five gates, and the body (clicks 2-3) starts level with the
+    // mixed-scanning half, under a rule level with the figure's divider (deck style #slide-8 .nx-row2: placed
+    // from the top of the text column, so it stays level however many lines the lead takes).
+    var body = host.closest(".slide").querySelector(".slide__text .body");
+    if (body) { body.classList.add("nx-row2"); body.setAttribute("data-step", "2"); }
     var svg = U.svgHost(host, "0 0 640 556", "เกณฑ์ห้าข้อ และการกวาดตาแบบผสม: กล้องมุมกว้างกับกล้องซูม"); U.defs(svg);
     // click 1: the proposal passes five gates on one track (Wright's three, then this study's two)
     var g1 = S("g", {}, svg);
@@ -628,7 +678,7 @@
     var cols = [
       ["ช่องที่ 1", "วิเคราะห์ปัญหาภายในกติกาเดิม", "var(--p1-text)", ["กระทบยอดจำนวนแพทย์ สป. กับแฟ้มเหตุการณ์เข้าออก", "เชื่อมระเบียนรายบุคคลแบบนิรนาม", "วัดเวลาทำงานจริง: ผู้ตอบ\u00a0<b>" + F("c77_early_retire_all") + "%</b> คิดเกษียณก่อนกำหนดหรือลดชั่วโมงทำงาน", "เก็บหลักฐานจากผู้ที่ออกแล้ว"]],
       ["ช่องที่ 2", "วิเคราะห์ปัญหาเชิงโครงสร้าง", "var(--p2-text)", ["ใครกำหนดกรอบอัตรากำลัง ด้วยเหตุผลและข้อมูลใด", "ใครผลิตตัวเลขความขาดแคลน เพื่อขอทรัพยากรชนิดใด", "ตลาดเอกชนกับงานดูแลในครัวเรือนดึงคนออกจากพื้นที่ขาดอย่างไร"]],
-      ["ช่องที่ 3", "ข้อเสนอภายในกติกาเดิม", "var(--p1-text)", ["จัดสรรรอบหน้าด้วยหลายเกณฑ์", "วางตำแหน่งใหม่ตามความจำเป็นทุกรอบกรอบ", "ส่งแพทย์ใหม่ทุกปีจากตำแหน่งว่างจริง", "ประกาศกลุ่ม เวลาเริ่ม และผลที่จะวัดไว้ล่วงหน้า งานปกติจึงกลายเป็นการทดลอง"]]
+      ["ช่องที่ 3", "ข้อเสนอภายในกติกาเดิม", "var(--p1-text)", ["จัดสรรรอบหน้าด้วยหลายเกณฑ์", "วางตำแหน่งใหม่ตามความจำเป็นทุกรอบกรอบ", "ส่งแพทย์ใหม่ทุกปีจากตำแหน่งว่างจริง", "ประกาศกลุ่ม เวลาเริ่ม และผลที่จะวัดไว้ล่วงหน้า <span class=\"nobr\">งานปกติจึงกลายเป็นการทดลอง</span>"]]
     ];
     var grid = H("div", "nx-grid nx-agenda", null, host);
     grid.style.gridTemplateColumns = "repeat(3, minmax(0, 1fr))";
@@ -756,7 +806,8 @@
       });
       locals.forEach(function (l, i) { l.el.style.opacity = 0.5 + 0.5 * Math.abs(Math.sin(ts / 700 + i)); });
     });
-    if (U.isStatic()) pulses.forEach(function (p) { p.el.style.display = "none"; });
+    // static views (print, Read): one gold dot half-way along each spoke, so the caption's "จุดทอง" is on the page
+    if (U.isStatic()) pulses.forEach(function (p) { p.el.setAttribute("cx", (p.l.x + p.l.rim[0]) / 2); p.el.setAttribute("cy", (p.l.y + p.l.rim[1]) / 2); p.el.style.opacity = 1; });
     return { steps: 1, setStep: function () {} };
   };
 
@@ -769,7 +820,7 @@
     wrap.appendChild(svg); U.defs(svg);
     var ring = S("g", { transform: "translate(260,280)" }, svg);    // behind the boxes, as on s01
     [300].forEach(function (r) { S("circle", { r: r, style: "fill:none;stroke:var(--line-strong);stroke-width:1;stroke-dasharray:60 18" }, ring); });
-    var q = quad(svg, { x: 0, y: 60, w: 520, h: 420, labels: false, numSize: 54, gap: 14, fs: 17, lw: 152 });
+    var q = quad(svg, { x: 0, y: 60, w: 520, h: 420, labels: false, numSize: 54, gap: 14, fs: 17, lw: 152, top: 34, base: true, halo: true });
     q.tiles.slice(0, 3).forEach(function (t) { t.style.opacity = 0.45; });
     var q4 = q.tiles[3].querySelector("rect");
     var a = 0;

@@ -67,7 +67,7 @@ export const policyEvidence = {
     design_en: 'Randomised crossover study in two US ICUs; 634 admissions and 2,203 patient-days.',
     finding_th: 'ลดเวรต่อเนื่องจาก ≥24 เป็นประมาณ ≤16 ชั่วโมง พร้อมเพิ่ม interns ต่อทีม 3 → 4 และเวลาส่งเวร; ข้อผิดพลาดทางการแพทย์ร้ายแรงของ interns 136.0 → 100.1 ต่อ 1,000 patient-days',
     finding_en: 'Shifts changed from ≥24 to approximately ≤16 hours, with interns per team increased from 3 to 4 and added handover time. Intern serious medical errors fell from 136.0 to 100.1 per 1,000 patient-days.',
-    caution_th: 'เป็นผลของชุดการจัดงาน ไม่ใช่ผลลดชั่วโมงเพียงอย่างเดียว ประชากรเป็นแพทย์ฝึกงานใน ICU ไม่ใช่แพทย์ทุกระดับหรือการคงอยู่ในระบบ',
+    caution_th: 'เป็นผลของชุดการจัดงาน ไม่ใช่ผลลดชั่วโมงเพียงอย่างเดียว ประชากรเป็นแพทย์ฝึกงานใน ICU ไม่ใช่แพทย์ทุกระดับหรือการธำรงคนในระบบ',
     caution_en: 'The intervention changed staffing and handovers as well as hours. It does not isolate an hours-only effect or measure retention; US ICU interns do not represent all physicians.',
   },
   E06: {
@@ -132,7 +132,7 @@ export const policyEvidence = {
   },
 };
 
-const retentionMappingTh = 'เปิดตัวควบคุมการคงอยู่เพื่อกำหนดผลต่อ hazard ลาออก ความครอบคลุม และระยะเวลาเป็นสมมติฐานแยกต่างหาก การเปิดไม่เปลี่ยนค่าหรือคำนวณผลนโยบายให้อัตโนมัติ';
+const retentionMappingTh = 'เปิดตัวควบคุมการธำรงคนในระบบเพื่อกำหนดผลต่อ hazard ลาออก ความครอบคลุม และระยะเวลาเป็นสมมติฐานแยกต่างหาก การเปิดไม่เปลี่ยนค่าหรือคำนวณผลนโยบายให้อัตโนมัติ';
 const retentionMappingEn = 'Open existing retention controls to specify assumed resignation-hazard effects, coverage and timing separately. Opening the controls does not change values or calculate a policy effect automatically.';
 const trainingMappingTh = 'เปิดตัวควบคุมเส้นทางการผลิตเพื่อกำหนดจำนวนนักศึกษาและการสำเร็จการศึกษา ระบบใช้ระยะเรียน 6 ปีคงที่ การเปิดไม่เปลี่ยนโหมดหรือค่าใด';
 const trainingMappingEn = 'Open existing training-pipeline controls for student intake and completion, with a fixed six-year education lag. Opening them does not change the input mode or any values.';
@@ -147,7 +147,7 @@ export const policyOptions = [
     evidence_ids: ['E01', 'E05', 'E06'], readiness: 'extension', route: null,
     mapping_th: 'ต้องเพิ่มข้อมูลชั่วโมง/FTE และภาระผู้ป่วยก่อนจำลองผลโดยตรง',
     mapping_en: 'Direct simulation requires working-hours/FTE and patient-workload data and a new module.',
-    limitation_th: 'จำนวนคนไม่ใช่ชั่วโมงบริการ ต้องแยกผลต่อความเหนื่อยล้า คุณภาพ และการคงอยู่ น้ำหนักนาทีบริการใน Lab ใช้แทนเวลาทำงานไม่ได้',
+    limitation_th: 'จำนวนคนไม่ใช่ชั่วโมงบริการ ต้องแยกผลต่อความเหนื่อยล้า คุณภาพ และการธำรงคนในระบบ น้ำหนักนาทีบริการใน Lab ใช้แทนเวลาทำงานไม่ได้',
     limitation_en: 'Headcount is not service hours. Fatigue, quality and retention need separate evaluation; Lab service-minute weights cannot stand in for available working time.',
   },
   {
@@ -171,7 +171,7 @@ export const policyOptions = [
     evidence_ids: ['E00'], readiness: 'extension', route: null,
     mapping_th: 'ต้องเพิ่มชั่วโมง/วันให้บริการและการหมุนเวียนระดับเครือข่าย',
     mapping_en: 'Requires service-hour/day accounting and network relief schedules.',
-    limitation_th: 'ยังไม่มีขนาดผลการคงอยู่ที่ใช้ตรงจากแหล่งที่ตรวจ การหมุนเวียนไม่เพิ่มจำนวนแพทย์ประเทศ และต้องติดตามความต่อเนื่องบริการกับต้นทุน',
+    limitation_th: 'ยังไม่มีขนาดผลต่อการธำรงคนในระบบที่ใช้ตรงจากแหล่งที่ตรวจ การหมุนเวียนไม่เพิ่มจำนวนแพทย์ประเทศ และต้องติดตามความต่อเนื่องบริการกับต้นทุน',
     limitation_en: 'The reviewed sources provide no directly applicable retention estimate. Rotation does not add national headcount; continuity and costs need evaluation.',
   },
   {
@@ -222,14 +222,14 @@ export const policyOptions = [
     limitation_en: 'E01’s +20/+40/+60% income levels compare hypothetical jobs with urban peers; they are not resignation reductions. Low-ranking Lab provinces do not define remote hospitals.',
   },
   {
-    id: 'P08', group: 'support', title_th: 'โบนัสคงอยู่ตามระยะเวลา', title_en: 'Retention bonuses at service milestones',
+    id: 'P08', group: 'support', title_th: 'โบนัสตามระยะเวลาที่ทำงานในพื้นที่', title_en: 'Retention bonuses at service milestones',
     summary_th: 'จ่ายตามช่วงเวลาที่คงอยู่ โดยแยกเงื่อนไขจากเงินเพิ่มรายเดือน',
     summary_en: 'Pay for completed service periods under terms distinct from regular monthly supplements.',
     variables_th: ['เงินเมื่อครบระยะ', 'ระยะสิทธิ', 'จ่ายเป็นงวดหรือครั้งเดียว', 'เงื่อนไขเมื่อย้าย'],
     variables_en: ['Milestone payment', 'Eligibility period', 'Instalments or lump sum', 'Transfer conditions'],
     evidence_ids: ['E00'], readiness: 'assumption', route: 'retention',
     mapping_th: retentionMappingTh, mapping_en: retentionMappingEn,
-    limitation_th: 'ยังไม่มีขนาดผลตรงจากแหล่งที่ตรวจ ต้องติดตามหลังรับเงินด้วย เพื่อแยกการเลื่อนเวลาลาออกจากการคงอยู่ระยะยาว',
+    limitation_th: 'ยังไม่มีขนาดผลตรงจากแหล่งที่ตรวจ ต้องติดตามหลังรับเงินด้วย เพื่อแยกการเลื่อนเวลาลาออกจากการธำรงคนในระบบระยะยาว',
     limitation_en: 'No directly applicable effect was obtained from the reviewed sources. Follow-up after payment must distinguish delayed resignation from sustained retention.',
   },
   {
@@ -284,7 +284,7 @@ export const policyOptions = [
     variables_en: ['Promotion criteria', 'Waiting time', 'Available roles', 'Role-related pay'],
     evidence_ids: ['E00'], readiness: 'assumption', route: 'retention',
     mapping_th: retentionMappingTh, mapping_en: retentionMappingEn,
-    limitation_th: 'ยังไม่มีสัมประสิทธิ์ตรงจากแหล่งที่ตรวจ ต้องประเมินความโปร่งใส งานที่เพิ่ม และการคงอยู่ ไม่ถือว่าตำแหน่งใหม่เพิ่มเวลาคลินิกอัตโนมัติ',
+    limitation_th: 'ยังไม่มีสัมประสิทธิ์ตรงจากแหล่งที่ตรวจ ต้องประเมินความโปร่งใส งานที่เพิ่ม และการธำรงคนในระบบ ไม่ถือว่าตำแหน่งใหม่เพิ่มเวลาคลินิกอัตโนมัติ',
     limitation_en: 'No directly applicable coefficient was obtained. Evaluate transparency, extra duties and retention; a new role does not automatically increase clinical time.',
   },
   {

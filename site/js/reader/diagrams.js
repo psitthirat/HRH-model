@@ -20,73 +20,159 @@ const scaleGroup = (svg, W) => {
 };
 
 // ================================================================ chapter 05: stock and flow with loops
+// One row of pipes carries the doctors; the disadvantaged area's loops sit on
+// the left of the advantaged area's, levers in a band above and below.
+// w is the widest a label may run before it takes a second line; a valve's
+// name sits next to it (name), on the side no arrow reaches.
+const ROW = 380;
 const NODE = {
-  S1: { x: 315, y: 372, w: 190, h: 84 }, S2: { x: 725, y: 372, w: 190, h: 84 },
-  F1: { x: 130, y: 372 }, F2: { x: 520, y: 372 }, F3: { x: 905, y: 372 },
-  L: { x: 300, y: 196, w: 210 }, A: { x: 360, y: 612, w: 250 }, C: { x: 700, y: 152, w: 200 }, P: { x: 905, y: 262, w: 180 },
-  bond: { x: 88, y: 520, w: 150 }, posts: { x: 190, y: 660, w: 170 }, rural: { x: 112, y: 78, w: 190 },
-  local: { x: 650, y: 656, w: 250 }, private: { x: 870, y: 566, w: 170 },
+  S1: { x: 305, y: ROW, w: 190, h: 84 }, S2: { x: 775, y: ROW, w: 190, h: 84 },
+  F1: { x: 122, y: ROW, pw: 110, name: "left" }, F2: { x: 530, y: ROW, pw: 130, name: "above-right" },
+  F3: { x: 928, y: ROW, pw: 110, name: "below" },
+  rural: { x: 305, y: 46, w: 260 }, L: { x: 305, y: 196, w: 230 },
+  C: { x: 775, y: 196, w: 240 }, P: { x: 895, y: 100, w: 140 },
+  A: { x: 382, y: 552, w: 190 },
+  bond: { x: 122, y: 612, w: 200 }, posts: { x: 282, y: 612, w: 220 }, local: { x: 540, y: 612, w: 300 }, private: { x: 790, y: 612, w: 220 },
 };
-const CLOUD_L = { x: 40, y: 372 }, CLOUD_R = { x: 968, y: 372 };
+const CLOUD_L = { x: 38, y: ROW }, CLOUD_R = { x: 970, y: ROW };
 // bend: offset of the quadratic control point (design units, + = left of travel)
-const BEND = { "S1>A": -15, "A>F2": -15, "S1>L": 0, "L>F2": -30, "L>F1": 30, "S2>C": 0, "C>P": -45, "P>F2": 0, "P>F3": 0, "C>L": 25,
-  "bond>F1": 0, "posts>F1": -20, "rural>L": -20, "local>F2": 25, "private>F2": 30 };
-// loop markers: where the ring sits and whether its name goes above or below it
-const LOOP_AT = { R1: { x: 398, y: 500 }, R2: { x: 232, y: 300, above: true }, R3: { x: 795, y: 262 }, R4: { x: 612, y: 262 } };
+const BEND = { "S1>A": 30, "A>F2": 0, "S1>L": 0, "L>F2": -40, "L>F1": 18, "S2>C": 0, "C>P": 0, "P>F2": 110, "P>F3": 0, "C>L": 0,
+  "bond>F1": 0, "posts>F1": 0, "rural>L": 0, "local>F2": 0, "private>F2": -30 };
+// where a link leaves its source, as an offset from the source's centre
+const FROM = { "A>F2": [54, 0] };
+// a fixed control point, for a curve that must end at a given angle
+const CTRL = { "P>F2": [530, 120] };
+// arrows from below end on the bowtie's lower edge, each at its own point
+// (an offset from the valve's centre) so their heads do not meet
+const LAND = { "A>F2": [-18, 13], "local>F2": [0, 11], "private>F2": [22, 13], "bond>F1": [0, 11], "posts>F1": [24, 13] };
+// sign badge beside the arrowhead: side 1 = right of travel, -1 = left; back
+// is how far from the tip and off how far from the line
+const BADGE = { "A>F2": { side: -1 }, "local>F2": { side: 1, back: 55, off: 15 }, "private>F2": { side: 1 }, "bond>F1": { side: 1 },
+  "P>F2": { side: -1, back: 35 }, "P>F3": { side: -1 }, "rural>L": { back: 22 } };
+// loop markers: ring centre, travel direction on screen (cw or ccw, checked
+// against the loop's path including the pipe that closes it), label wrap
+const LOOP_AT = {
+  R1: { x: 412, y: 446, dir: "ccw", lw: 57 },
+  R2: { x: 398, y: 268, dir: "cw" },
+  R3: { x: 848, y: 262, dir: "cw", lw: 100 },
+  R4: { x: 665, y: 262, dir: "ccw" },
+};
 const STATUS_STYLE = {
-  evidence: { width: 3.4 }, hypothesis: { width: 2.2, dash: "8 6" }, concept: { width: 2.2, dash: "1.5 6", cap: "round" }, account: { width: 1.4 },
+  evidence: { width: 2.5, head: 12 }, hypothesis: { width: 1.8, dash: "7 5", head: 11 }, concept: { width: 1.9, dash: "1.5 5", cap: "round", head: 11 },
+  account: { width: 1.3, head: 10 },
 };
 
-const FLOW_SUB = { F2: "ผลดูดกลับ (backwash)" };
+// Lines broken at a space or before a word that starts a phrase, never after
+// one (a Thai line must not end on ใน, และ, จาก...); two lines are balanced.
+const STARTS = ["ใน", "จาก", "ของ", "และ", "ต่อ", "กับ", "พื้นที่"];
+const STARTS_TIGHT = [...STARTS, "เสียเปรียบ", "ได้เปรียบ"];       // only when two lines will not do
+const WEAK_END = ["ใน", "จาก", "ของ", "และ", "ต่อ", "กับ", "การ", "ความ"];
+function cutsOf(str, starts = STARTS) {
+  const cuts = [];
+  for (let i = 1; i < str.length; i++) {
+    if (str[i] === " ") cuts.push(i);
+    else if (starts.some((w) => str.startsWith(w, i)) && !WEAK_END.some((w) => str.slice(0, i).endsWith(w))) cuts.push(i);
+  }
+  return cuts;
+}
+function lines2(str, maxW, size, weight = 400) {
+  if (textWidth(str, size, weight) <= maxW) return [str];
+  let best = null;
+  for (const i of cutsOf(str)) {
+    const a = str.slice(0, i).trim(), b = str.slice(i).trim();
+    const m = Math.max(textWidth(a, size, weight), textWidth(b, size, weight));
+    if (m <= maxW && (!best || m < best.m)) best = { m, lines: [a, b] };
+  }
+  if (best) return best.lines;
+  // more than two lines: take the longest piece that fits, then the rest
+  const cuts = cutsOf(str, STARTS_TIGHT);
+  const lines = [];
+  let from = 0;
+  while (textWidth(str.slice(from).trim(), size, weight) > maxW) {
+    const fit = cuts.filter((i) => i > from && textWidth(str.slice(from, i).trim(), size, weight) <= maxW);
+    if (!fit.length) break;
+    const i = fit[fit.length - 1];
+    lines.push(str.slice(from, i).trim());
+    from = i;
+  }
+  lines.push(str.slice(from).trim());
+  return lines.length > 1 ? lines : wrap(str, maxW, size, weight);
+}
+
+// A valve's name: beside the valve when arrows also arrive from below.
 function plate(id, ctx) {
   const n = NODE[id];
-  const lines = wrap(ctx.label(id), 150, 13.5, 500), sub = FLOW_SUB[id];
-  const w = Math.max(...lines.map((l) => textWidth(l, 13.5, 500)), sub ? textWidth(sub, 12) : 0) + 12;
-  const h = lines.length * 17 + (sub ? 17 : 0) + 6;
-  return { x: n.x, y: n.y + 20 + h / 2, w, h, lines, sub };
+  const lines = lines2(ctx.label(id), n.pw, 14, 400);
+  const w = Math.max(...lines.map((l) => textWidth(l, 14, 400))) + 10;
+  const h = lines.length * 17 + 6;
+  const top = n.name === "below" ? n.y + 14 : n.name === "above-right" ? n.y - 14 - h : n.y + 18;
+  const left = n.name === "left", right = n.name === "above-right";
+  const x = left ? n.x - 12 - w / 2 : right ? n.x + 13 + w / 2 : n.x;
+  return { x, y: top + h / 2, w, h, lines, anchor: left ? "end" : right ? "start" : "middle" };
 }
 function nodeBox(id, ctx) {
   const n = NODE[id];
   if (id.startsWith("F")) return { ...n, r: 13, kind: "valve", plate: plate(id, ctx) };
   if (n.h) return { ...n, kind: "stock" };
-  const lines = wrap(ctx.label(id), n.w - 8, 15, ctx.kind(id) === "lever" ? 500 : 400);
-  return { ...n, h: lines.length * 19 + 14, lines, kind: ctx.kind(id) };
+  const lever = ctx.kind(id) === "lever";
+  const size = 15, weight = lever ? 500 : 400;
+  const lines = lines2(ctx.label(id), n.w, size, weight);
+  const tw = Math.max(...lines.map((l) => textWidth(l, size, weight)));
+  // the box a line meets: the pill for a lever, the words for an auxiliary
+  return { ...n, w: tw + (lever ? 34 : 12), h: lines.length * 19 + (lever ? 14 : 8), lines, kind: ctx.kind(id) };
 }
+
+// A valve's regulators: the small circles on its stem, above and (when arrows
+// arrive from below) below it. Information arrives there.
+const REG = 22;
+const regulator = (b, fromY) => (fromY < b.y - 16 ? { x: b.x, y: b.y - REG } : null);
 
 // Where a line from (px, py) towards the node centre meets the node's edge.
 function edge(b, px, py, pad = 4) {
-  if (b.kind === "valve" && py > b.y + 16) return edge({ ...b.plate, kind: "plate" }, px, py, pad);
+  if (b.kind === "valve") {
+    const rg = regulator(b, py);
+    const cx = rg ? rg.x : b.x, cy = rg ? rg.y : b.y, r = rg ? 7 : b.r, dx = px - cx, dy = py - cy, d = Math.hypot(dx, dy) || 1;
+    return [cx + (dx / d) * (r + pad), cy + (dy / d) * (r + pad)];
+  }
   const dx = px - b.x, dy = py - b.y;
-  if (b.kind === "valve") { const d = Math.hypot(dx, dy) || 1; return [b.x + (dx / d) * (b.r + pad), b.y + (dy / d) * (b.r + pad)]; }
   const hw = b.w / 2 + pad, hh = b.h / 2 + pad;
   const t = Math.min(Math.abs(dx) > 1e-6 ? hw / Math.abs(dx) : Infinity, Math.abs(dy) > 1e-6 ? hh / Math.abs(dy) : Infinity);
   return [b.x + dx * t, b.y + dy * t];
 }
+// Where the segment from (px, py) to (ax, ay) enters the box, padded.
+function entry(b, px, py, ax, ay, pad) {
+  const dx = ax - px, dy = ay - py;
+  let t0 = 0;
+  for (const [p, q] of [[-dx, px - (b.x - b.w / 2 - pad)], [dx, b.x + b.w / 2 + pad - px], [-dy, py - (b.y - b.h / 2 - pad)], [dy, b.y + b.h / 2 + pad - py]])
+    if (p < 0) t0 = Math.max(t0, q / p);
+  return [px + dx * t0, py + dy * t0];
+}
+// The point a link aims at: a valve's regulator, any other node's centre.
+const aim = (b, from) => (b.kind === "valve" ? regulator(b, from.y) || b : b);
 
-function linkGeom(a, b, bend) {
-  const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2, dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy) || 1;
-  const cx = mx + (-dy / len) * bend, cy = my + (dx / len) * bend;
-  const [x0, y0] = edge(a, cx, cy, 6), [x1, y1] = edge(b, cx, cy, 8);
+function linkGeom(a, b, bend, from = [0, 0], ctrl = null, land = null) {
+  const pa = { x: aim(a, b).x + from[0], y: aim(a, b).y + from[1] }, pb = land ? { x: b.x + land[0], y: b.y + land[1] } : aim(b, a);
+  const mx = (pa.x + pb.x) / 2, my = (pa.y + pb.y) / 2, dx = pb.x - pa.x, dy = pb.y - pa.y, len = Math.hypot(dx, dy) || 1;
+  const [cx, cy] = ctrl || [mx + (-dy / len) * bend, my + (dx / len) * bend];
+  const [x0, y0] = entry(a, cx, cy, pa.x, pa.y, 6), [x1, y1] = land ? [pb.x, pb.y] : b.kind === "valve" ? edge(b, cx, cy, 6) : entry(b, cx, cy, pb.x, pb.y, 6);
   const tx = x1 - cx, ty = y1 - cy, tl = Math.hypot(tx, ty) || 1;
   return { d: `M${x0.toFixed(1)},${y0.toFixed(1)}Q${cx.toFixed(1)},${cy.toFixed(1)} ${x1.toFixed(1)},${y1.toFixed(1)}`, x1, y1, ux: tx / tl, uy: ty / tl };
 }
 
-// The arc that carries the pull of the advantaged area back to the outflow:
-// over the top, clear of the label of the advantaged area's services.
-function arcP2F2(P, F2) {
-  const x0 = P.x - 22, y0 = P.y - P.h / 2 - 2, x1 = F2.x + 3, y1 = F2.y - F2.r - 8;
-  const c1 = [x0, 26], c2 = [488, 26];
-  const d = `M${x0},${y0}C${c1[0]},${c1[1]} ${c2[0]},${c2[1]} ${x1},${y1}`;
-  const tx = x1 - c2[0], ty = y1 - c2[1], tl = Math.hypot(tx, ty);
-  return { d, x1, y1, ux: tx / tl, uy: ty / tl };
-}
-
 function arrowHead(g, x, y, ux, uy, col, size = 11) {
   const px = -uy, py = ux;
-  const d = `M${x},${y}L${x - ux * size + px * size * 0.48},${y - uy * size + py * size * 0.48}L${x - ux * size - px * size * 0.48},${y - uy * size - py * size * 0.48}Z`;
+  const d = `M${x},${y}L${x - ux * size + px * size * 0.45},${y - uy * size + py * size * 0.45}L${x - ux * size - px * size * 0.45},${y - uy * size - py * size * 0.45}Z`;
   const a = paint(s("path", { d, class: "cld-head" }), { fill: col });
   g.append(a);
   return a;
+}
+
+// A + or − in a disc; `small` is the sign a flow gives its stock, on the pipe.
+function sign(g, x, y, minus, small) {
+  const r = small ? 8.5 : 10, arm = small ? 4 : 5;
+  g.append(paint(s("circle", { cx: x, cy: y, r, class: small ? "cld-signbg cld-pipesign" : "cld-signbg" }), { fill: C.surface, stroke: C.ink, width: small ? 1.4 : 1.2 }));
+  g.append(paint(s("path", { d: minus ? `M${x - arm},${y}H${x + arm}` : `M${x - arm},${y}H${x + arm}M${x},${y - arm}V${y + arm}`, class: "cld-sign" }),
+    { stroke: C.ink, width: 2, fill: "none", cap: "round" }));
 }
 
 function cloud(g, x, y) {
@@ -94,25 +180,41 @@ function cloud(g, x, y) {
   g.append(paint(s("path", { d, class: "cld-cloud" }), { fill: C.surface, stroke: C.muted, width: 1.6 }));
 }
 
-function pipe(g, x0, x1, y, dir) {
-  const grp = s("g", { class: "cld-pipe" });
-  grp.append(paint(s("rect", { x: Math.min(x0, x1), y: y - 6, width: Math.abs(x1 - x0), height: 12 }), { fill: C.surface }));
-  for (const yy of [y - 6, y + 6]) grp.append(paint(s("line", { x1: x0, x2: x1, y1: yy, y2: yy }), { stroke: C.ink2, width: 2 }));
-  const tip = x1, back = x1 - dir * 16;
-  grp.append(paint(s("path", { d: `M${tip},${y}L${back},${y - 13}L${back},${y + 13}Z` }), { fill: C.ink2 }));
-  g.append(grp);
+// One stretch of pipe from x0 to x1; `head` draws the arrowhead at x1. The
+// pipe is tinted and outlined darker than any influence line, so it reads first.
+const PIPE_R = 7;
+function pipe(g, x0, x1, y, head) {
+  const dir = Math.sign(x1 - x0);
+  g.append(s("rect", { x: Math.min(x0, x1), y: y - PIPE_R, width: Math.abs(x1 - x0), height: PIPE_R * 2, class: "cld-pipefill" }));
+  for (const yy of [y - PIPE_R, y + PIPE_R]) g.append(paint(s("line", { x1: x0, x2: x1, y1: yy, y2: yy, class: "cld-pipewall" }), { stroke: C.ink, width: 2.4 }));
+  if (head) {
+    const back = x1 - dir * 16;
+    g.append(paint(s("path", { d: `M${x1},${y}L${back},${y - 14}L${back},${y + 14}Z`, class: "cld-pipehead" }), { fill: C.ink }));
+  }
 }
 
 function valve(g, b) {
   const grp = s("g", { class: "cld-node cld-valve", "data-id": b.id });
-  grp.append(paint(s("path", { d: `M${b.x - 11},${b.y - 11}L${b.x + 11},${b.y + 11}L${b.x + 11},${b.y - 11}L${b.x - 11},${b.y + 11}Z` }), { fill: C.surface, stroke: C.ink2, width: 1.8 }));
-  grp.append(paint(s("circle", { cx: b.x, cy: b.y - 22, r: 7 }), { fill: C.surface, stroke: C.ink2, width: 1.6 }));
+  grp.append(paint(s("path", { d: `M${b.x - 11},${b.y - 11}L${b.x + 11},${b.y + 11}L${b.x + 11},${b.y - 11}L${b.x - 11},${b.y + 11}Z` }), { fill: C.surface, stroke: C.ink, width: 1.8 }));
+  grp.append(paint(s("line", { x1: b.x, x2: b.x, y1: b.y - REG + 7, y2: b.y }), { stroke: C.ink, width: 1.6 }));
+  grp.append(paint(s("circle", { cx: b.x, cy: b.y - REG, r: 7 }), { fill: C.surface, stroke: C.ink, width: 1.6 }));
   const pl = b.plate;
   grp.append(paint(s("rect", { x: pl.x - pl.w / 2, y: pl.y - pl.h / 2, width: pl.w, height: pl.h, rx: 4, class: "cld-bg" }), { fill: C.surface, opacity: 0.92 }));
-  textLines(grp, b.x, b.y + 34, pl.lines, "cld-flow", 17, { "text-anchor": "middle" });
-  if (pl.sub) text(grp, b.x, b.y + 34 + pl.lines.length * 17, pl.sub, "cld-sub", { "text-anchor": "middle" });
+  const tx = pl.anchor === "end" ? pl.x + pl.w / 2 - 5 : pl.anchor === "start" ? pl.x - pl.w / 2 + 5 : pl.x;
+  textLines(grp, tx, pl.y - pl.h / 2 + 16, pl.lines, "cld-flow", 17, { "text-anchor": pl.anchor });
   g.append(grp);
   return grp;
+}
+
+// A loop marker: a ring that turns the way the loop travels, its id inside.
+function ring(grp, x, y, dir) {
+  const r = 20, cw = dir === "cw" ? 1 : -1, rad = Math.PI / 180;
+  const t0 = (cw > 0 ? 200 : -20) * rad, t1 = t0 + cw * 296 * rad;
+  const p0 = [x + r * Math.cos(t0), y + r * Math.sin(t0)], p1 = [x + r * Math.cos(t1), y + r * Math.sin(t1)];
+  grp.append(paint(s("path", { d: `M${p0[0].toFixed(1)},${p0[1].toFixed(1)}A${r},${r} 0 1 ${cw > 0 ? 1 : 0} ${p1[0].toFixed(1)},${p1[1].toFixed(1)}`, class: "cld-loopring" }),
+    { fill: "none", stroke: C.s(1), width: 2.4 }));
+  const ux = -Math.sin(t1) * cw, uy = Math.cos(t1) * cw;
+  arrowHead(grp, p1[0] + ux * 5, p1[1] + uy * 5, ux, uy, C.s(1), 9).classList.add("cld-loophead");
 }
 
 const SPATIAL = {
@@ -141,25 +243,41 @@ const SPATIAL = {
     const dg = ctx.diagrams.spatial_accumulation;
     const nodes = new Map(dg.nodes.map((n) => [n.id, n]));
     const c2 = { label: (id) => nodes.get(id)?.label || id, kind: (id) => nodes.get(id)?.kind };
-    const { g } = scaleGroup(svg, W);
+    const { g, k } = scaleGroup(svg, W);
     const era = dg.eras.find((e) => e.id === st.era);
     const litLevers = new Set(era ? era.levers : dg.nodes.filter((n) => n.kind === "lever").map((n) => n.id));
     const litLoops = new Set(era ? era.loops : []);
     const B = {};
     for (const id of Object.keys(NODE)) B[id] = { id, ...nodeBox(id, c2) };
     const linkLayer = s("g", { class: "cld-links" }), nodeLayer = s("g"), labelLayer = s("g"), loopLayer = s("g");
-    // pipes and clouds
+    const tip = (el, ln) => {
+      if (env?.export) return;
+      // the evidence status on its own row, under the meaning; the note below
+      bindTip(el, () => ({ title: `${c2.label(ln.from)} → ${c2.label(ln.to)}`,
+        rows: [{ label: ln.say, value: ln.sign === "-" ? "−" : "+" }, { label: dg.status.find((x) => x.id === ln.status)?.label || "", value: "" }],
+        note: ln.note || "" }));
+    };
+    // the pipe: each stretch between a valve and a stock belongs to the link
+    // that says how that flow changes that stock (drawn below); the stretches
+    // to the clouds belong to nothing
+    const edgeOf = (id, side) => B[id].x + side * (B[id].w / 2 + 2);
+    const PIPE = {
+      "F1>S1": [B.F1.x, edgeOf("S1", -1), true], "F2>S1": [B.F2.x, edgeOf("S1", 1), false],
+      "F2>S2": [B.F2.x, edgeOf("S2", -1), true], "F3>S2": [B.F3.x, edgeOf("S2", 1), true],
+    };
+    const ends = s("g", { class: "cld-link cld-pipeend" });
+    pipe(ends, CLOUD_L.x + 22, B.F1.x, ROW, false);
+    pipe(ends, CLOUD_R.x - 22, B.F3.x, ROW, false);
+    linkLayer.append(ends);
     cloud(nodeLayer, CLOUD_L.x, CLOUD_L.y);
     cloud(nodeLayer, CLOUD_R.x, CLOUD_R.y);
-    pipe(nodeLayer, CLOUD_L.x + 22, B.S1.x - B.S1.w / 2 - 2, B.S1.y, 1);
-    pipe(nodeLayer, B.S1.x + B.S1.w / 2 + 2, B.S2.x - B.S2.w / 2 - 2, B.S1.y, 1);
-    pipe(nodeLayer, CLOUD_R.x - 22, B.S2.x + B.S2.w / 2 + 2, B.S2.y, -1);
     const els = new Map();
     for (const id of ["S1", "S2"]) {
       const b = B[id];
       const grp = s("g", { class: "cld-node cld-stock", "data-id": id });
-      grp.append(paint(s("rect", { x: b.x - b.w / 2, y: b.y - b.h / 2, width: b.w, height: b.h, rx: 6 }), { fill: C.surface, stroke: C.ink, width: 2.2 }));
-      textLines(grp, b.x, b.y - 4 - (wrap(c2.label(id), b.w - 20, 16, 500).length - 1) * 9, wrap(c2.label(id), b.w - 20, 16, 500), "cld-stocklab", 19, { "text-anchor": "middle" });
+      grp.append(paint(s("rect", { x: b.x - b.w / 2, y: b.y - b.h / 2, width: b.w, height: b.h, rx: 6 }), { fill: C.surface, stroke: C.ink, width: 2.6 }));
+      const sl = lines2(c2.label(id), b.w - 20, 16, 500);
+      textLines(grp, b.x, b.y - 2 - (sl.length - 1) * 10, sl, "cld-stocklab", 20, { "text-anchor": "middle" });
       text(grp, b.x, b.y + b.h / 2 - 9, "สต็อก", "cld-sub", { "text-anchor": "middle" });
       nodeLayer.append(grp);
       els.set(id, grp);
@@ -170,34 +288,40 @@ const SPATIAL = {
       const grp = s("g", { class: `cld-node cld-${n.kind}${n.kind === "lever" && !litLevers.has(n.id) ? " is-dim" : ""}`, "data-id": n.id });
       if (n.kind === "lever") grp.append(paint(s("rect", { x: b.x - b.w / 2, y: b.y - b.h / 2, width: b.w, height: b.h, rx: b.h / 2 }),
         { fill: era && litLevers.has(n.id) ? "var(--rv-lever-on)" : "var(--rv-lever)", stroke: C.s(1), width: era && litLevers.has(n.id) ? 2.6 : 1.4 }));
-      if (n.kind === "aux") {
-        const bw = Math.max(...b.lines.map((l) => textWidth(l, 15))) + 14;
-        grp.append(paint(s("rect", { x: b.x - bw / 2, y: b.y - b.h / 2 + 2, width: bw, height: b.h - 4, rx: 6, class: "cld-bg" }), { fill: C.surface, opacity: 0.92 }));
-      }
+      else grp.append(paint(s("rect", { x: b.x - b.w / 2, y: b.y - b.h / 2 + 2, width: b.w, height: b.h - 4, rx: 6, class: "cld-bg" }), { fill: C.surface, opacity: 0.92 }));
       textLines(grp, b.x, b.y - (b.lines.length - 1) * 9.5 + 5, b.lines, n.kind === "lever" ? "cld-lever" : "cld-aux", 19, { "text-anchor": "middle" });
       labelLayer.append(grp);
       els.set(n.id, grp);
     }
-    // causal links
+    // causal links, and the signs the flows give their stocks
     const linkEls = [];
     for (const ln of dg.links) {
-      const a = B[ln.from], b = B[ln.to];
       const key = `${ln.from}>${ln.to}`;
-      const geo = key === "P>F2" ? arcP2F2(a, b) : linkGeom(a, b, BEND[key] ?? 0);
       const st2 = STATUS_STYLE[ln.status] || STATUS_STYLE.account;
       const grp = s("g", { class: `cld-link${nodes.get(ln.from)?.kind === "lever" && !litLevers.has(ln.from) ? " is-dim" : ""}`, "data-from": ln.from, "data-to": ln.to });
-      grp.append(paint(s("path", { d: geo.d, class: "cld-line" }), { stroke: C.ink, width: st2.width, dash: st2.dash, fill: "none", cap: st2.cap || "butt" }));
-      arrowHead(grp, geo.x1, geo.y1, geo.ux, geo.uy, C.ink, ln.status === "evidence" ? 16 : 14);
-      const sx = geo.x1 - geo.ux * 26 - geo.uy * 15, sy = geo.y1 - geo.uy * 26 + geo.ux * 15;
-      grp.append(paint(s("circle", { cx: sx, cy: sy, r: 12, class: "cld-signbg" }), { fill: C.surface, stroke: C.ink, width: 1.2 }));
-      const arm = 6;
-      grp.append(paint(s("path", { d: ln.sign === "-" ? `M${sx - arm},${sy}H${sx + arm}` : `M${sx - arm},${sy}H${sx + arm}M${sx},${sy - arm}V${sy + arm}`, class: "cld-sign" }),
-        { stroke: C.ink, width: 2.4, fill: "none", cap: "round" }));
-      if (!env?.export) {
-        const hit = s("path", { d: geo.d, class: "cld-hit" });
-        grp.append(hit);
-        bindTip(hit, () => ({ title: `${c2.label(ln.from)} → ${c2.label(ln.to)}`, rows: [{ label: ln.say, value: ln.sign === "-" ? "−" : "+" }],
-          note: `${dg.status.find((x) => x.id === ln.status)?.label || ""}. ${ln.note || ""}` }));
+      if (ln.pipe) {
+        const [x0, x1, head] = PIPE[key];
+        pipe(grp, x0, x1, ROW, head);
+        // the sign sits on the pipe, clear of the arrowhead at the stock
+        const sx = x1 - Math.sign(x1 - x0) * (head ? 30 : 20);
+        sign(grp, sx, ROW, ln.sign === "-", true);
+        if (!env?.export) {
+          const hit = paint(s("rect", { x: Math.min(x0, x1), y: ROW - 12, width: Math.abs(x1 - x0), height: 24, class: "cld-hitbox" }), {});
+          grp.append(hit);
+          tip(hit, ln);
+        }
+      } else {
+        const a = B[ln.from], b = B[ln.to];
+        const geo = linkGeom(a, b, BEND[key] ?? 0, FROM[key], CTRL[key], LAND[key]);
+        grp.append(paint(s("path", { d: geo.d, class: "cld-line" }), { stroke: C.ink, width: st2.width, dash: st2.dash, fill: "none", cap: st2.cap || "butt" }));
+        arrowHead(grp, geo.x1, geo.y1, geo.ux, geo.uy, C.ink, st2.head);
+        const side = BADGE[key]?.side ?? 1, back = BADGE[key]?.back ?? st2.head + 13, off = (BADGE[key]?.off ?? 16) * side;
+        sign(grp, geo.x1 - geo.ux * back - geo.uy * off, geo.y1 - geo.uy * back + geo.ux * off, ln.sign === "-", false);
+        if (!env?.export) {
+          const hit = s("path", { d: geo.d, class: "cld-hit" });
+          grp.append(hit);
+          tip(hit, ln);
+        }
       }
       linkLayer.append(grp);
       linkEls.push({ ln, grp });
@@ -207,13 +331,12 @@ const SPATIAL = {
       const at = LOOP_AT[lp.id];
       const grp = s("g", { class: `cld-loop${litLoops.has(lp.id) ? " is-lit" : ""}`, "data-loop": lp.id, tabindex: env?.export ? null : 0, role: env?.export ? null : "button",
         "aria-label": `${lp.id} ${lp.label}: ${lp.say}` });
-      grp.append(paint(s("circle", { cx: at.x, cy: at.y, r: 21, class: "cld-loopdisc" }), { fill: C.surface }));
-      grp.append(paint(s("path", { d: `M${at.x + 20},${at.y - 7}A21,21 0 1 0 ${at.x + 14},${at.y + 15}`, class: "cld-loopring" }), { fill: "none", stroke: C.s(1), width: 2.4 }));
-      grp.append(paint(s("path", { d: `M${at.x + 14},${at.y + 15}l-1,-11l10,6z` }), { fill: C.s(1) }));
+      grp.append(paint(s("circle", { cx: at.x, cy: at.y, r: 24, class: "cld-loopdisc" }), { fill: C.surface }));
+      ring(grp, at.x, at.y, at.dir);
       text(grp, at.x, at.y + 6, lp.id, "cld-loopid", { "text-anchor": "middle" });
-      const lw = wrap(lp.label, 130, 13.5, 500);
-      const ly = at.above ? at.y - 30 - (lw.length - 1) * 16 : at.y + 40;
-      const bw = Math.max(...lw.map((l) => textWidth(l, 13.5, 500))) + 10;
+      const lw = lines2(lp.label, at.lw || 150, 13.5, 500);
+      const ly = at.y + 44;
+      const bw = Math.max(...lw.map((l) => textWidth(l, 13.5, 500))) + 8;
       grp.append(paint(s("rect", { x: at.x - bw / 2, y: ly - 14, width: bw, height: lw.length * 16 + 6, rx: 4, class: "cld-bg" }), { fill: C.surface, opacity: 0.92 }));
       textLines(grp, at.x, ly, lw, "cld-looplab", 16, { "text-anchor": "middle" });
       loopLayer.append(grp);
@@ -221,10 +344,7 @@ const SPATIAL = {
         const path = new Set(lp.path);
         const on = (e) => {
           svg.classList.add("cld-focus");
-          for (const { ln, grp: lg } of linkEls) {
-            const inLoop = path.has(ln.from) && path.has(ln.to) && !(ln.from === "S1" && ln.to === "S1");
-            lg.classList.toggle("is-hot", inLoop && nodes.get(ln.from)?.kind !== "lever");
-          }
+          for (const { ln, grp: lg } of linkEls) lg.classList.toggle("is-hot", path.has(ln.from) && path.has(ln.to) && nodes.get(ln.from)?.kind !== "lever");
           for (const [id, el] of els) el.classList.toggle("is-hot", path.has(id));
           grp.classList.add("is-hot");
           showTip(e.type === "focus" ? { type: "focus", anchor: grp.getBoundingClientRect() } : e, `${lp.id} ${lp.label}`, [], lp.say);
@@ -237,7 +357,8 @@ const SPATIAL = {
       }
     }
     g.append(linkLayer, nodeLayer, labelLayer, loopLayer);
-    return Math.ceil(700 * (W / D_W));
+    const bottom = Math.max(...Object.values(B).map((b) => b.y + (b.h || 0) / 2));
+    return Math.ceil((bottom + 14) * k);
   },
   table(st, D, ctx) {
     const dg = ctx.diagrams.spatial_accumulation;
