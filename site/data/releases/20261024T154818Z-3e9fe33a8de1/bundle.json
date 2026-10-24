@@ -815,12 +815,12 @@
   "wf.running": "จำนวนคงเหลือหลังแต่ละขั้น",
   "wf.note": "ต้นปี − ออก + กลับเข้า ± ฝึกอบรมสุทธิ + รับใหม่ = ปลายปี เป็นค่าประมาณภายใต้สมมติฐาน การฝึกอบรมย้ายแพทย์ระหว่างจังหวัดและหักล้างกันระดับประเทศ การรับใหม่เป็นค่าต่อเนื่องของแผนภายใต้กรอบตำแหน่ง ซึ่งปัดเมื่อแสดงผล"
  },
- "release_id": "20261024T055650Z-518bfb6e458d",
- "generated_at": "2026-10-24T05:56:50+00:00",
+ "release_id": "20261024T154818Z-3e9fe33a8de1",
+ "generated_at": "2026-10-24T15:48:18+00:00",
  "lab": {
   "schema_version": "workforce-lab.manifest/1",
   "manifest": "lab/lab.json",
-  "sha256": "82128973981e34687b9dad21b688b403e95a96e4fd85ef57877e0152e1c5b713",
+  "sha256": "af1fcf12817cb609ea8eb5e18a5dc13eec78db712fa06dff98f263fa05be3b5d",
   "scene_map": {
    "S00": {
     "status": "reference_only",
@@ -2542,15 +2542,15 @@
   },
   "versions": {
    "engine_version": "06f1eb0b77c2e55b5d611a8fb6cdf7cefcf219c9417dc38e51aaf95bbc4848d3",
-   "inputs_version": "aa2d4c6a13a228a4bb7fa4037766fa765df543cb40a9ecbf6fce5e46e88a707d",
-   "parameter_definition_version": "df6a35ffe25d7133ffbe936822c93393115a0ac813cf16ba1fee1ae62a0353a4",
+   "inputs_version": "a27840a5b4a0458ed3920b0b51eca27a12a7efd5dcbbd1bc6f4138384737bd52",
+   "parameter_definition_version": "a35f6b267146f40217517b7d9c74341a0daf351e0b30f1b5014efb1fa0de23e9",
    "metric_definition_version": "chapter5-metrics/1",
    "view_definition_version": "chapter5-views/1",
    "scenario_schema_version": "workforce-lab.scenario/1",
-   "source_release_id": "20261024T055650Z-518bfb6e458d",
+   "source_release_id": "20261024T154818Z-3e9fe33a8de1",
    "source_scope": "moph_hrr_76_as_provisional_managed_stock",
-   "release_id": "20261024T055650Z-518bfb6e458d",
-   "analytical_data_version": "aa2d4c6a13a228a4bb7fa4037766fa765df543cb40a9ecbf6fce5e46e88a707d",
+   "release_id": "20261024T154818Z-3e9fe33a8de1",
+   "analytical_data_version": "a27840a5b4a0458ed3920b0b51eca27a12a7efd5dcbbd1bc6f4138384737bd52",
    "fitted_model_version": "bf5fc440e240c2f3d71d7afd62a59fe76a4e423fbc31fe62cb42dc336a45dc98",
    "metric_definition_hash": "fe9eaba2036cbc96843751ec1c55bd95249217769bef256cb2d4cd2f7fdc8dc6",
    "view_definition_hash": "884cb27636ce45b2cc8acf4ef9e115b201e0f17d2ae6428d380ffbc5c2898a1e",
