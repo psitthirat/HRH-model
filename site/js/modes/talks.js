@@ -20,13 +20,15 @@ function deckCard(t) {
   const thumb = h("div", { class: "tk-thumb" }, h("span", { class: "tk-thumb__ph", text: t.title }));
   const open = h("a", { class: "tk-btn tk-btn--primary", href: t.href, target: "_blank", rel: "noopener", text: "เปิดสไลด์" });
   const pdf = h("a", { class: "tk-btn", href: t.pdf, download: "", text: "ดาวน์โหลด PDF" });
+  // PPTX: pictures of the slides, no speaker notes; only for talks that list one
+  const pptx = t.pptx ? h("a", { class: "tk-btn", href: t.pptx, download: "", text: "ดาวน์โหลด PPTX" }) : null;
   const card = h("article", { class: "tk-card", id: `talk-${t.id}` }, thumb,
     h("div", { class: "tk-card__body" },
       h("p", { class: "tk-event", text: t.event }),
       h("h2", { class: "tk-title", text: t.title }),
       h("p", { class: "tk-sub", text: t.subtitle }),
       h("p", { class: "tk-meta" }, h("span", { text: t.speaker }), h("span", { text: t.minutes })),
-      h("div", { class: "tk-actions" }, open, pdf)));
+      h("div", { class: "tk-actions" }, open, pdf, pptx)));
   // Thumbnails and PDFs are produced with the decks; show them only when they exist.
   const img = new Image();
   img.alt = "";
@@ -34,6 +36,7 @@ function deckCard(t) {
   img.src = t.thumb;
   exists(t.href).then((ok) => { if (!ok) { open.replaceWith(h("span", { class: "tk-btn tk-btn--off", text: "สไลด์กำลังจัดทำ" })); } });
   exists(t.pdf).then((ok) => { if (!ok) { pdf.replaceWith(h("span", { class: "tk-btn tk-btn--off", text: "PDF กำลังจัดทำ" })); } });
+  if (pptx) exists(t.pptx).then((ok) => { if (!ok) { pptx.replaceWith(h("span", { class: "tk-btn tk-btn--off", text: "PPTX กำลังจัดทำ" })); } });
   return card;
 }
 

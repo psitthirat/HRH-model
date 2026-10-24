@@ -815,12 +815,12 @@
   "wf.running": "จำนวนคงเหลือหลังแต่ละขั้น",
   "wf.note": "ต้นปี − ออก + กลับเข้า ± ฝึกอบรมสุทธิ + รับใหม่ = ปลายปี เป็นค่าประมาณภายใต้สมมติฐาน การฝึกอบรมย้ายแพทย์ระหว่างจังหวัดและหักล้างกันระดับประเทศ การรับใหม่เป็นค่าต่อเนื่องของแผนภายใต้กรอบตำแหน่ง ซึ่งปัดเมื่อแสดงผล"
  },
- "release_id": "20261023T093202Z-09e6c68ac39e",
- "generated_at": "2026-10-23T09:32:02+00:00",
+ "release_id": "20261024T013622Z-bb644ff71ba1",
+ "generated_at": "2026-10-24T01:36:22+00:00",
  "lab": {
   "schema_version": "workforce-lab.manifest/1",
   "manifest": "lab/lab.json",
-  "sha256": "52bccac439bd932f296b99935e63f314c15f7a4ef238479cf4e23dc8e1a5a2fb",
+  "sha256": "9142e4d5a0d1e1e7a871c3197521f18f814db8f215a98ab27c9f203e26f35e88",
   "scene_map": {
    "S00": {
     "status": "reference_only",
@@ -2547,15 +2547,15 @@
    "metric_definition_version": "chapter5-metrics/1",
    "view_definition_version": "chapter5-views/1",
    "scenario_schema_version": "workforce-lab.scenario/1",
-   "source_release_id": "20261023T093202Z-09e6c68ac39e",
+   "source_release_id": "20261024T013622Z-bb644ff71ba1",
    "source_scope": "moph_hrr_76_as_provisional_managed_stock",
-   "release_id": "20261023T093202Z-09e6c68ac39e",
+   "release_id": "20261024T013622Z-bb644ff71ba1",
    "analytical_data_version": "aa2d4c6a13a228a4bb7fa4037766fa765df543cb40a9ecbf6fce5e46e88a707d",
    "fitted_model_version": "bf5fc440e240c2f3d71d7afd62a59fe76a4e423fbc31fe62cb42dc336a45dc98",
    "metric_definition_hash": "fe9eaba2036cbc96843751ec1c55bd95249217769bef256cb2d4cd2f7fdc8dc6",
    "view_definition_hash": "884cb27636ce45b2cc8acf4ef9e115b201e0f17d2ae6428d380ffbc5c2898a1e",
    "scenario_preset_version": "49869415c8eb1625830af9ca862826a1b773b82f3d6926382098c15c37fe5adb",
-   "frontend_build_id": "e0c94c721a39bb8323439e51da56bc694cb87dfc927178b73c284c4ce6993c36"
+   "frontend_build_id": "9550cbaaf2c4ea3cbf19484e8db20d754d425151adff0915bca2d7a18758d7e1"
   }
  },
  "meta": {
@@ -351025,7 +351025,7 @@
         "ความเสียเปรียบที่ไม่ขึ้นกับมาตรวัด"
        ],
        [
-        "ตำแหน่งแพทย์เฉพาะทางร้อยละ 63.5 อยู่ในร้อยละ 10 ของสถานพยาบาลที่มีมากที่สุด (ช่วง 2564–2567 เพิ่มจากร้อยละ 61.6)",
+        "แพทย์เฉพาะทางร้อยละ 63.5 อยู่ในร้อยละ 10 ของสถานพยาบาลที่มีมากที่สุด (ช่วง 2564–2567 เพิ่มจากร้อยละ 61.6)",
         "การกระจุกตัวของทักษะเฉพาะทาง"
        ],
        [
@@ -351060,7 +351060,7 @@
        "ความเสียเปรียบที่ไม่ขึ้นกับมาตรวัด"
       ],
       [
-       "ตำแหน่งแพทย์เฉพาะทางร้อยละ 63.5 อยู่ในร้อยละ 10 ของสถานพยาบาลที่มีมากที่สุด (ช่วง 2564–2567 เพิ่มจากร้อยละ 61.6)",
+       "แพทย์เฉพาะทางร้อยละ 63.5 อยู่ในร้อยละ 10 ของสถานพยาบาลที่มีมากที่สุด (ช่วง 2564–2567 เพิ่มจากร้อยละ 61.6)",
        "การกระจุกตัวของทักษะเฉพาะทาง"
       ],
       [

@@ -12,6 +12,7 @@
       "minutes": "30 นาที",
       "href": "talks/ws3-findings/index.html",
       "pdf": "downloads/ws3-findings.pdf",
+      "pptx": "downloads/ws3-findings.pptx",
       "thumb": "talks/ws3-findings/thumb.png"
     },
     {
@@ -23,6 +24,7 @@
       "minutes": "30 นาที",
       "href": "talks/ws3-next/index.html",
       "pdf": "downloads/ws3-next.pdf",
+      "pptx": "downloads/ws3-next.pptx",
       "thumb": "talks/ws3-next/thumb.png"
     }
   ],

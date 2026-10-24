@@ -52,25 +52,188 @@
       ".nx-table td:first-child{color:var(--text-1);font-weight:500;white-space:nowrap}",
       ".nx-check li::before{content:'✓ ';color:var(--good-text)}",
       ".nx-quote{font-size:calc(var(--fs-lead)*.98);color:var(--text-1);font-weight:300;line-height:1.45;border-left:3px solid var(--accent);padding-left:calc(var(--u)*1)}",
-      ".nx-src{font-size:calc(var(--fs-small)*.9);color:var(--muted)}"
+      ".nx-src{font-size:calc(var(--fs-small)*.9);color:var(--muted)}",
+      // Thai units from the typesetting pass below; balanced wrapping only chooses among unit boundaries
+      ".tw{white-space:nowrap}",
+      ".slide .body li,.nx-card p,.nx-col li,.nx-table td,.nx-chip{text-wrap:pretty}",
+      // caveats name what the slide is not (a commitment, an agreement): readable from the back (owner floor 20-22 px)
+      ".slide .caveat{font-size:max(15px,calc(var(--u)*1.1));line-height:1.45}",
+      // s02: the typing aid is for the presenter only - it shows on hover or focus, never in print
+      ".nx-edit{opacity:0;transition:opacity .2s}",
+      ".nx-card:hover .nx-edit,.nx-card:focus-within .nx-edit{opacity:1}",
+      "html.print .nx-edit{display:none}",
+      "html.print .nx-note:empty::before{content:none}",
+      ".nx-head .nx-num{display:inline-block;min-width:1.15em}",
+      ".nx-progs{gap:calc(var(--u)*1)}",
+      ".nx-progs .nx-card{padding:calc(var(--u)*.85) calc(var(--u)*1.1);gap:calc(var(--u)*.4)}",
+      ".nx-progs .nx-head{align-items:flex-start}",
+      ".nx-progs .nx-card h4{font-size:calc(var(--fs-body)*1.06);line-height:1.3;min-height:2.6em}",
+      ".nx-progs .nx-num{font-size:var(--fs-title)}",
+      ".nx-progs .nx-tag{font-size:max(13px,calc(var(--u)*1));color:var(--text-2);border-color:var(--line-strong)}",
+      ".nx-progs .nx-card p{font-size:var(--fs-body);line-height:1.42;color:var(--text-2)}",
+      ".nx-progs .nx-chip{font-size:var(--fs-body);line-height:1.4}",
+      ".nx-agenda{gap:calc(var(--u)*.7) calc(var(--u)*1.1)}",
+      ".nx-agenda h5{margin:0 0 calc(var(--u)*.1);font-size:var(--fs-body);font-weight:500;line-height:1.3}",
+      ".nx-item{font-size:calc(var(--fs-body)*1.05);color:var(--text-1);line-height:1.42;padding:calc(var(--u)*.7) calc(var(--u)*.85);border:1px solid var(--line);border-radius:6px;background:var(--card);transition:opacity .4s var(--ease);text-wrap:pretty}",
+      ".nx-item b{color:var(--accent-text);font-weight:500}",
+      ".nx-hand{margin-top:calc(var(--u)*.5)}",
+      ".nx-hand h4{font-size:var(--fs-lead)}",
+      ".nx-table.nx-roles{table-layout:fixed}",
+      ".nx-roles td:first-child{white-space:normal}",
+      ".nx-roles tbody tr:last-child td{background:var(--accent-soft)}",
+      ".nx-roles tbody tr:last-child td:first-child{box-shadow:inset 3px 0 0 var(--accent);color:var(--accent-text)}",
+      ".nx-near .nx-card{gap:calc(var(--u)*.6)}",
+      ".nx-near .nx-card .nx-grid{height:auto}",
+      ".nx-near .nx-card h4{font-size:calc(var(--fs-body)*1.05)}",
+      ".nx-near .nx-card p{font-size:var(--fs-body);line-height:1.45}",
+      ".nx-near .nx-label{font-size:max(13px,calc(var(--u)*1));color:var(--muted);margin-top:calc(var(--u)*.4)}",
+      ".nx-near .nx-col li{font-size:var(--fs-body);line-height:1.42;padding:calc(var(--u)*.5) calc(var(--u)*.7)}",
+      ".nx-near .nx-col{margin-top:calc(var(--u)*.4)}",
+      ".nx-plain{list-style:none;margin:calc(var(--u)*.5) 0 0;padding:0;display:flex;flex-direction:column;gap:calc(var(--u)*.55)}",
+      ".nx-plain li{position:relative;padding-left:1.1em;font-size:var(--fs-body);color:var(--text-1);line-height:1.42}",
+      ".nx-plain li::before{content:'';position:absolute;left:0;top:.62em;width:.42em;height:.42em;border-radius:50%;background:var(--accent)}",
+      ".nx-plain li b{color:var(--accent-text);font-weight:500}",
+      ".nx-quote{margin:0}",
+      // s13: the closing line in four lines, the last one whole ("ของแต่ละทางเลือกปรากฏชัด")
+      "#slide-13 .display{font-size:calc(var(--fs-display)*.9)}",
+      ".nx-quote cite{display:block;font-style:normal;font-size:var(--fs-kicker);color:var(--muted);margin-top:.35em}"
     ].join("\n");
     var st = document.createElement("style"); st.id = "nx-style"; st.textContent = css; document.head.appendChild(st);
   })();
 
+  /* ---------------- Thai line breaking (this deck only; adapted from story/reader/newsletter/typeset.js) ----------------
+   * Chromium breaks Thai wherever its ICU dictionary sees a word boundary: it splits compounds (หลัก|ฐาน, ตัว|หาร,
+   * เพียง|พอ, ครัว|เรือน) and leaves joining words (การ ความ ที่ และ) at line ends. After the deck renders, each
+   * text node of the slide text and of the HTML figures is cut into units: Intl.Segmenter words, with KEEP words never
+   * cut (words pythainlp keeps whole where ICU cuts them in this deck's text, 24 Oct 2569, plus key phrases), GLUE
+   * prefixes and conjunctions joined to the word after them, and SOFT prepositions joined to the next word while the
+   * unit stays short. Each unit is a no-break span and units meet at a zero-width space, so a line ends only between
+   * units. A key term in <strong> or <b> stays whole, and a block's last unit never sits alone on its line.
+   * SVG text does not wrap: figures break it by hand. */
+  (function typeset() {
+    var KEEP = ("ภายในกติกาเดิม กติกาเดิม การเปลี่ยนแปลงโครงสร้าง การสังเคราะห์ข้อเสนอ วิเคราะห์ปัญหา เชิงโครงสร้าง " +
+      "ช่องที่หนึ่ง ช่องที่สอง ช่องที่สาม ช่องที่สี่ ที่หนึ่ง ที่สอง ที่สาม ที่สี่ คงทนที่สุด มากที่สุด ที่สุด " +
+      "เพียงพอ ความเพียงพอ ไม่เพียงพอ ความไม่เพียงพอ แหล่งข้อมูล แหล่งทุน รากศัพท์ หลักฐาน หลักฐานกลไก พื้นฐาน " +
+      "ทางเลือกพื้นฐาน กำลังคน การสำรวจกำลังคน แบบจำลอง แบบจำลองจัดสรร ครัวเรือน นิรนาม แบบนิรนาม รายบุคคล " +
+      "ความจำเป็น ล่วงหน้า น่าเชื่อถือ ความน่าเชื่อถือ ตัวหาร กรอบตำแหน่ง ตำแหน่งว่าง พื้นที่ขาด หลักประกัน " +
+      "หลักประกันสุขภาพถ้วนหน้า โครงการผลิตเพื่อพื้นที่ คำอธิบาย ไม่ได้ เกิดอะไรขึ้น เกิดขึ้น จัดสรรรอบหน้า รอบหน้า " +
+      "เรียกว่า รอบตัดสิน ตรวจได้ เป็นธรรมชาติ ธรรมชาติ ความสามารถ บริการเอกชน สองภาค ฐานจัดสรร พันธะบริการ " +
+      "ระดับพื้นที่ กระบวนการ กระบวนการนโยบาย เรียนรู้ต่อได้ทุกปี ทุกปี รายปี ทุกห้าปี ห้าปี ระยะยาว ระยะสั้น " +
+      "ระยะกลางถึงยาว ข้อเสนอ ข้อจำกัด ข้อตกลง ข้อถกเถียง ข้ออ้าง ทางเลือก การศึกษา ผลการศึกษา ความรู้ องค์ความรู้ " +
+      "นักวิชาการ ทางวิชาการ เครือข่าย หน่วยงาน การทดลอง การวินิจฉัย การธำรง ครั้งนี้ ความเสี่ยง ช่องทาง ตอบคำถาม " +
+      "ตั้งคำถาม ผู้เขียน นำเสนอ เปิดเผย กระทบยอด กวาดตา การประชุม การประเมิน การผลิต ความขาดแคลน " +
+      "ความสำคัญ ความเห็น ความเอนเอียง ความใกล้ชิด งานวิจัย ถกเถียง ผู้จ้าง ผู้ตัดสิน ผู้ทำงาน ภายใต้ วิสัยทัศน์ " +
+      "สถานพยาบาล หลักปฏิบัติ อย่างไร เครื่องมือ เฉพาะทาง แพทย์เฉพาะทาง เส้นทาง เหล่านี้ เหล่านั้น โต้แย้ง ใช้ทุน " +
+      "กระจาย กระจายอำนาจ กลายเป็น การกำกับ การสาธารณสุข การอธิบาย การเงิน การเรียนรู้ การเลือกตั้ง ก่อนกำหนด " +
+      "ครัวเรือน ความคิด ความจริง ความมั่นคง ความร่วมมือ ความสำเร็จ ความหมาย ความเข้าใจ ความไม่แน่นอน คำตอบ " +
+      "ค่าคงที่ ค่าตอบแทน จัดเก็บ ช่องว่าง ดีกว่า ตรงกันข้าม ตรงไหน ตรวจสอบ ตัดสินใจ ตัวเอง ตั้งต้น ถ่ายโอน ถ้วนหน้า " +
+      "ทีละขั้น ทีละน้อย ทีละปี ที่ตั้ง ที่ปรึกษา ทุกท่าน นักปฏิรูป บ้านเกิด ปฐมภูมิ ปรากฏชัด ปัญหาเฉพาะหน้า ผลตอบแทน " +
+      "ผิดทาง ผู้ปฏิบัติงาน ผู้ว่าจ้าง ผู้ออกแบบ มีคุณค่า มีสิทธิ์ รับทุน รับผิดชอบ รับภาระ รูปแบบ ร่วมกัน ร้อยละ " +
+      "ลดคุณค่า สุดโต่ง ความสุดโต่ง ส่วนหนึ่ง ส่วนใหญ่ หรือไม่ ออดส์ เข้าออก เปรียบเทียบ เผยแพร่ เพราะอะไร เพียงใด " +
+      "เรียนรู้ เวลาทำงาน เวลาเริ่ม แผนงาน แผนงานวิจัย โครงการวิจัย โรงพยาบาล ในที่นี้ ในอนาคต ได้รับ สถาบันวิจัย " +
+      "จุดตรวจ ขั้นทดลอง วงเสวนา ฉันทามติ ผลผลิต ผู้ดูแลหลัก บันไดอาชีพ อาชีพ แหล่งฝึก ภูมิภาค " +
+      "ผู้สูงอายุ ผู้ป่วย ผู้ตอบ ผู้ดูแล ประชากร ตำแหน่ง บุคลากร สาธารณสุข กระทรวง ผู้ร่วมเสวนา การตัดสินร่วม " +
+      "ผลที่คงทนที่สุด มันคือ ทำอะไร ขอให้เลือก ธำรงคน ธำรงคนไว้ การธำรงคนในระบบ ธำรงคนในระบบ หนึ่งในสิบ ระบบการจ้าง " +
+      "แบบจำลองการเลือก ดูเป็นธรรมชาติ ทุกทางเลือก การกวาดตาแบบผสม กวาดตาแบบผสม ถูกเรียกว่า ช่องอื่น เส้นทางอาชีพ " +
+      "การดูแลระยะยาว ดูแลระยะยาว ด้วยการกวาดตาแบบผสม ฉากทัศน์ " +
+      "ที่มี ก็มี เพื่อขอ กรอบสี่ช่อง ขั้นทดลองที่มีจุดตรวจ ตัวเลขความขาดแคลน การเมืองเชิงสถาบัน คำตอบภายในกติกาเดิม " +
+      "แบบจำลองการเลือกของบุคลากร ความเสี่ยงที่ต้องจัดการ หลายเรื่อง ส่งงาน ส่งงานให้กัน สองคอลัมน์ " +
+      "สวรส. สธ. สพพ. รพ.สต. สป.").split(" ").sort(function (a, b) { return b.length - a.length; });
+    var GLUE = new Set("ความ การ ผู้ นัก แต่ และ หรือ จึง ซึ่ง เพราะ ถ้า หาก เมื่อ แม้ โดย ทั้ง ส่วน เชิง แต่ละ ทุก จนกว่า มันคือ ไม่ได้ ที่มี ก็มี เพื่อขอ".split(" "));
+    var SOFT = new Set("ที่ ไม่ ของ ใน จาก กับ ให้ เป็น คือ ต่อ ตาม เพื่อ อย่าง จะ ต้อง ควร ยัง ระหว่าง ว่า ภายใน ภายใต้ ด้วย ถึง แก่ บน สู่ สำหรับ".split(" "));
+    var SHORT = 16;                               // longest unit a SOFT word may make, in characters
+    var WHOLE = 40;                               // a <strong>/<b> term up to this length never breaks
+    var START = /[ก-ฮเ-ไ]/, END = /[ก-ฺๅ-๎]/, THAI = /[ก-๎]/;
+    var seg = window.Intl && Intl.Segmenter ? new Intl.Segmenter("th", { granularity: "word" }) : null;
+
+    function units(run) {
+      if (!seg) return { list: [run], glue: false };
+      var cut = new Set(), out = [], last = "", i, k, j;
+      Array.from(seg.segment(run)).forEach(function (s) { if (s.index > 0) cut.add(s.index); });
+      KEEP.forEach(function (w) {
+        for (k = run.indexOf(w); k >= 0; k = run.indexOf(w, k + 1))
+          for (j = k + 1; j < k + w.length; j++) cut.delete(j);
+      });
+      cut.forEach(function (c) { if (!END.test(run[c - 1]) || !START.test(run[c])) cut.delete(c); });
+      var at = [0].concat(Array.from(cut).sort(function (a, b) { return a - b; }), [run.length]);
+      var words = [], ends = [];
+      for (i = 0; i + 1 < at.length; i++) {
+        var w = run.slice(at[i], at[i + 1]);
+        if (words.length && GLUE.has(last)) words[words.length - 1] += w; else words.push(w);
+        ends[words.length - 1] = w;
+        last = w;
+      }
+      words.forEach(function (w, n) {
+        var prev = out[out.length - 1];
+        if (n && SOFT.has(ends[n - 1]) && (prev + w).length <= SHORT) out[out.length - 1] += w; else out.push(w);
+      });
+      return { list: out, glue: GLUE.has(last) };
+    }
+    function span(t) { var s = document.createElement("span"); s.className = "tw"; s.textContent = t; return s; }
+    function set(node) {
+      var whole = node.parentElement && /^(STRONG|B)$/.test(node.parentElement.tagName) && node.data.trim().length <= WHOLE;
+      var parts = node.data.split(/(\s+)/), frag = document.createDocumentFragment(), glue = false;
+      parts.forEach(function (p, i) {
+        if (!p) return;
+        if (/^\s+$/.test(p)) { frag.append(glue || whole || /^ๆ/.test(parts[i + 1] || "") ? " " : p); glue = false; return; }
+        var u = whole || !THAI.test(p) ? { list: [p], glue: false } : units(p);
+        u.list.forEach(function (t, n) { if (n) frag.append("​"); frag.append(span(t)); });
+        glue = u.glue;
+      });
+      node.replaceWith(frag);
+    }
+    // the last unit of a block joins the one before it, across a zero-width space or a space
+    function orphan(block) {
+      var tws = block.querySelectorAll(".tw");
+      if (tws.length < 3) return;
+      var a = tws[tws.length - 2], b = tws[tws.length - 1];
+      if (b.textContent.length > 9 || a.parentNode !== b.parentNode) return;
+      var mid = a.nextSibling;
+      if (mid === b) { a.textContent += b.textContent; b.remove(); return; }
+      if (mid && mid.nodeType === 3 && mid.nextSibling === b && /^[​\s]+$/.test(mid.data)) {
+        if (mid.data === "​") { mid.remove(); a.textContent += b.textContent; b.remove(); }
+        else mid.data = " ";
+      }
+    }
+    // flex containers that hold text directly (the kicker) keep their text as it is: one unit per flex item would add gaps
+    var SKIP = "svg, script, style, .tw, .nobr, [contenteditable], .nx-edit, .badge, .hud-meta, .read-notes, .kicker, .nx-tag";
+    var BLOCKS = "h1, h2, h3, h4, h5, p, li, td, th, .nx-chip, .nx-quote, .nx-tag, .nx-item, .lead";
+    function run() {
+      Array.prototype.forEach.call(document.querySelectorAll(".slide .slide__text, .slide .slide__fig"), function (root) {
+        if (root.dataset.ts) return;
+        root.dataset.ts = "1";
+        var walk = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, { acceptNode: function (n) {
+          return /[^\s​]/.test(n.data) && !n.parentElement.closest(SKIP) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT; } });
+        var nodes = [];
+        while (walk.nextNode()) nodes.push(walk.currentNode);
+        nodes.forEach(set);
+        Array.prototype.forEach.call(root.querySelectorAll(BLOCKS), orphan);
+      });
+      document.documentElement.dataset.typeset = "done";
+    }
+    window.PEITHO = window.PEITHO || {};
+    var hooks = window.PEITHO.hooks = window.PEITHO.hooks || { afterRender: [], onShow: [] };
+    hooks.afterRender.push(run);
+  })();
+
   /* ---------------- the 2x2 knowledge map ---------------- */
-  var QNAME = ["วินิจฉัยภายในกรอบเดิม", "วินิจฉัยเชิงรากฐาน · วิพากษ์", "ข้อเสนอภายใต้กติกาปัจจุบัน", "ข้อเสนอเชิงโครงสร้างระยะกลางถึงยาว"];
-  // quad(g, {x, y, w, h, labels}) -> {tiles, rect(i), center(i)}; i = 0..3 for ช่องที่ 1..4
+  // Axes and box names as the owner set them (24 Oct 2569): each box is named from its two axes.
+  var COLS = ["ภายในกติกาเดิม", "การเปลี่ยนแปลงโครงสร้าง"];
+  var ROWS = [["การวินิจฉัยและ", "การวิเคราะห์ปัญหา"], ["การสังเคราะห์", "ข้อเสนอ"]];
+  var QNAME = ["วิเคราะห์ปัญหาภายในกติกาเดิม", "วิเคราะห์ปัญหาเชิงโครงสร้าง", "ข้อเสนอภายในกติกาเดิม", "ข้อเสนอเปลี่ยนแปลงโครงสร้าง"];
+  // quad(g, {x, y, w, h, labels, lw, fs}) -> {tiles, rect(i), center(i), x0, y0, gw, gh}; i = 0..3 for ช่องที่ 1..4
   function quad(g, o) {
-    var gap = o.gap == null ? 8 : o.gap, lw = o.rowLabel === false ? 0 : 58, top = o.colLabel === false ? 0 : 26;
+    var fs = o.fs || 14, gap = o.gap == null ? 8 : o.gap, lw = o.rowLabel === false ? 0 : (o.lw || 118), top = o.colLabel === false ? 0 : 26;
     var tw = (o.w - lw - gap) / 2, th = (o.h - top - gap) / 2, x0 = o.x + lw, y0 = o.y + top;
     if (o.colLabel !== false) {
-      txt(g, x0 + tw / 2, o.y + 16, "ภายในกรอบ", o.fs || 14, "t-muted", "middle");
-      txt(g, x0 + tw + gap + tw / 2, o.y + 16, "เปลี่ยนกรอบ", o.fs || 14, "t-accent", "middle");
+      txt(g, x0 + tw / 2, o.y + 16, COLS[0], fs, "t-muted", "middle");
+      txt(g, x0 + tw + gap + tw / 2, o.y + 16, COLS[1], fs, "t-accent", "middle");
     }
     if (o.rowLabel !== false) {
-      txt(g, o.x, y0 + th / 2 + 5, "วินิจฉัย", o.fs || 14, "t-muted");
-      txt(g, o.x, y0 + th + gap + th / 2 - 4, "เสนอ", o.fs || 14, "t-muted");
-      txt(g, o.x, y0 + th + gap + th / 2 + 14, "ทางออก", o.fs || 14, "t-muted");
+      ROWS.forEach(function (lines, r) {
+        var cy = y0 + r * (th + gap) + th / 2, lh = fs * 1.3;
+        lines.forEach(function (s, j) { txt(g, o.x, cy + (j - (lines.length - 1) / 2) * lh + fs * 0.35, s, fs, "t-muted"); });
+      });
     }
     var tiles = [0, 1, 2, 3].map(function (i) {
       var cx = x0 + (i % 2) * (tw + gap), cy = y0 + Math.floor(i / 2) * (th + gap);
@@ -81,7 +244,7 @@
       return t;
     });
     return {
-      tiles: tiles,
+      tiles: tiles, x0: x0, y0: y0, gw: 2 * tw + gap, gh: 2 * th + gap,
       rect: function (i) { return { x: x0 + (i % 2) * (tw + gap), y: y0 + Math.floor(i / 2) * (th + gap), w: tw, h: th }; },
       center: function (i) { var r = this.rect(i); return [r.x + r.w / 2, r.y + r.h / 2]; }
     };
@@ -94,9 +257,9 @@
     var svg = S("svg", { viewBox: "-60 -60 640 640", role: "img", "aria-label": "แผนที่ความรู้สี่ช่อง" });
     svg.style.transform = "rotateX(18deg) rotateY(-14deg)"; svg.style.transformOrigin = "50% 50%";
     wrap.appendChild(svg); U.defs(svg);
-    var q = quad(svg, { x: 40, y: 60, w: 440, h: 420, labels: false, numSize: 54, gap: 14 });
-    var ring = S("g", { transform: "translate(260,280)" }, svg);
+    var ring = S("g", { transform: "translate(260,280)" }, svg);    // drawn first: it passes behind the boxes
     [290, 320].forEach(function (r, i) { S("circle", { r: r, style: "fill:none;stroke:var(--line-strong);stroke-width:1;stroke-dasharray:" + (i ? "2 10" : "70 18") }, ring); });
+    var q = quad(svg, { x: 0, y: 60, w: 520, h: 420, labels: false, numSize: 54, gap: 14, fs: 17, lw: 152 });
     var q4 = q.tiles[3].querySelector("rect");
     var a = 0;
     U.loop(svg, function (dt, ts) {
@@ -110,9 +273,9 @@
   FIGS.s02 = function (host) {
     var debates = [
       "ความจำเป็นใดควรถูกนับก่อน",
-      "ใครควรเป็นผู้จ้าง และอะไรกำหนดว่าพื้นที่รับคนได้เท่าใด",
-      "ใครรับภาระของความไม่เพียงพอ ระหว่างรัฐ ผู้ทำงาน ครอบครัว และชุมชน",
-      "ใครควรมีสิทธิ์ตัดสินว่าเท่าใดจึงเพียงพอ และฉันทามติควรสร้างผ่านช่องทางใด"
+      "ใครควรเป็นผู้จ้าง<br>และอะไรกำหนดว่าพื้นที่รับคนได้เท่าใด",
+      "ใครรับภาระของความไม่เพียงพอ<br>ระหว่างรัฐ ผู้ทำงาน ครอบครัว และชุมชน",
+      "ใครควรมีสิทธิ์ตัดสินว่าเท่าใดจึงเพียงพอ<br>และฉันทามติควรสร้างผ่านช่องทางใด"
     ];
     var grid = H("div", "nx-grid", null, host);
     grid.style.gridTemplateColumns = "repeat(2, minmax(0, 1fr))";
@@ -146,25 +309,20 @@
     var box = { x: 10, y: 70, w: 300, h: 360 };
     S("rect", { x: box.x, y: box.y, width: box.w, height: box.h, rx: 10, style: "fill:var(--accent-soft);stroke:var(--accent);stroke-width:2", class: "glow" }, svg);
     txt(svg, box.x + 16, box.y + 30, "กติกาที่แบบจำลองรับไว้", 15, "t-accent");
-    txt(svg, box.x + 16, box.y + 52, "ตำแหน่ง · ผู้จ้าง · ที่ตั้งการฝึก · ตลาด · งานดูแล", 11.5, "t-muted");
+    txt(svg, box.x + 16, box.y + 52, "ตำแหน่ง · ผู้จ้าง · ที่ตั้งการฝึก · ตลาด · งานดูแล", 12, "t-muted");
+    txt(svg, box.x + 16, box.y + box.h - 14, "จุด = ผลของการศึกษาที่วิ่งอยู่ภายในกติกา", 12, "t-muted");
     var parts = [];
     for (var i = 0; i < 26; i++) {
       var a = i * 2.39996;
-      parts.push({ x: box.x + 40 + (i * 37) % (box.w - 80), y: box.y + 90 + (i * 53) % (box.h - 120), vx: Math.cos(a) * 0.09, vy: Math.sin(a) * 0.09,
+      parts.push({ x: box.x + 40 + (i * 37) % (box.w - 80), y: box.y + 90 + (i * 53) % (box.h - 140), vx: Math.cos(a) * 0.09, vy: Math.sin(a) * 0.09,
         el: S("circle", { r: 4, style: "fill:var(--p1)" }, svg) });
     }
-    var hits = S("g", {}, svg);
     U.loop(svg, function (dt) {
       parts.forEach(function (p) {
         p.x += p.vx * dt; p.y += p.vy * dt;
-        var hit = false;
-        if (p.x < box.x + 6 || p.x > box.x + box.w - 6) { p.vx = -p.vx; hit = true; p.x = Math.max(box.x + 6, Math.min(box.x + box.w - 6, p.x)); }
-        if (p.y < box.y + 66 || p.y > box.y + box.h - 6) { p.vy = -p.vy; hit = true; p.y = Math.max(box.y + 66, Math.min(box.y + box.h - 6, p.y)); }
+        if (p.x < box.x + 6 || p.x > box.x + box.w - 6) { p.vx = -p.vx; p.x = Math.max(box.x + 6, Math.min(box.x + box.w - 6, p.x)); }
+        if (p.y < box.y + 66 || p.y > box.y + box.h - 34) { p.vy = -p.vy; p.y = Math.max(box.y + 66, Math.min(box.y + box.h - 34, p.y)); }
         p.el.setAttribute("cx", p.x); p.el.setAttribute("cy", p.y);
-        if (hit && hits.childNodes.length < 14) {
-          var f = S("circle", { cx: p.x, cy: p.y, r: 3, style: "fill:none;stroke:var(--accent);stroke-width:1.5" }, hits), age = 0;
-          var job = U.loop(f, function (d) { age += d; f.setAttribute("r", 3 + age / 30); f.style.opacity = Math.max(0, 1 - age / 600); if (age > 600) { job.stop(); f.remove(); } });
-        }
       });
     });
     if (U.isStatic()) parts.forEach(function (p) { p.el.setAttribute("cx", p.x); p.el.setAttribute("cy", p.y); });
@@ -173,13 +331,16 @@
       "วางตำแหน่งถูกที่ = เพิ่ม " + F("c5f_prorata_equiv_ratio") + " เท่า",
       "ใครจ่าย: " + F("c5f_PR_GDh5_bq_P") + " เทียบ " + F("c5f_PR_GDc5_bq_P"),
       F("c46_dis_n_all_four") + " จังหวัดต่ำทุกไม้บรรทัด",
-      "เฉพาะทาง " + F("c46_conc_top10_all1") + "% ในร้อยละสิบของสถานพยาบาล",
+      // c46_conc_top10_all1 counts specialists (people) among facilities that have any (owner wording, 23 Oct)
+      ["แพทย์เฉพาะทาง " + F("c46_conc_top10_all1") + "% อยู่ในสถานพยาบาล", "หนึ่งในสิบที่มีแพทย์เฉพาะทางมากที่สุด"],
       "ผู้ตอบ " + F("c77_pct_primary_carer") + "% เป็นผู้ดูแลหลักในครอบครัว"
     ].map(function (s, i) {
-      var g = S("g", { style: "opacity:0" }, svg), y = 84 + i * 60;
-      S("path", { d: "M" + (box.x + box.w) + "," + (box.y + 40 + i * 56) + " C" + (box.x + box.w + 30) + "," + (box.y + 40 + i * 56) + " 320," + (y + 4) + " 342," + (y + 4), style: "fill:none;stroke:var(--accent);stroke-width:1.2;stroke-dasharray:3 4" }, g);
+      var g = S("g", { style: "opacity:0" }, svg), y = 84 + i * 60, wy = box.y + 40 + i * 56, wx = box.x + box.w;
+      S("path", { d: "M" + wx + "," + wy + " C" + (wx + 30) + "," + wy + " 320," + (y + 4) + " 342," + (y + 4), style: "fill:none;stroke:var(--accent);stroke-width:1.2;stroke-dasharray:3 4" }, g);
+      S("path", { d: "M" + (wx - 7) + "," + (wy - 9) + " L" + wx + "," + wy + " L" + (wx - 7) + "," + (wy + 9) + " M" + (wx - 10) + "," + wy + " H" + wx, style: "fill:none;stroke:var(--accent);stroke-width:2;stroke-linecap:round" }, g);
       S("rect", { x: 342, y: y - 20, width: 296, height: 46, rx: 6, style: "fill:var(--card);stroke:var(--line-strong)" }, g);
-      txt(g, 354, y + 8, s, 12.5, "t-strong");
+      if (Array.isArray(s)) { txt(g, 354, y - 1, s[0], 12.5, "t-strong"); txt(g, 354, y + 16, s[1], 12.5, "t-strong"); }
+      else txt(g, 354, y + 8, s, 12.5, "t-strong");
       return g;
     });
     txt(svg, box.x, 466, "ผลที่คงทนที่สุดชี้ไปนอกกติกาที่เปลี่ยนได้ในรอบการจัดสรร", 13, "t-muted");
@@ -191,20 +352,19 @@
 
   /* ---------------- s04 the four boxes of knowledge ---------------- */
   FIGS.s04 = function (host) {
-    var svg = U.svgHost(host, "0 0 640 520", "กรอบสี่ช่อง: วินิจฉัยหรือเสนอทางออก ภายในกรอบหรือเปลี่ยนกรอบ"); U.defs(svg);
+    var svg = U.svgHost(host, "0 0 640 520", "กรอบสี่ช่อง: การวินิจฉัยและการวิเคราะห์ปัญหาหรือการสังเคราะห์ข้อเสนอ ภายในกติกาเดิมหรือการเปลี่ยนแปลงโครงสร้าง"); U.defs(svg);
     var g = S("g", {}, svg);
     var q = quad(g, { x: 0, y: 0, w: 640, h: 420, lfs: 13.5 });
     var extra = S("g", { style: "opacity:0" }, svg);
     var r3 = q.rect(2), r4 = q.rect(3), my = r3.y + r3.h / 2, xa = r3.x + r3.w - 70, xb = r4.x + 70;
-    S("rect", { x: xa - 8, y: my - 34, width: xb - xa + 16, height: 68, rx: 8, style: "fill:var(--card-strong);stroke:var(--accent);stroke-width:1" }, extra);
+    S("rect", { x: xa - 8, y: my - 34, width: xb - xa + 16, height: 68, rx: 8, style: "fill:var(--bg);stroke:var(--accent);stroke-width:1" }, extra);
     S("path", { d: "M" + xa + "," + (my - 8) + " H" + (xb - 10), style: "fill:none;stroke:var(--accent);stroke-width:1.8" }, extra);
     S("path", { d: "M" + (xb - 12) + "," + (my - 14) + " L" + xb + "," + (my - 8) + " L" + (xb - 12) + "," + (my - 2) + "Z", style: "fill:var(--accent)" }, extra);
-    S("path", { d: "M" + xb + "," + (my + 12) + " H" + (xa + 10), style: "fill:none;stroke:var(--p1);stroke-width:1.8" }, extra);
-    S("path", { d: "M" + (xa + 12) + "," + (my + 6) + " L" + xa + "," + (my + 12) + " L" + (xa + 12) + "," + (my + 18) + "Z", style: "fill:var(--p1)" }, extra);
+    S("path", { d: "M" + xb + "," + (my + 12) + " H" + (xa + 10), style: "fill:none;stroke:var(--accent);stroke-width:1.8" }, extra);
+    S("path", { d: "M" + (xa + 12) + "," + (my + 6) + " L" + xa + "," + (my + 12) + " L" + (xa + 12) + "," + (my + 18) + "Z", style: "fill:var(--accent)" }, extra);
     txt(extra, (xa + xb) / 2, my - 18, "ส่งงานให้กัน", 12.5, "t-strong", "middle");
-    txt(extra, 58, 452, "Lindblom · ปรับทีละน้อย เปรียบเทียบทางเลือกที่ใกล้กัน", 13.5, "t-muted");
-    txt(extra, 58, 476, "Etzioni · กวาดตาแบบผสม: สำรวจทางเลือกพื้นฐานอย่างกว้าง แล้วลงมือทีละขั้น", 13.5, "t-accent");
-    txt(extra, 58, 504, "radical = การแตะถึงราก ไม่ใช่ความสุดโต่ง", 13.5, "t-strong");
+    txt(extra, q.x0, 452, "Lindblom · ปรับทีละน้อย เปรียบเทียบทางเลือกที่ใกล้กัน", 13.5, "t-muted");
+    txt(extra, q.x0, 476, "Etzioni · กวาดตาแบบผสม: สำรวจทางเลือกพื้นฐานอย่างกว้าง แล้วลงมือทีละขั้น", 13.5, "t-accent");
     return stepper(host, 2, function (k, anim, jobs) {
       if (k === 1) {
         extra.style.opacity = 0;
@@ -217,43 +377,37 @@
   /* ---------------- s05 where this study sits ---------------- */
   FIGS.s05 = function (host) {
     var svg = U.svgHost(host, "0 0 640 520", "งานของการศึกษาครั้งนี้ในสี่ช่อง"); U.defs(svg);
-    var q = quad(svg, { x: 0, y: 0, w: 640, h: 380, labels: false, numSize: 22 });
+    var q = quad(svg, { x: 0, y: 0, w: 640, h: 420, lfs: 13.5 });   // same geometry as s04
+    // What the study did in each box, as actions (owner, 24 Oct); quadrant two follows chapter 11:
+    // shortage as something defined, organised and shifted onto others. Retention = การธำรงคนในระบบ.
     var items = [
-      [0, ["การนับและตัวหาร", "การไหลเข้าออก", "การสำรวจกำลังคน"], "var(--p1)"],
-      [1, ["กรอบการจัดให้มีบริการ", "อำนาจวิชาชีพ", "แรงงานดูแล"], "var(--p2)"],
-      [2, ["แบบจำลองจัดสรร", "ชุดมาตรการคงอยู่"], "var(--p1)"],
-      [3, ["วงจรทบทวนรายปี"], "var(--accent)"]
+      [0, ["นับแพทย์และเทียบหลายตัวหาร", "กระทบยอดการไหลเข้าและออก", "สำรวจว่าทำไมคนอยู่หรือออก"], "var(--p1)"],
+      [1, ["ถามว่าใครนิยามความขาดแคลน", "ถามว่าวิชาชีพกำหนดจำนวนอย่างไร", "ถามว่าภาระดูแลถูกผลักไปที่ใคร"], "var(--p2)"],
+      [2, ["จำลองการจัดสรรแพทย์ใหม่", "เสนอชุดมาตรการธำรงคนในระบบ"], "var(--p1)"],
+      [3, ["เสนอวงจรทบทวนกติการายปี"], "var(--accent)"]
     ];
     var dots = [];
     items.forEach(function (it) {
       var r = q.rect(it[0]);
       it[1].forEach(function (lab, j) {
-        var g = S("g", { style: "opacity:0" }, svg), x = r.x + 26, y = r.y + 58 + j * 34;
+        var g = S("g", { style: "opacity:0" }, svg), x = r.x + 22, y = r.y + 64 + j * 34;
         S("circle", { cx: x, cy: y - 5, r: 7, style: "fill:" + it[2] }, g);
-        txt(g, x + 16, y, lab, 14, "t-strong");
+        txt(g, x + 14, y, lab, 14, "t-strong");
         dots.push(g);
       });
     });
     var r4 = q.rect(3);
     var empty = S("g", { style: "opacity:0" }, svg);
     S("rect", { x: r4.x + 6, y: r4.y + 6, width: r4.w - 12, height: r4.h - 12, rx: 6, style: "fill:none;stroke:var(--accent);stroke-width:1.5;stroke-dasharray:6 6" }, empty);
-    txt(empty, r4.x + r4.w - 16, r4.y + r4.h - 16, "เกือบว่าง", 16, "t-accent glow", "end");
-    var quote = S("g", { style: "opacity:0" }, svg);
-    S("line", { x1: 0, y1: 404, x2: 0, y2: 500, style: "stroke:var(--accent);stroke-width:3" }, quote);
-    txt(quote, 18, 428, "“การศึกษาครั้งนี้กล่าวได้ว่าภายใต้กติกาที่สมมติ ทางเลือกใดให้ผลอย่างไร", 15, "t-strong");
-    txt(quote, 18, 454, "แต่ยังกล่าวไม่ได้ว่าการเปลี่ยนกติกาใดจะให้ผลดีกว่า", 15, "t-strong");
-    txt(quote, 18, 480, "และต้องแลกด้วยอะไร”", 15, "t-strong");
-    txt(quote, 18, 506, "รายงานการศึกษา บทที่ 11", 11.5, "t-muted");
+    txt(empty, r4.x + r4.w / 2, r4.y + 130, "เกือบว่าง", 18, "t-accent glow", "middle");
     var pulse = { stop: function () {} };
-    return stepper(host, 2, function (k, anim, jobs) {
+    return stepper(host, 1, function (k, anim, jobs) {
       if (k === 1) {
-        quote.style.opacity = 0;
         dots.forEach(function (d, i) { fade(d, true, anim ? 300 : 0, jobs, 200 + i * 180); });
         fade(empty, true, anim ? 400 : 0, jobs, 200 + dots.length * 180);
         pulse.stop();
         if (!U.isStatic()) { var dash = 0; pulse = jobs.add(U.loop(empty, function (dt) { dash = (dash + dt * 0.02) % 12; empty.firstChild.style.strokeDashoffset = dash; })); }
       }
-      if (k === 2) fade(quote, true, anim ? 450 : 0, jobs);
     });
   };
 
@@ -269,29 +423,32 @@
       txt(g1, x + 12, 56, c[0], 13, "t-muted");
       txt(g1, x + 12, 88, c[1], 20, "t-strong");
     });
-    txt(g1, 0, 124, "* แพทย์พร้อมจัดสรรปีละสองพันห้าร้อยคน กรอบโตร้อยละห้าต่อรอบ", 11, "t-muted");
+    txt(g1, 0, 126, "* แพทย์พร้อมจัดสรรปีละสองพันห้าร้อยคน กรอบโตร้อยละห้าต่อรอบ", 12.5, "t-muted");
     // reasons 2 and 3: time and Thai history
     var g2 = S("g", { style: "opacity:0" }, svg);
     S("line", { x1: 0, y1: 140, x2: 640, y2: 140, style: "stroke:var(--line)" }, g2);
     txt(g2, 0, 164, "เหตุผลที่สอง · เวลา: “สังคมจะเลือกโดยไม่รู้ว่ากำลังเลือก”", 14, "t-accent");
-    txt(g2, 0, 194, "เหตุผลที่สาม · ประวัติศาสตร์ไทย: การเปลี่ยนที่สำคัญมาจากทางเลือกเชิงโครงสร้าง", 14, "t-accent");
+    S("line", { x1: 0, y1: 178, x2: 640, y2: 178, style: "stroke:var(--line)" }, g2);
+    txt(g2, 0, 202, "เหตุผลที่สาม · ประวัติศาสตร์ไทย: การเปลี่ยนที่สำคัญมาจากทางเลือกเชิงโครงสร้าง", 14, "t-accent");
     var X0 = 20, X1 = 620;
     function xOf(y) { return X0 + (y - 2510) / (2531 - 2510) * (X1 - X0); }
     S("line", { x1: X0, y1: 250, x2: X1, y2: 250, class: "axis" }, g2);
     var marks = [[2511, "บังคับชดใช้ทุน"], [2515, "ใช้ทุนรุ่นแรก"], [2519, "ขยาย รพ.ชนบท"], [2528, ""]];
-    marks.forEach(function (m) { S("line", { x1: xOf(m[0]), y1: 244, x2: xOf(m[0]), y2: 256, class: "axis" }, g2); txt(g2, xOf(m[0]), 274, String(m[0]), 11, "mono t-muted", "middle"); if (m[1]) txt(g2, xOf(m[0]), 232, m[1], 12, "t-muted", "middle"); });
+    marks.forEach(function (m) { S("line", { x1: xOf(m[0]), y1: 244, x2: xOf(m[0]), y2: 256, class: "axis" }, g2); txt(g2, xOf(m[0]), 276, String(m[0]), 12.5, "mono t-muted", "middle"); if (m[1]) txt(g2, xOf(m[0]), 234, m[1], 12.5, "t-muted", "middle"); });
     var band = S("rect", { x: xOf(2519), y: 246, width: 0, height: 8, rx: 3, style: "fill:var(--p1)" }, g2);
     var facts = S("g", { style: "opacity:0" }, g2);
     txt(facts, 0, 306, "รพ.ชนบท " + F("lit.rural_hosp_start") + " → " + F("lit.rural_hosp_end") + " แห่ง", 15, "t-strong");
     txt(facts, 220, 306, "แพทย์ชนบท " + F("lit.rural_md_start") + " → " + F("lit.rural_md_end") + " คน", 15, "t-strong");
-    txt(facts, 460, 306, "อีสาน/กทม. × " + F("lit.gap_1979") + " → × " + F("lit.gap_1986"), 15, "t-need");
+    txt(facts, 440, 306, "อีสาน/กทม. " + F("lit.gap_1979") + " เท่า → " + F("lit.gap_1986") + " เท่า", 15, "t-need");
     // conditions: three arrows into quadrant four
     var g3 = S("g", { style: "opacity:0" }, svg);
     S("line", { x1: 0, y1: 330, x2: 640, y2: 330, style: "stroke:var(--line)" }, g3);
     txt(g3, 0, 356, "เงื่อนไข · ช่องที่สี่ต้องได้งานจากอีกสามช่อง", 14, "t-accent");
     var mq = quad(g3, { x: 430, y: 364, w: 210, h: 150, labels: false, numSize: 16, gap: 6, rowLabel: false, colLabel: false });
     var q4 = mq.rect(3);
-    var ends = [[q4.x + 10, q4.y + 10], [q4.x + q4.w * 0.62, q4.y + 4], [q4.x + 4, q4.y + q4.h * 0.62]];
+    var ends = [[q4.x + 3, q4.y + 3], [q4.x + q4.w * 0.5, q4.y + 3], [q4.x + 3, q4.y + q4.h * 0.5]];
+    var n4 = mq.tiles[3].querySelector("text");                   // the 4 moves to the corner the arrows do not use
+    n4.setAttribute("x", q4.x + q4.w - 10); n4.setAttribute("y", q4.y + q4.h - 10); n4.setAttribute("text-anchor", "end");
     [[0, "หลักฐานกลไก ← ช่องที่หนึ่ง"], [1, "ใครได้ ใครรับต้นทุน ← ช่องที่สอง"], [2, "ขั้นทดลองที่มีจุดตรวจ ← ช่องที่สาม"]].forEach(function (c, i) {
       var ci = mq.center(c[0]), e = ends[i], ang = Math.atan2(e[1] - ci[1], e[0] - ci[0]);
       S("path", { d: "M" + ci[0] + "," + ci[1] + " L" + e[0] + "," + e[1], style: "fill:none;stroke:var(--accent);stroke-width:1.8" }, g3);
@@ -299,7 +456,6 @@
       S("path", { d: "M" + e[0] + "," + e[1] + " L" + (hx + px) + "," + (hy + py) + " L" + (hx - px) + "," + (hy - py) + "Z", style: "fill:var(--accent)" }, g3);
       txt(g3, 0, 392 + i * 34, c[1], 15, "t-strong");
     });
-    txt(g3, 0, 500, "ขาดสามสิ่งนี้ ช่องที่สี่เป็นวิสัยทัศน์ที่ตรวจไม่ได้", 13, "t-bad");
     return stepper(host, 3, function (k, anim, jobs) {
       if (k === 1) { g2.style.opacity = 0; g3.style.opacity = 0; if (anim) { g1.style.opacity = 0; fade(g1, true, 400, jobs); } else g1.style.opacity = 1; }
       if (k === 2) {
@@ -312,22 +468,23 @@
   };
 
   /* ---------------- s07 six research programmes ---------------- */
+  // Wide layout: three cards a row, so each click (programmes 1-3, then 4-6) fills one row at the body size.
+  // Titles are broken by hand at their phrase boundary; the level tag is neutral (its words say the level).
   FIGS.s07 = function (host) {
-    var LEVEL = { "ชุมชน": "var(--p1)", "ชุมชนและเศรษฐกิจ": "var(--p1)", "เศรษฐกิจและรัฐ": "var(--p3)", "เศรษฐกิจ": "var(--p3)", "สังคมและเศรษฐกิจ": "var(--p2)", "สังคม": "var(--p2)" };
     var progs = [
-      ["ระบบดูแลระดับพื้นที่หลังการกระจายอำนาจ", "ชุมชน", "การกำกับและการเงินแบบใดรักษาทีมปฐมภูมิและเส้นทางอาชีพข้ามนายจ้างได้", "รพ.สต. ในตัวอย่าง <b>" + F("c77_units_P_local") + "</b> จาก <b>" + F("c77_units_P") + "</b> แห่งถ่ายโอนแล้ว"],
-      ["การผลิตจากพื้นที่ที่ผูกกับเส้นทางอาชีพ", "ชุมชนและเศรษฐกิจ", "รับผู้เรียนจากพื้นที่ แหล่งฝึกในภูมิภาค และบันไดอาชีพ เปลี่ยนการคงอยู่ได้เพียงใด", "บ้านเกิดผูกคนไว้กับพื้นที่ (ออดส์ <b>" + F("c77_or_leave_areaB_home_province_match") + "</b>) ไม่ใช่กับสังกัด"],
-      ["ระบบการจ้างและกรอบตำแหน่งตามพันธะบริการ", "เศรษฐกิจและรัฐ", "รูปแบบการจ้างแบบใดเปลี่ยนการกระจาย ความมั่นคง และต้นทุน", "ใครจ่าย: <b>" + F("c5f_PR_GDh5_bq_P") + "</b> เทียบ <b>" + F("c5f_PR_GDc5_bq_P") + "</b>"],
-      ["พันธะสาธารณะของบริการเอกชนและการทำงานสองภาค", "เศรษฐกิจ", "ระบบหลักประกันและเงื่อนไขอนุญาตทำให้เอกชนรับผิดชอบพื้นที่ขาดได้หรือไม่", "เฉพาะทาง <b>" + F("c46_conc_top10_all1") + "%</b> อยู่ในร้อยละสิบของสถานพยาบาล"],
-      ["เศรษฐกิจการดูแลและการสนับสนุนผู้ดูแล", "สังคมและเศรษฐกิจ", "ผู้ดูแลชุมชนที่ได้ค่าตอบแทน การพักทดแทน และการดูแลระยะยาว เปลี่ยนภาระอย่างไร", "ผู้ตอบ <b>" + F("c77_pct_primary_carer") + "%</b> เป็นผู้ดูแลหลักในครอบครัว"],
-      ["การตัดสินร่วมเรื่องความเพียงพอและฐานจัดสรร", "สังคม", "กระบวนการตัดสินร่วมที่ใช้แบบจำลองเปิด เปลี่ยนเกณฑ์และการยอมรับผลอย่างไร", "หลักคิดต่างกัน แพทย์ใหม่จังหวัดเดียวต่าง <b>" + F("c54_maxcum_PR_vs_SR") + "</b> คน"]
+      ["ระบบดูแลระดับพื้นที่<br>หลังการกระจายอำนาจ", "ชุมชน", "การกำกับและการเงินแบบใดรักษาทีมปฐมภูมิและเส้นทางอาชีพข้ามนายจ้างได้", "รพ.สต. ในตัวอย่าง <b>" + F("c77_units_P_local") + "</b> จาก <b>" + F("c77_units_P") + "</b> แห่งถ่ายโอนแล้ว"],
+      ["การผลิตจากพื้นที่<br>ที่ผูกกับเส้นทางอาชีพ", "ชุมชนและเศรษฐกิจ", "รับผู้เรียนจากพื้นที่ แหล่งฝึกในภูมิภาค และบันไดอาชีพ ช่วยธำรงคนไว้ในพื้นที่ได้เพียงใด", "บ้านเกิดผูกคนไว้กับพื้นที่ (ออดส์ <b>" + F("c77_or_leave_areaB_home_province_match") + "</b>) ไม่ใช่กับสังกัด"],
+      ["ระบบการจ้าง<br>และกรอบตำแหน่งตามพันธะบริการ", "เศรษฐกิจและรัฐ", "รูปแบบการจ้างแบบใดเปลี่ยนการกระจาย ความมั่นคง และต้นทุน", "ใครจ่าย: <b>" + F("c5f_PR_GDh5_bq_P") + "</b> เทียบ <b>" + F("c5f_PR_GDc5_bq_P") + "</b>"],
+      ["พันธะสาธารณะ<br>ของบริการเอกชนและการทำงานสองภาค", "เศรษฐกิจ", "ระบบหลักประกันและเงื่อนไขอนุญาตทำให้เอกชนรับผิดชอบพื้นที่ขาดได้หรือไม่", "แพทย์เฉพาะทาง <b>" + F("c46_conc_top10_all1") + "%</b> อยู่ในสถานพยาบาลหนึ่งในสิบที่มีมากที่สุด"],
+      ["เศรษฐกิจการดูแล<br>และการสนับสนุนผู้ดูแล", "สังคมและเศรษฐกิจ", "ผู้ดูแลชุมชนที่ได้ค่าตอบแทน การพักทดแทน และการดูแลระยะยาว เปลี่ยนภาระอย่างไร", "ผู้ตอบ\u00a0<b>" + F("c77_pct_primary_carer") + "%</b> เป็นผู้ดูแลหลักในครอบครัว"],
+      ["การตัดสินร่วม<br>เรื่องความเพียงพอและฐานจัดสรร", "สังคม", "กระบวนการตัดสินร่วมที่ใช้แบบจำลองเปิด เปลี่ยนเกณฑ์และการยอมรับผลอย่างไร", "หลักคิดต่างกัน แพทย์ใหม่จังหวัดเดียวต่าง <b>" + F("c54_maxcum_PR_vs_SR") + "</b> คน"]
     ];
-    var grid = H("div", "nx-grid", null, host);
-    grid.style.gridTemplateColumns = "repeat(2, minmax(0, 1fr))";
+    var grid = H("div", "nx-grid nx-progs", null, host);
+    grid.style.gridTemplateColumns = "repeat(3, minmax(0, 1fr))";
     var cards = progs.map(function (p, i) {
       var c = H("div", "nx-card hud-panel", null, grid);
       H("div", "nx-head", '<span class="nx-num">' + (i + 1) + "</span><h4>" + p[0] + "</h4>", c);
-      var tag = H("span", "nx-tag", p[1], c); tag.style.borderColor = LEVEL[p[1]]; tag.style.color = LEVEL[p[1]];
+      H("span", "nx-tag", p[1], c);
       H("p", "", p[2], c);
       H("span", "nx-chip", p[3], c);
       return c;
@@ -345,16 +502,23 @@
 
   /* ---------------- s08 checkable structural proposals: gates and mixed scanning ---------------- */
   FIGS.s08 = function (host) {
-    var svg = U.svgHost(host, "0 0 640 520", "เกณฑ์ห้าข้อ และการกวาดตาแบบผสม"); U.defs(svg);
+    var svg = U.svgHost(host, "0 0 640 556", "เกณฑ์ห้าข้อ และการกวาดตาแบบผสม: กล้องมุมกว้างกับกล้องซูม"); U.defs(svg);
+    // click 1: the proposal passes five gates on one track (Wright's three, then this study's two)
     var g1 = S("g", {}, svg);
     txt(g1, 0, 18, "ห้าคำถามที่ทุกข้อเสนอเชิงโครงสร้างต้องตอบ", 14, "t-muted");
-    var gates = [["พึงปรารถนา", "", "wright"], ["ทำงานได้", "และยั่งยืน", "wright"], ["ไปถึงได้", "มีพันธมิตร", "wright"], ["ต้นทุนและ", "ความเสี่ยงตกกับใคร", "plus"], ["เรียนรู้และ", "ย้อนกลับได้", "plus"]].map(function (gt, i) {
+    S("line", { x1: 0, y1: 109, x2: 636, y2: 109, style: "stroke:var(--line-strong);stroke-width:1.2;stroke-dasharray:2 6" }, g1);
+    var gates = [["พึงปรารถนา", "", "wright"], ["ทำงานได้", "และยั่งยืน", "wright"], ["ไปถึงได้", "มีพันธมิตร", "wright"], ["ต้นทุนและความเสี่ยง", "ตกกับใคร", "plus"], ["เรียนรู้", "และย้อนกลับได้", "plus"]].map(function (gt, i) {
       var x = 100 + i * 104, g = S("g", {}, g1);
       var bar = S("rect", { x: x - 3, y: 44, width: 6, height: 130, rx: 3, style: "fill:" + (gt[2] === "wright" ? "var(--line-strong)" : "var(--p2-soft)") }, g);
       txt(g, x, 196, gt[0], 12.5, "t-strong", "middle"); if (gt[1]) txt(g, x, 214, gt[1], 12.5, "t-strong", "middle");
       return { x: x, bar: bar, kind: gt[2] };
     });
-    txt(g1, 100, 240, "Wright", 12, "mono t-muted", "middle"); txt(g1, 464, 240, "เพิ่มโดยการศึกษานี้", 12, "t-muted", "middle");
+    function bracket(x0, x1, label) {   // a thin bracket under a group of gates, the label centred on it
+      S("path", { d: "M" + x0 + ",224 V230 H" + x1 + " V224", style: "fill:none;stroke:var(--muted);stroke-width:1.2" }, g1);
+      txt(g1, (x0 + x1) / 2, 248, label, 12.5, "t-muted", "middle");
+    }
+    bracket(gates[0].x - 40, gates[2].x + 40, "Wright");
+    bracket(gates[3].x - 46, gates[4].x + 46, "เพิ่มโดยการศึกษานี้");
     var card = S("g", {}, g1);
     S("rect", { x: 0, y: 92, width: 96, height: 34, rx: 6, style: "fill:var(--accent-soft);stroke:var(--accent)" }, card);
     txt(card, 48, 114, "ข้อเสนอ", 13, "t-accent", "middle");
@@ -362,30 +526,63 @@
       var x = -10 + t * 548; card.setAttribute("transform", "translate(" + x + ",0)");
       gates.forEach(function (gt) { var lit = x + 48 >= gt.x; gt.bar.setAttribute("style", "fill:" + (lit ? (gt.kind === "wright" ? "var(--accent)" : "var(--p2)") : (gt.kind === "wright" ? "var(--line-strong)" : "var(--p2-soft)"))); });
     }
-    // mixed scanning radar
+    // Mixed scanning as Etzioni (1967) pictures it: two cameras. Click 2: the wide-angle camera sees every
+    // basic option coarsely, every five years, and one direction is chosen. Click 3: the zoom camera follows
+    // that direction year by year; at every checkpoint the criteria announced in advance decide whether to
+    // expand, adjust or stop; after five years the wide scan comes round again.
     var g2 = S("g", { style: "opacity:0" }, svg);
-    S("line", { x1: 0, y1: 262, x2: 640, y2: 262, style: "stroke:var(--line)" }, g2);
-    txt(g2, 0, 288, "การกวาดตาแบบผสม (Etzioni)", 14, "t-muted");
-    var cx = 130, cy = 400, R = 104;
-    [R, R * 0.66, R * 0.33].forEach(function (r) { S("circle", { cx: cx, cy: cy, r: r, style: "fill:none;stroke:var(--line-strong);stroke-width:1" }, g2); });
-    S("line", { x1: cx - R, y1: cy, x2: cx + R, y2: cy, style: "stroke:var(--line)" }, g2);
-    S("line", { x1: cx, y1: cy - R, x2: cx, y2: cy + R, style: "stroke:var(--line)" }, g2);
-    var wedge = S("path", { d: "", style: "fill:var(--accent-soft);stroke:var(--accent);stroke-width:1" }, g2);
-    var needle = S("line", { x1: cx, y1: cy, x2: cx + R, y2: cy, style: "stroke:var(--p1);stroke-width:2" }, g2);
-    function wedgeAt(a) {
-      var a0 = a - 0.9, p0 = [cx + R * Math.cos(a0), cy + R * Math.sin(a0)], p1 = [cx + R * Math.cos(a), cy + R * Math.sin(a)];
-      wedge.setAttribute("d", "M" + cx + "," + cy + " L" + p0 + " A" + R + "," + R + " 0 0 1 " + p1 + " Z");
+    S("line", { x1: 0, y1: 266, x2: 640, y2: 266, style: "stroke:var(--line)" }, g2);
+    txt(g2, 0, 294, "การกวาดตาแบบผสม (Etzioni) · กล้องสองตัวทำงานคู่กัน", 14, "t-muted");
+    var wide = S("g", {}, g2);
+    txt(wide, 0, 326, "กล้องมุมกว้าง · ทุกห้าปี", 14, "t-accent");
+    txt(wide, 0, 346, "เห็นทุกทางเลือกพื้นฐานแบบหยาบ แล้วเลือกทิศ", 12, "t-muted");
+    var A = [134, 530], R = 120, a0 = 220, a1 = 320, CHOSEN = 5;
+    function pt(deg, r) { var t = deg * Math.PI / 180; return [A[0] + r * Math.cos(t), A[1] + r * Math.sin(t)]; }
+    function angOf(i) { return a0 + i * (a1 - a0) / 5; }
+    var fan = S("path", { d: "", style: "fill:var(--accent-soft);stroke:var(--accent);stroke-width:1;stroke-opacity:.55" }, wide);
+    function fanTo(deg) {
+      var r = R + 22, p0 = pt(a0 - 8, r), p1 = pt(Math.max(a0 - 7, deg), r);
+      fan.setAttribute("d", "M" + A + " L" + p0 + " A" + r + "," + r + " 0 0 1 " + p1 + " Z");
     }
-    wedgeAt(-0.6); needle.setAttribute("x2", cx + R * Math.cos(1.2)); needle.setAttribute("y2", cy + R * Math.sin(1.2));
-    S("rect", { x: 270, y: 330, width: 14, height: 14, style: "fill:var(--accent-soft);stroke:var(--accent)" }, g2);
-    txt(g2, 292, 342, "กวาดกว้างทุกห้าปี: สำรวจทางเลือกพื้นฐาน", 14, "t-strong");
-    S("line", { x1: 270, y1: 377, x2: 284, y2: 377, style: "stroke:var(--p1);stroke-width:2" }, g2);
-    txt(g2, 292, 382, "ขั้นทดลองรายปี มีจุดตรวจ", 14, "t-strong");
-    txt(g2, 270, 422, "ขยาย · ปรับ · หยุด ตามเกณฑ์ที่ประกาศล่วงหน้า", 14, "t-need");
-    txt(g2, 270, 462, "ระหว่างนี้เรียกว่า", 12.5, "t-muted");
-    txt(g2, 270, 486, "การทดลองทางความคิดภายใต้เงื่อนไข", 16, "t-accent glow");
-    var spin = { stop: function () {} };
-    return stepper(host, 2, function (k, anim, jobs) {
+    var dots = [0, 1, 2, 3, 4, 5].map(function (i) { var p = pt(angOf(i), R); return S("circle", { cx: p[0], cy: p[1], r: 7, style: "fill:var(--p1)" }, wide); });
+    var cp = pt(angOf(CHOSEN), R);
+    var ring = S("circle", { cx: cp[0], cy: cp[1], r: 12, style: "fill:none;stroke:var(--accent);stroke-width:2" }, wide);
+    // the camera: a body, a lens and the word, so the return arrow has a target
+    S("rect", { x: A[0] - 22, y: A[1] - 13, width: 44, height: 26, rx: 5, style: "fill:var(--card-strong);stroke:var(--accent);stroke-width:1.2" }, wide);
+    S("circle", { cx: A[0], cy: A[1], r: 8, style: "fill:none;stroke:var(--accent);stroke-width:1.6" }, wide);
+    S("rect", { x: A[0] - 9, y: A[1] - 18, width: 12, height: 5, rx: 1.5, style: "fill:var(--accent)" }, wide);
+    // click 3: the zoom camera on the chosen direction, five yearly legs with a checkpoint at the end of each
+    var B = { x: 300, y: 330, w: 316, h: 156 };
+    var zoomHead = txt(g2, B.x, 322, "กล้องซูม · ทุกปีในทิศที่เลือก", 14, "t-accent");
+    var zoom = S("g", {}, g2);
+    S("path", { d: "M" + cp + " L" + B.x + "," + (B.y + 6) + " M" + cp + " L" + B.x + "," + (B.y + B.h - 6), style: "fill:none;stroke:var(--accent);stroke-width:1;stroke-dasharray:3 4" }, zoom);
+    S("rect", { x: B.x, y: B.y, width: B.w, height: B.h, rx: 8, style: "fill:var(--card-strong);stroke:var(--accent);stroke-width:1.2" }, zoom);
+    var py = B.y + 58, x0 = B.x + 18, step = 56;
+    var legs = [0, 1, 2, 3, 4].map(function (k) {
+      var a = x0 + k * step, b = a + step;
+      var seg = S("line", { x1: a, y1: py, x2: b - 9, y2: py, style: "stroke:var(--p1);stroke-width:2.5;stroke-linecap:round" }, zoom);
+      var lab = txt(zoom, a + step / 2 - 4, py - 16, "ปี " + (k + 1), 12, "t-muted", "middle");
+      var m = S("path", { d: "M" + b + "," + (py - 9) + " L" + (b + 9) + "," + py + " L" + b + "," + (py + 9) + " L" + (b - 9) + "," + py + "Z", style: "fill:var(--card);stroke:var(--accent);stroke-width:1.5" }, zoom);
+      return { seg: seg, lab: lab, mark: m, x1: a, x2: b - 9 };
+    });
+    // the rule at every checkpoint, said once: the same three outcomes, decided by criteria set in advance
+    var rule = S("g", {}, zoom);
+    txt(rule, x0, py + 38, "ทุกจุดตรวจ ◇ ตัดสินตามเกณฑ์ที่ประกาศไว้ก่อน", 12.5, "t-strong");
+    [["ขยาย", "t-good"], ["ปรับ", "t-need"], ["หยุด", "t-bad"]].forEach(function (o, i) {
+      txt(rule, x0 + 2 + i * 82, py + 70, o[0], 15, o[1]);
+      if (i) txt(rule, x0 + 2 + i * 82 - 22, py + 70, "·", 15, "t-muted", "middle");
+    });
+    // back to the wide scan from the end of year five
+    var end = [x0 + 5 * step + 9, py];
+    var loopG = S("g", {}, g2);
+    S("path", { d: "M" + end + " H" + (B.x + B.w + 14) + " V" + A[1] + " H" + (A[0] + 34), style: "fill:none;stroke:var(--muted);stroke-width:1.5;stroke-dasharray:4 4" }, loopG);
+    S("path", { d: "M" + (A[0] + 24) + "," + A[1] + " L" + (A[0] + 35) + "," + (A[1] - 5) + " L" + (A[0] + 35) + "," + (A[1] + 5) + "Z", style: "fill:var(--muted)" }, loopG);
+    txt(loopG, A[0] + 190, A[1] - 9, "ครบห้าปี กลับไปกวาดกว้างใหม่", 12.5, "t-muted", "middle");
+    var wideParts = [fan, ring].concat(dots), zoomParts = [zoomHead, zoom, rule, loopG].concat(legs.map(function (l) { return l.mark; })).concat(legs.map(function (l) { return l.lab; }));
+    function settleWide() { fanTo(a1 + 8); wideParts.forEach(function (p) { p.style.opacity = 1; }); dots[CHOSEN].style.fill = "var(--accent)"; }
+    function settleZoom(on) { zoomParts.forEach(function (p) { p.style.opacity = on ? 1 : 0; }); legs.forEach(function (l) { l.seg.setAttribute("x2", on ? l.x2 : l.x1); }); }
+    settleWide(); settleZoom(true);
+    return stepper(host, 3, function (k, anim, jobs) {
       if (k === 1) {
         g2.style.opacity = 0;
         if (!anim) { moveCard(1); return; }
@@ -393,33 +590,62 @@
         jobs.add(U.tween(3600, moveCard, { ease: U.ease.inOut, delay: 400 }));
       }
       if (k === 2) {
-        fade(g2, true, anim ? 400 : 0, jobs);
-        if (!U.isStatic()) {
-          var a = -0.6, b = 0;
-          spin = jobs.add(U.loop(g2, function (dt) { a += dt * 0.0006; b += dt * 0.006; wedgeAt(a); needle.setAttribute("x2", cx + R * Math.cos(b)); needle.setAttribute("y2", cy + R * Math.sin(b)); }));
-        }
+        settleZoom(false);
+        if (!anim) { settleWide(); g2.style.opacity = 1; return; }
+        // the wide camera sweeps every basic option, then one direction is chosen
+        wideParts.forEach(function (p) { p.style.opacity = 0; });
+        dots.forEach(function (d) { d.style.opacity = 0.25; d.style.fill = "var(--p1)"; });
+        fanTo(a0 - 8); fan.style.opacity = 1;
+        fade(g2, true, 400, jobs);
+        jobs.add(U.tween(2400, function (t) {
+          var deg = a0 - 8 + t * (a1 - a0 + 16); fanTo(deg);
+          dots.forEach(function (d, i) { if (angOf(i) <= deg) d.style.opacity = 1; });
+        }, { ease: U.ease.inOut, delay: 500 }));
+        later(jobs, 3300, function () { dots[CHOSEN].style.fill = "var(--accent)"; });
+        fade(ring, true, 400, jobs, 3300);
+      }
+      if (k === 3) {
+        if (!anim) { settleZoom(true); return; }
+        // the zoom opens on that direction, year by year, then the cycle returns to the wide scan
+        fade(zoomHead, true, 400, jobs, 100);
+        fade(zoom, true, 600, jobs, 100);
+        legs.forEach(function (l, i) {
+          var t0 = 900 + i * 700;
+          jobs.add(U.tween(450, function (t) { l.seg.setAttribute("x2", l.x1 + (l.x2 - l.x1) * t); }, { delay: t0 }));
+          fade(l.lab, true, 300, jobs, t0);
+          fade(l.mark, true, 300, jobs, t0 + 400);
+        });
+        fade(rule, true, 500, jobs, 4600);
+        fade(loopG, true, 700, jobs, 5600);
       }
     });
   };
 
   /* ---------------- s09 the immediate agenda in three quadrants ---------------- */
   FIGS.s09 = function (host) {
+    // One grid, so a row is as tall as its tallest card in all three columns. Header colours follow the s05 map
+    // (boxes 1 and 3 blue, box 2 purple); gold stays for box 4, the hand-off strip.
     var cols = [
-      ["ช่องที่ 1 · วินิจฉัยภายในกรอบ", ["กระทบยอดจำนวนแพทย์ สป. กับแฟ้มเหตุการณ์เข้าออก", "เชื่อมระเบียนรายบุคคลแบบนิรนาม", "วัดเวลาทำงานจริง: ผู้ตอบ <b>" + F("c77_early_retire_all") + "%</b> คิดเกษียณก่อนกำหนดหรือลดชั่วโมงทำงาน", "เก็บหลักฐานจากผู้ที่ออกแล้ว"]],
-      ["ช่องที่ 2 · วิพากษ์", ["ใครกำหนดกรอบอัตรากำลัง ด้วยเหตุผลและข้อมูลใด", "ใครผลิตตัวเลขความขาดแคลน เพื่อขอทรัพยากรชนิดใด", "ตลาดเอกชนกับงานดูแลในครัวเรือนดึงคนออกจากพื้นที่ขาดอย่างไร"]],
-      ["ช่องที่ 3 · ข้อเสนอภายใต้กติกาปัจจุบัน", ["จัดสรรรอบหน้าด้วยหลายเกณฑ์", "วางตำแหน่งใหม่ตามความจำเป็นทุกรอบกรอบ", "ส่งแพทย์ใหม่ทุกปีจากตำแหน่งว่างจริง", "ประกาศกลุ่ม เวลาเริ่ม และผลที่จะวัดไว้ล่วงหน้า งานปกติจึงกลายเป็นการทดลอง"]]
+      ["ช่องที่ 1", "วิเคราะห์ปัญหาภายในกติกาเดิม", "var(--p1-text)", ["กระทบยอดจำนวนแพทย์ สป. กับแฟ้มเหตุการณ์เข้าออก", "เชื่อมระเบียนรายบุคคลแบบนิรนาม", "วัดเวลาทำงานจริง: ผู้ตอบ\u00a0<b>" + F("c77_early_retire_all") + "%</b> คิดเกษียณก่อนกำหนดหรือลดชั่วโมงทำงาน", "เก็บหลักฐานจากผู้ที่ออกแล้ว"]],
+      ["ช่องที่ 2", "วิเคราะห์ปัญหาเชิงโครงสร้าง", "var(--p2-text)", ["ใครกำหนดกรอบอัตรากำลัง ด้วยเหตุผลและข้อมูลใด", "ใครผลิตตัวเลขความขาดแคลน เพื่อขอทรัพยากรชนิดใด", "ตลาดเอกชนกับงานดูแลในครัวเรือนดึงคนออกจากพื้นที่ขาดอย่างไร"]],
+      ["ช่องที่ 3", "ข้อเสนอภายในกติกาเดิม", "var(--p1-text)", ["จัดสรรรอบหน้าด้วยหลายเกณฑ์", "วางตำแหน่งใหม่ตามความจำเป็นทุกรอบกรอบ", "ส่งแพทย์ใหม่ทุกปีจากตำแหน่งว่างจริง", "ประกาศกลุ่ม เวลาเริ่ม และผลที่จะวัดไว้ล่วงหน้า งานปกติจึงกลายเป็นการทดลอง"]]
     ];
-    var grid = H("div", "nx-grid", null, host);
+    var grid = H("div", "nx-grid nx-agenda", null, host);
     grid.style.gridTemplateColumns = "repeat(3, minmax(0, 1fr))";
     var lis = [];
-    cols.forEach(function (c) {
-      var col = H("div", "nx-col", "<h5>" + c[0] + "</h5>", grid);
-      col.querySelector("h5").style.fontSize = "var(--fs-body)";
-      var ul = H("ul", "", null, col);
-      c[1].forEach(function (t) { var li = H("li", "", t, ul); li.style.fontSize = "var(--fs-body)"; li.style.padding = "calc(var(--u)*.7) calc(var(--u)*.8)"; lis.push(li); });
+    cols.forEach(function (c, ci) {
+      var h = H("h5", "", c[0] + "<br>" + c[1], grid);
+      h.style.color = c[2]; h.style.gridColumn = String(ci + 1); h.style.gridRow = "1";
     });
-    var hand = H("div", "nx-card hud-panel", '<div class="nx-head"><span class="nx-num">4</span><h4>ทุกงานในสามช่องนี้ควรส่งหลักฐานที่ช่องที่สี่ต้องใช้ ข้อมูลที่ตอบคำถามจัดสรรรอบหน้าได้และใช้ประเมินการเปลี่ยนกติกาได้ด้วย ควรได้รับความสำคัญก่อน</h4></div>', grid);
-    hand.style.gridColumn = "1 / -1"; hand.style.borderColor = "var(--accent)";
+    cols.forEach(function (c, ci) {
+      c[3].forEach(function (t, ri) {
+        var li = H("div", "nx-item", t, grid);
+        li.style.gridColumn = String(ci + 1); li.style.gridRow = String(ri + 2);
+        lis.push(li);
+      });
+    });
+    var hand = H("div", "nx-card hud-panel nx-hand", '<div class="nx-head"><span class="nx-num">4</span><h4>ทุกงานในสามช่องนี้ส่งหลักฐานให้ช่องที่สี่</h4></div>', grid);
+    hand.style.gridColumn = "1 / -1"; hand.style.gridRow = "6"; hand.style.borderColor = "var(--accent)";
     lis.push(hand);
     return stepper(host, 1, function (k, anim, jobs) {
       lis.forEach(function (li, i) {
@@ -432,23 +658,23 @@
   /* ---------------- s10 roles of academics ---------------- */
   FIGS.s10 = function (host) {
     var wrap = H("div", "nx-grid", null, host);
-    wrap.style.gridTemplateColumns = "minmax(0, .78fr) minmax(0, 2fr)";
+    wrap.style.gridTemplateColumns = "minmax(0, 1.05fr) minmax(0, 2fr)";
     wrap.style.alignItems = "start";
     var left = H("div", "", null, wrap);
     var svgWrap = H("div", "fig__svg", null, left);
-    var svg = S("svg", { viewBox: "0 0 420 400", role: "img", "aria-label": "งานสี่แบบของ Burawoy และการใช้งานวิจัยของ Weiss บนกรอบสี่ช่อง" });
+    var svg = S("svg", { viewBox: "0 0 430 410", role: "img", "aria-label": "งานสี่แบบของ Burawoy และการใช้งานวิจัยของ Weiss บนกรอบสี่ช่อง" });
     svgWrap.appendChild(svg); U.defs(svg);
-    var q = quad(svg, { x: 0, y: 0, w: 420, h: 330, labels: false, numSize: 20, fs: 13 });
+    var q = quad(svg, { x: 0, y: 0, w: 430, h: 330, labels: false, numSize: 20, fs: 14, lw: 122 });
     var bur = ["งานวิชาชีพ", "งานวิพากษ์", "งานนโยบาย", "งานสาธารณะ"];
-    var wei = ["", "ใช้เพื่อเปิดความเข้าใจ", "ใช้แก้ปัญหาเฉพาะหน้า", "ใช้เพื่อเปิดความเข้าใจ"];
+    var wei = [null, ["ใช้เพื่อเปิด", "ความเข้าใจ"], ["ใช้แก้", "ปัญหาเฉพาะหน้า"], ["ใช้เพื่อเปิด", "ความเข้าใจ"]];
     var labs = [0, 1, 2, 3].map(function (i) {
       var r = q.rect(i), g = S("g", { style: "opacity:0" }, svg);
-      txt(g, r.x + 12, r.y + r.h / 2 + 10, bur[i], 16, i === 3 ? "t-accent" : "t-strong");
-      if (wei[i]) txt(g, r.x + 12, r.y + r.h - 12, wei[i], 11.5, "t-muted");
+      txt(g, r.x + 12, r.y + r.h / 2 + 6, bur[i], 17, i === 3 ? "t-accent" : "t-strong");
+      if (wei[i]) { txt(g, r.x + 12, r.y + r.h - 32, wei[i][0], 13.5, "t-muted"); txt(g, r.x + 12, r.y + r.h - 12, wei[i][1], 13.5, "t-muted"); }
       return g;
     });
-    txt(svg, 0, 362, "Burawoy · งานสี่แบบตามชนิดความรู้และผู้ฟัง", 12, "t-muted");
-    txt(svg, 0, 382, "Weiss · การใช้งานวิจัยสองแบบ", 12, "t-muted");
+    txt(svg, 0, 366, "Burawoy · งานสี่แบบตามชนิดความรู้และผู้ฟัง", 13.5, "t-muted");
+    txt(svg, 0, 392, "Weiss · การใช้งานวิจัยสองแบบ", 13.5, "t-muted");
     var right = H("div", "", null, wrap);
     var rows = [
       ["ผู้วิเคราะห์และผู้ดูแลข้อมูล", "ตัวเลขที่ระบุขอบเขต ตัวหาร และความไม่แน่นอน", "ถือนิยามของผู้จัดเก็บเป็นความจริง", "ประกาศขอบเขตและการกระทบยอด รายงานส่วนที่อธิบายไม่ได้"],
@@ -456,7 +682,7 @@
       ["ที่ปรึกษานโยบาย", "ทางเลือกที่ใช้ได้ในรอบตัดสิน พร้อมผลที่แลกกัน", "ตอบคำถามผู้ว่าจ้างโดยไม่ถามว่าคำถามถูกตั้งอย่างไร", "แยกระดับหลักฐาน ประกาศเกณฑ์ล่วงหน้า รายงานผลไม่ผ่าน เปิดเผยแหล่งทุน"],
       ["ผู้ร่วมสร้างทางเลือกกับสาธารณะ", "ทางเลือกระยะยาวที่ตรวจได้ด้วยเกณฑ์ที่เปิดเผย", "เสนอแทนผู้อื่น หรือใช้ความน่าเชื่อถือทางวิชาการรับรองอุดมการณ์", "ใช้เกณฑ์ห้าข้อ ทำงานร่วมกับผู้ทำงาน <span style=\"white-space:nowrap\">ผู้ดูแล</span> และชุมชน บันทึกความเห็นต่าง"]
     ];
-    var table = H("table", "nx-table", "<thead><tr><th>บทบาท</th><th>สิ่งที่ให้</th><th>ความเสี่ยงเมื่อทำลำพัง</th><th>หลักปฏิบัติ</th></tr></thead>", right);
+    var table = H("table", "nx-table nx-roles", '<colgroup><col style="width:21%"><col style="width:24%"><col style="width:25%"><col style="width:30%"></colgroup><thead><tr><th>บทบาท</th><th>สิ่งที่ให้</th><th>ความเสี่ยงเมื่อทำลำพัง</th><th>หลักปฏิบัติ</th></tr></thead>', right);
     table.style.fontSize = "var(--fs-body)";
     var tb = H("tbody", "", null, table);
     var trs = rows.map(function (r, i) { var tr = H("tr", "", "<td>" + (i + 1) + " " + r[0] + "</td><td>" + r[1] + "</td><td>" + r[2] + "</td><td>" + r[3] + "</td>", tb); return tr; });
@@ -471,18 +697,20 @@
 
   /* ---------------- s11 proximity in the Thai context; A4R for academics ---------------- */
   FIGS.s11 = function (host) {
-    var wrap = H("div", "nx-grid", null, host);
-    wrap.style.gridTemplateColumns = "minmax(0,1fr)";
+    var wrap = H("div", "nx-grid nx-near", null, host);
+    wrap.style.gridTemplateColumns = "repeat(2, minmax(0, 1fr))";
+    wrap.style.alignItems = "stretch";
     var a = H("div", "nx-card hud-panel", null, wrap);
-    a.innerHTML = '<div class="nx-grid" style="grid-template-columns:repeat(2,minmax(0,1fr));gap:calc(var(--u)*1)">' +
+    a.innerHTML = '<div class="nx-grid" style="grid-template-columns:repeat(2,minmax(0,1fr));gap:calc(var(--u)*1.2)">' +
       '<div><h4>Harris · การยึดรัฐเพื่อการพัฒนา</h4><p>เครือข่ายข้าราชการนักปฏิรูประดมทรัพยากรจนสถาปนาหลักประกันสุขภาพถ้วนหน้า</p></div>' +
       '<div><h4>Selway · กติกาการเลือกตั้งและพรรค</h4><p>ขบวนการวิชาชีพจำเป็น แต่การเมืองเชิงสถาบันชี้ขาดมากกว่า</p></div></div>' +
-      '<p class="nx-src" style="margin-top:calc(var(--u)*.6)">ความเสี่ยงของความใกล้ชิด</p>' +
+      '<p class="nx-label">ความเสี่ยงของความใกล้ชิด</p>' +
       '<div class="nx-col"><ul><li>วาระวิจัยถูกกำหนดด้วยคำถามที่หน่วยงานถามได้ภายในอำนาจของตน</li><li>ผู้สร้างความรู้กับผู้ตัดสินเป็นเครือข่ายเดียวกัน การตรวจจากภายนอกอ่อน</li><li>ผู้ที่อยู่นอกเครือข่ายไม่มีช่องทางโต้แย้งเกณฑ์ที่ถูกเลือก</li></ul></div>';
     var b = H("div", "nx-card hud-panel", null, wrap);
-    b.innerHTML = '<div class="nx-grid" style="grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:calc(var(--u)*1.2)">' +
-      '<div><h4>A4R ใช้กับนักวิชาการด้วย</h4><div class="nx-col" style="margin-top:calc(var(--u)*.5)"><ul><li><b>เปิดเผย</b>เหตุผล</li><li>เหตุผลต้อง<b>เกี่ยวข้อง</b></li><li>มี<b>ช่องทางอุทธรณ์</b></li><li>มี<b>กลไกกำกับ</b></li></ul></div></div>' +
-      '<div><h4>สิ่งที่การศึกษาครั้งนี้ทำแล้ว</h4><div class="nx-col nx-check" style="margin-top:calc(var(--u)*.5)"><ul><li>ประกาศเกณฑ์ตรวจแบบจำลองก่อนรัน และรายงานผลที่ไม่ผ่าน</li><li>กำหนดผลลัพธ์หลักของการสำรวจก่อนคำนวณ</li><li>ปรับสถานะข้อเสนอเรื่องภาระงานที่ข้อมูลไม่สนับสนุน</li><li>เปิดโค้ดและเครื่องมือทดลองให้ผู้อื่นตรวจ</li><li>แยกข้อมูลรายบุคคลออกจากผลที่เผยแพร่</li></ul></div></div></div>';
+    // the four A4R conditions are a plain list, the study's actions are checked rows: they are not paired one to one
+    b.innerHTML = '<div class="nx-grid" style="grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:calc(var(--u)*1.4)">' +
+      '<div><h4>A4R ใช้กับนักวิชาการด้วย</h4><ul class="nx-plain"><li><b>เปิดเผย</b>เหตุผล</li><li>เหตุผลต้อง<b>เกี่ยวข้อง</b></li><li>มี<b>ช่องทางอุทธรณ์</b></li><li>มี<b>กลไกกำกับ</b></li></ul></div>' +
+      '<div><h4>สิ่งที่การศึกษาครั้งนี้ทำแล้ว</h4><div class="nx-col nx-check"><ul><li>ประกาศเกณฑ์ตรวจแบบจำลองก่อนรัน และรายงานผลที่ไม่ผ่าน</li><li>กำหนดผลลัพธ์หลักของการสำรวจก่อนคำนวณ</li><li>ปรับสถานะข้อเสนอเรื่องภาระงานที่ข้อมูลไม่สนับสนุน</li><li>เปิดโค้ดและเครื่องมือทดลองให้ผู้อื่นตรวจ</li><li>แยกข้อมูลรายบุคคลออกจากผลที่เผยแพร่</li></ul></div></div></div>';
     return stepper(host, 2, function (k, anim, jobs) {
       if (k === 1) { b.style.opacity = 0; if (anim) { a.style.opacity = 0; later(jobs, 80, function () { a.style.opacity = 1; }); } else a.style.opacity = 1; }
       if (k === 2) { if (!anim) b.style.opacity = 1; else later(jobs, 80, function () { b.style.opacity = 1; }); }
@@ -498,14 +726,16 @@
     var pAng = [0, 1, 2, 3, 4].map(function (i) { return -Math.PI / 2 + i * 2 * Math.PI / 5; });
     for (var i = 0; i < 14; i++) {
       var a = i * 2 * Math.PI / 14 + 0.2, x = C[0] + R2 * Math.cos(a), y = C[1] + R2 * Math.sin(a) * 0.9;
-      if (pAng.some(function (pa) { var d = Math.abs(((a - pa) % (2 * Math.PI) + 3 * Math.PI) % (2 * Math.PI) - Math.PI); return d < 0.22; })) continue;
-      S("line", { x1: C[0], y1: C[1], x2: x, y2: y, style: "stroke:var(--line);stroke-dasharray:2 6" }, under);
-      locals.push({ x: x, y: y, el: S("circle", { cx: x, cy: y, r: 6, style: "fill:var(--p1)" }, svg) });
+      if (pAng.some(function (pa) { var d = Math.abs(((a - pa) % (2 * Math.PI) + 3 * Math.PI) % (2 * Math.PI) - Math.PI); return d < 0.3; })) continue;
+      var rim = [C[0] + (x - C[0]) * 70 / Math.hypot(x - C[0], y - C[1]), C[1] + (y - C[1]) * 70 / Math.hypot(x - C[0], y - C[1])];
+      S("line", { x1: rim[0], y1: rim[1], x2: x, y2: y, style: "stroke:var(--line);stroke-dasharray:2 6" }, under);
+      locals.push({ x: x, y: y, rim: rim, el: S("circle", { cx: x, cy: y, r: 6, style: "fill:var(--p1)" }, svg) });
     }
-    var partners = [["สธ."], ["สถาบันพระบรมราชชนก", "และ สพพ."], ["PIER"], ["กรรมาธิการ", "การสาธารณสุข"], ["สวรส."]];
+    var partners = [["สธ."], ["สถาบันพระบรมราชชนก", "และ สพพ."], ["สถาบันวิจัย/นักวิจัย"], ["กรรมาธิการ", "การสาธารณสุข"], ["สวรส."]];
     partners.forEach(function (p, i) {
       var ang = -Math.PI / 2 + i * 2 * Math.PI / partners.length, x = C[0] + R1 * Math.cos(ang), y = C[1] + R1 * Math.sin(ang) * 0.82;
-      S("line", { x1: C[0], y1: C[1], x2: x, y2: y, style: "stroke:var(--line-strong);stroke-width:1.2" }, under);
+      var k70 = 70 / Math.hypot(x - C[0], y - C[1]);
+      S("line", { x1: C[0] + (x - C[0]) * k70, y1: C[1] + (y - C[1]) * k70, x2: x, y2: y, style: "stroke:var(--line-strong);stroke-width:1.2" }, under);
       var g = S("g", {}, svg);
       S("circle", { cx: x, cy: y, r: 13, style: "fill:var(--p2);stroke:var(--bg);stroke-width:2" }, g);
       var right = x >= C[0] - 1, dy = p.length > 1 ? -4 : 5;
@@ -516,12 +746,12 @@
     S("circle", { cx: C[0], cy: C[1], r: 66, style: "fill:var(--accent-soft)" }, hubG);
     txt(hubG, C[0], C[1] - 6, "เวทีทบทวน", 15, "t-strong", "middle");
     txt(hubG, C[0], C[1] + 16, "กติการะดับประเทศ", 13, "t-accent", "middle");
-    txt(svg, 0, 514, "จุดเล็ก: ผู้วิเคราะห์ระดับเขตและจังหวัด ส่งผลการทดลองกลับสู่เวทีทบทวน (Ostrom)", 12, "t-muted");
+    txt(svg, 0, 514, "จุดฟ้า: ผู้วิเคราะห์ระดับเขตและจังหวัด · จุดทอง: ผลการทดลองที่ส่งกลับสู่เวทีทบทวน (Ostrom)", 12, "t-muted");
     var pulses = locals.map(function (l, i) { return { l: l, o: i / locals.length, el: S("circle", { r: 3, style: "fill:var(--accent)" }, under) }; });
     U.loop(svg, function (dt, ts) {
       pulses.forEach(function (p) {
         p.o = (p.o + dt / 3200) % 1;
-        p.el.setAttribute("cx", p.l.x + (C[0] - p.l.x) * p.o); p.el.setAttribute("cy", p.l.y + (C[1] - p.l.y) * p.o);
+        p.el.setAttribute("cx", p.l.x + (p.l.rim[0] - p.l.x) * p.o); p.el.setAttribute("cy", p.l.y + (p.l.rim[1] - p.l.y) * p.o);
         p.el.style.opacity = Math.sin(p.o * Math.PI);
       });
       locals.forEach(function (l, i) { l.el.style.opacity = 0.5 + 0.5 * Math.abs(Math.sin(ts / 700 + i)); });
@@ -537,14 +767,13 @@
     var svg = S("svg", { viewBox: "-60 -60 640 640", role: "img", "aria-label": "ช่องที่สี่ของกรอบความรู้" });
     svg.style.transform = "rotateX(14deg) rotateY(12deg)"; svg.style.transformOrigin = "50% 50%";
     wrap.appendChild(svg); U.defs(svg);
-    var q = quad(svg, { x: 40, y: 60, w: 440, h: 420, labels: false, numSize: 54, gap: 14 });
-    q.tiles.slice(0, 3).forEach(function (t) { t.style.opacity = 0.45; });
-    var r4 = q.rect(3);
-    var glow = S("rect", { x: r4.x - 6, y: r4.y - 6, width: r4.w + 12, height: r4.h + 12, rx: 10, style: "fill:none;stroke:var(--accent);stroke-width:2" }, svg);
-    var ring = S("g", { transform: "translate(260,280)" }, svg);
+    var ring = S("g", { transform: "translate(260,280)" }, svg);    // behind the boxes, as on s01
     [300].forEach(function (r) { S("circle", { r: r, style: "fill:none;stroke:var(--line-strong);stroke-width:1;stroke-dasharray:60 18" }, ring); });
+    var q = quad(svg, { x: 0, y: 60, w: 520, h: 420, labels: false, numSize: 54, gap: 14, fs: 17, lw: 152 });
+    q.tiles.slice(0, 3).forEach(function (t) { t.style.opacity = 0.45; });
+    var q4 = q.tiles[3].querySelector("rect");
     var a = 0;
-    U.loop(svg, function (dt, ts) { a = (a + dt * 0.004) % 360; ring.setAttribute("transform", "translate(260,280) rotate(" + a + ")"); glow.style.opacity = 0.5 + 0.5 * Math.abs(Math.sin(ts / 900)); });
+    U.loop(svg, function (dt, ts) { a = (a + dt * 0.004) % 360; ring.setAttribute("transform", "translate(260,280) rotate(" + a + ")"); q4.style.strokeOpacity = 0.55 + 0.45 * Math.abs(Math.sin(ts / 900)); });
     return { steps: 1, setStep: function () {} };
   };
 
