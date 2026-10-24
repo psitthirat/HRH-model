@@ -1,6 +1,6 @@
 {
   "generator": "hrh-publication/1",
-  "generated_at": "2026-10-24T08:00:20+00:00",
+  "generated_at": "2026-10-24T08:40:57+00:00",
   "release_id": "20261024T075614Z-518bfb6e458d",
   "publication": {
     "audience": "public",
@@ -117,12 +117,12 @@
       "sha256": "8b82d04f9aec79a175e2e9e51e6596d0aa400cc3e5cb0bff1b92a1ee86c43ab5"
     },
     "assets/video/workforce-lab-trailer-poster.jpg": {
-      "bytes": 106846,
-      "sha256": "a4308e3f835385332e95b4bbe5ffafef4de6a8999cd87df15df7087706040341"
+      "bytes": 109236,
+      "sha256": "d2829a6717a43f656c2cb6195b24513ec3d5aab5340f64b16fbe6863a0d2e111"
     },
     "assets/video/workforce-lab-trailer.mp4": {
-      "bytes": 68374980,
-      "sha256": "3f8f33f7696f85ece3fc33c668d48a37abfb52e0bebbfa91cb432475bea04e35"
+      "bytes": 68378159,
+      "sha256": "cf08edea5fa285f76a67b089d98d55abe85400a9fa56c27014cea74e2fab8e48"
     },
     "assets/video/workforce-lab-trailer.th.vtt": {
       "bytes": 12012,
@@ -869,8 +869,8 @@
       "sha256": "fdfa04dbec6bb1a2a2c009125fd5deced95b8636a2207622b598f87f5e29a610"
     },
     "data/versions.json": {
-      "bytes": 12356,
-      "sha256": "d7a95702383f707d318b500fc007d5197c8150737d7638671d3e99f0a9b87bd7"
+      "bytes": 12620,
+      "sha256": "68a5b5c4e6694f4636c878af865cdf46faa3110b7ebbca5feef13fc70123e72c"
     },
     "downloads/hrh-newsletter-ws3-A3-booklet.pdf": {
       "bytes": 5834702,
