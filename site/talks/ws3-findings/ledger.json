@@ -336,6 +336,12 @@
   "source": "outputs/chapter5/claims_5_3.csv"
  },
  {
+  "token": "c53_n_adapt",
+  "display": "60",
+  "unit": "เส้นทาง",
+  "source": "outputs/chapter5/claims_5_3.csv"
+ },
+ {
   "token": "c53_n_paths",
   "display": "500",
   "unit": "เส้นทาง",

@@ -787,7 +787,7 @@
     // legend: only marks that are on screen (the blue key leaves when no province is below its cap)
     S("rect", { x: 0, y: 150, width: 18, height: 18, rx: 3, style: "fill:var(--neutral)" }, svg); txt(svg, 28, 165, "แพทย์เต็มตำแหน่งแล้ว", 14, "t-strong");
     S("line", { x1: 0, x2: 18, y1: 193, y2: 193, style: "stroke:var(--bad-text);stroke-width:2.5" }, svg); txt(svg, 28, 198, "จำนวนที่ตำแหน่งรองรับได้", 14, "t-strong");
-    S("rect", { x: 0, y: 218, width: 18, height: 18, rx: 3, style: "fill:none;stroke:var(--accent-text);stroke-width:2" }, svg); txt(svg, 28, 233, "19 จังหวัดที่แพทย์เทียบเป้าต่ำสุด", 14, "t-strong");
+    S("rect", { x: 0, y: 218, width: 18, height: 18, rx: 3, style: "fill:none;stroke:var(--accent-text);stroke-width:2" }, svg); txt(svg, 28, 233, "19 จังหวัดที่ขาดที่สุดในปีตั้งต้น", 14, "t-strong");
     var keyBlue = S("g", {}, svg);
     S("rect", { x: 0, y: 252, width: 18, height: 18, rx: 3, style: "fill:var(--p1)" }, keyBlue); txt(keyBlue, 28, 267, "แพทย์ยังไม่เต็มตำแหน่ง", 14, "t-strong");
     txt(svg, 0, 330, "แพทย์ใหม่ที่ไม่มีตำแหน่งรองรับ (สะสม)", 14, "t-muted");
@@ -796,7 +796,7 @@
     txt(svg, 0, 436, "ไม่ได้แปลว่าตกงานทั้งหมด", 13, "t-muted");
     // step 2, lower-left: switch the formula after the frame is full
     var sv = side(host, 210, "เปลี่ยนเกณฑ์แบ่งแพทย์ใหม่หลังตำแหน่งเต็ม 19 จังหวัดที่ต่ำสุดได้ผลเท่ากัน"), formula = S("g", { style: "opacity:0" }, sv);
-    txt(formula, 0, 18, "เกณฑ์แบ่งแพทย์ใหม่ · แพทย์เทียบเป้าใน 19 จังหวัดที่ต่ำสุด ปี 2583", 14, "t-muted");
+    txt(formula, 0, 18, "เกณฑ์แบ่งแพทย์ใหม่ · แพทย์เทียบเป้าใน 19 จังหวัดที่ต่ำสุดในปี 2583", 14, "t-muted");
     var rows = [["ประชากร", F("c5f_PR_F0_bq_P|pct") + "%"], ["บริการที่คำนวณให้เทียบกันได้", F("c5f_NR_F0_bq_P|pct") + "%"], ["ภาระโรค", F("c5f_BR_F0_bq_P|pct") + "%"]].map(function (r, i) {
       var g = S("g", { style: "opacity:0" }, formula), y = 60 + i * 40;
       txt(g, 0, y, r[0], 17, "t-strong");
@@ -843,7 +843,7 @@
     txt(g1, 0, 20, "เพิ่มตำแหน่งเท่ากัน " + F("c54_positions_added_PR") + " ตำแหน่ง · ผลปี 2583", 15, "t-muted");
     txt(g1, CA, 62, "แบ่งตามสัดส่วนตำแหน่งเดิม", 14, "t-pro", "middle");
     txt(g1, CB, 62, "ให้พื้นที่ขาดก่อน", 14, "t-need", "middle");
-    var stats = [["19 จังหวัดที่แพทย์เทียบเป้าต่ำสุด", "% ของเป้า", F("c5f_PR_F1_bq_P|pct") + "%", F("c5f_PR_bq_P|pct") + "%"],
+    var stats = [["19 จังหวัดที่ต่ำสุดในปี 2583", "% ของเป้า", F("c5f_PR_F1_bq_P|pct") + "%", F("c5f_PR_bq_P|pct") + "%"],
                  ["ความต่างระหว่างจังหวัด", "Gini ยิ่งต่ำยิ่งต่างกันน้อย", F("c5f_PR_F1_gini_P"), F("c5f_PR_gini_P")],
                  ["แพทย์ตามสัญญา", "ที่ไม่มีตำแหน่งให้กลับภูมิลำเนา (คน)", F("c5f_PR_F1_committed_unplaced"), F("c54_committed_not_home_PR")]].map(function (r, i) {
       var y = 112 + i * 62, g = S("g", { style: "opacity:0" }, g1);
@@ -951,7 +951,7 @@
       var g = S("g", {}, sv);
       txt(g, x, 92, F(shareId) + "%", 56, cls);
       txt(g, x, 124, label, 15, cls);
-      txt(g, x, 156, "แพทย์เทียบเป้า 19 จังหวัดที่ขาดที่สุด", 13, "t-muted"); runs(g, x, 182, [["ปี 2583 ", 13, "t-muted"], [bqText, 20, cls]]);
+      txt(g, x, 156, "19 จังหวัดที่ต่ำสุดในปี 2583", 13, "t-muted"); runs(g, x, 182, [["แพทย์ได้ ", 13, "t-muted"], [bqText, 20, cls], [" ของเป้า", 13, "t-muted"]]);
       return g;
     }
     var hA = hero(0, "c5f_gdh_low19_share", "โรงพยาบาลจ่าย", F("c5f_PR_GDh5_bq_P|pct") + "%", "t-hosp");
@@ -987,8 +987,10 @@
       return g;
     }
     var pairs = [pair(78, "แพทย์ที่แผนส่งไปจังหวัดไม่มีตำแหน่งว่าง", "ยอดสะสมสิบห้าปี เฉลี่ยต่ออนาคตจำลองหนึ่งแบบ", F("c53_blocked_mean_P-R"), F("c53_blocked_adaptive_replanning_P-R")),
-                 pair(160, "แพทย์เทียบเป้าใน 19 จังหวัด", "ที่ได้ค่าต่ำสุด ปี 2583 (% ของเป้า)", F("c53_fixed_schedule_same_paths_bq_P|pct") + "%", F("c53_adaptive_replanning_bq_P|pct") + "%")];
-    txt(g1, 0, 228, "เฉลี่ยจาก " + F("c53_n_paths") + " อนาคตจำลองแบบจับคู่", 13, "t-muted");
+                 pair(148, "แพทย์เทียบเป้าใน 19 จังหวัด", "ที่ต่ำสุดในปี 2583 (% ของเป้า)", F("c53_fixed_schedule_same_paths_bq_P|pct") + "%", F("c53_adaptive_replanning_bq_P|pct") + "%")];
+    // fixed schedule: all c53_n_paths futures; yearly replanning (and the paired % row) only the first c53_n_adapt
+    txt(g1, 0, 206, "กำหนดล่วงหน้า: เฉลี่ยจาก " + F("c53_n_paths") + " อนาคตจำลอง", 13, "t-muted");
+    txt(g1, 0, 226, "จัดใหม่ทุกปี และแถว % ของเป้า: เทียบคู่ใน " + F("c53_n_adapt") + " อนาคตแรกของชุดเดียวกัน", 13, "t-muted");
     S("line", { x1: 0, y1: 252, x2: 640, y2: 252, style: "stroke:var(--line)" }, g2);
     txt(g2, 0, 282, "ทดสอบกับข้อมูลอดีต · เกณฑ์กำหนดก่อนทดสอบ", 14, "t-muted");
     var crit = [
