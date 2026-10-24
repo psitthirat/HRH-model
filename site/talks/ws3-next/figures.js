@@ -489,7 +489,7 @@
     var X0 = 20, X1 = 620, AY = 352;
     function xOf(y) { return X0 + (y - 2508) / (2531 - 2508) * (X1 - X0); }
     S("line", { x1: X0, y1: AY, x2: X1, y2: AY, class: "axis" }, g2);
-    var marks = [[2510, "บังคับชดใช้ทุน"], [2515, "ใช้ทุนรุ่นแรก"], [2519, "ขยาย รพ.ชนบท"], [2528, ""]];
+    var marks = [[2510, "เริ่มสัญญาชดใช้ทุน"], [2515, "บังคับทุกคน"], [2519, "ขยาย รพ.ชนบท"], [2528, ""]];
     marks.forEach(function (m) { S("line", { x1: xOf(m[0]), y1: AY - 6, x2: xOf(m[0]), y2: AY + 6, class: "axis" }, g2); txt(g2, xOf(m[0]), AY + 28, String(m[0]), 13, "mono t-muted", "middle"); if (m[1]) txt(g2, xOf(m[0]), AY - 18, m[1], 13.5, "t-muted", "middle"); });
     var band = S("rect", { x: xOf(2519), y: AY - 4, width: 0, height: 8, rx: 3, style: "fill:var(--p1)" }, g2);
     var facts = S("g", { style: "opacity:0" }, g2);

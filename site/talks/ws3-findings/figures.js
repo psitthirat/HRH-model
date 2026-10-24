@@ -9,6 +9,8 @@
  * 1132 units, and the second figure under the text column (sideHost, the lower-left)
  * 460 units. Sizes in units: 12 = 19 px (the floor for any label), 13 = 20 px,
  * 14 = 22 px, 16 = 25 px, 20 = 31 px, 28 = 44 px.
+ * Labels follow A3's plain-Thai rewrite (24 Oct 2569); adequacy is shown as a percentage of the
+ * 1:1,000 example target: a claim id ending in "|pct" is resolved by talks_build like the pct token filter in copy.
  */
 (function () {
   "use strict";
@@ -99,8 +101,8 @@
     var X0 = 36, X1 = 384, V0 = 96, V1 = 176, Y0 = 470, Y1 = 92;
     function x(i) { return X0 + (X1 - X0) * i / Math.max(1, n - 1); }
     function y(v) { return Y0 - (v - V0) / (V1 - V0) * (Y0 - Y1); }
-    txt(svg, 0, 22, "เพิ่มขึ้นเท่าใด เทียบกับปี 2556", 16, "t-strong");
-    txt(svg, 0, 48, "ดัชนี ปี 2556 = 100", 13, "t-muted");
+    txt(svg, 0, 22, "เพิ่มขึ้นเท่าใดจากปี 2556", 16, "t-strong");
+    txt(svg, 0, 48, "ให้ปี 2556 เริ่มที่ 100 เท่ากัน", 13, "t-muted");
     // No y ticks: the end labels carry the values. One baseline at 100 and the two end years.
     S("line", { x1: X0, x2: X1, y1: y(100), y2: y(100), class: "axis" }, svg);
     txt(svg, X0 - 8, y(100) + 5, "100", 13, "t-muted", "end");
@@ -125,7 +127,7 @@
       return { p: p, len: polyLen(pts), g: g };
     });
     // Step 2, lower-left under "แต่มี 8 จังหวัด…": the provinces this progress has not reached, named.
-    var sv = side(host, 330, "แปดจังหวัดที่อยู่กลุ่มต่ำสุดทุกตัวหารหลัก"), low = S("g", { style: "opacity:0" }, sv);
+    var sv = side(host, 330, "แปดจังหวัดที่แพทย์กระทรวงเทียบฐานวัดต่ำทั้งสี่วิธี"), low = S("g", { style: "opacity:0" }, sv);
     var m = mapAt(low, 150, 6, 318);
     var codes = String(F("c46_dis_list_all_four")).split(/\s*,\s*/).map(U.codeOf).filter(Boolean);
     m.each(function (c) { m.paint(c, codes.indexOf(c) > -1 ? "var(--bad)" : "var(--surface-2)", codes.indexOf(c) > -1 ? "var(--bad-text)" : "var(--line-strong)", codes.indexOf(c) > -1 ? 0.9 : 0.4); });
@@ -152,10 +154,10 @@
   // 24-px labels). Geometry is shared with s18 so the closing slide returns to the same map.
   function provisioning(svg, opt) {
     opt = opt || {};
-    var L = [["ความจำเป็นของประชาชน", 60], ["การตีความและการยอมรับ", 150], ["สิทธิ มาตรฐาน ผู้รับผิดชอบ", 240]];
-    var R = [["การศึกษาและการฝึก", 60], ["การจ้างและการจัดงาน", 150], ["ชีวิตการทำงานและการธำรงคนในระบบ", 240]];
-    txt(svg, 120, 16, "กระบวนการกำหนดพันธะ", 13, "t-muted", "middle");
-    txt(svg, 500, 16, "กระบวนการสร้างขีดความสามารถ", 13, "t-muted", "middle");
+    var L = [["ประชาชนจำเป็นต้องได้บริการอะไร", 60], ["ตกลงว่าจะจัดบริการอะไรให้", 150], ["กำหนดสิทธิ มาตรฐาน ผู้รับผิดชอบ", 240]];
+    var R = [["ผลิตและฝึกคน", 60], ["จ้างและจัดคนลงทำงาน", 150], ["การธำรงคนในระบบ: ทำงานอยู่ต่อได้", 240]];
+    txt(svg, 120, 16, "บริการที่ประชาชนควรได้รับ", 13, "t-muted", "middle");
+    txt(svg, 500, 16, "เตรียมคนให้ทำงานได้จริง", 13, "t-muted", "middle");
     function node(x, y, label) {
       var g = S("g", {}, svg);
       S("rect", { x: x - 105, y: y - 22, width: 210, height: 44, rx: 6, style: "fill:none;stroke:var(--line-strong);stroke-width:1.2" }, g);
@@ -186,10 +188,10 @@
     // words stand in the gutter between the two columns (clear of every box), joined to the marker
     // by a short leader. Line two is a plain-language gloss (s03) or the evidence (s18, opt.e).
     var breaks = [
-      { x: 310, y: 240, n: "1", t: "มีสิทธิ แต่ไม่มีตำแหน่ง", g: "ไม่มีตำแหน่งให้จ้างคน บริการจึงไม่เกิด", place: "below", seam: [225, 395] },
-      { x: 500, y: 105, n: "2", t: "ฝึกแล้ว แต่ไม่ถูกจ้าง", g: "ไม่มีตำแหน่งหรือผู้จ้างในพื้นที่", place: "left" },
-      { x: 500, y: 195, n: "3", t: "จ้างแล้ว แต่อยู่ไม่ได้", g: "ทีม ภาระงาน ชีวิตในพื้นที่", place: "left" },
-      { x: 310, y: 444, n: "4", t: "มีในสถิติ แต่คนที่จำเป็นเข้าไม่ถึง", g: "บริการไม่ถึงผู้ที่ต้องการที่สุด", place: "below" }
+      { x: 310, y: 240, n: "1", t: "มีสิทธิ แต่ไม่มีตำแหน่งให้จ้างคน", g: "ไม่มีตำแหน่งที่มีงบจ้าง บริการจึงไม่เกิด", place: "below", seam: [225, 395] },
+      { x: 500, y: 105, n: "2", t: "ฝึกแล้ว แต่ไม่มีงานรองรับ", g: "ไม่มีตำแหน่งหรือผู้จ้างในพื้นที่", place: "left" },
+      { x: 500, y: 195, n: "3", t: "จ้างแล้ว แต่อยู่ต่อไม่ไหว", g: "ทีม งาน และชีวิตในพื้นที่", place: "left" },
+      { x: 310, y: 444, n: "4", t: "มีบริการ แต่คนที่จำเป็นยังเข้าไม่ถึง", g: "บริการไม่ถึงผู้ที่ต้องการที่สุด", place: "below" }
     ];
     // Each seam keeps handles to its marker and words, so s18 can clear the words and keep the marks.
     var parts = breaks.map(function (b, i) {
@@ -212,7 +214,7 @@
     return { breaks: parts.map(function (p) { return p.g; }), parts: parts };
   }
   FIGS.s03 = function (host) {
-    var svg = U.svgHost(host, "-10 0 640 516", "สองกระบวนการของการจัดให้มีบริการ และรอยต่อสี่จุด", "xMidYMin meet"); U.defs(svg);
+    var svg = U.svgHost(host, "-10 0 640 516", "บริการที่ประชาชนควรได้รับ การเตรียมคนให้ทำงานได้จริง และปัญหาสี่จุด", "xMidYMin meet"); U.defs(svg);
     var d = provisioning(svg);
     // Step 2 reveals the seams in the order 1 to 4, so the click teaches the numbering (1.9 s).
     return stepper(host, 2, function (k, anim, jobs) {
@@ -224,11 +226,11 @@
   // One leftward axis for every decrease on the slide: the two counting choices (step 1, top) and the
   // same MOPH doctors against four denominators (step 2). The scope circles sit in the lower-left.
   FIGS.s04 = function (host) {
-    var svg = main(host, 530, "ความหนาแน่นแพทย์ขยับเท่าใดเมื่อเปลี่ยนเกณฑ์การนับ และแพทย์ สธ. เทียบตัวหารต่างชนิด");
+    var svg = main(host, 530, "บุคลากรต่อประชากรลดลงเท่าใดเมื่อเปลี่ยนสิ่งที่นับ และแพทย์กระทรวงชุดเดียวกันเทียบกับสิ่งต่างกัน");
     var Z = 330, K = 4.0;
     function X(v) { return Z + v * K; }
     var g1 = S("g", {}, svg), g2 = S("g", { style: "opacity:0" }, svg);
-    txt(g1, 0, 22, "แพทย์ต่อประชากรลดลงเท่าใด เมื่อเปลี่ยนเกณฑ์การนับ (%)", 14, "t-muted");
+    txt(g1, 0, 22, "บุคลากรต่อประชากรลดลงเท่าใด เมื่อเปลี่ยนสิ่งที่นับ (%)", 14, "t-muted");
     S("line", { x1: Z, x2: Z, y1: 40, y2: 172, class: "axis" }, g1);
     function strip(y, label, a, b, col, value, cls) {
       txt(g1, 0, y + 24, label, 15, "t-strong");
@@ -237,19 +239,20 @@
       return { r: r, x0: X(-a), w: (b - a) * K, v: v };
     }
     var reg = [Math.abs(N("c421_register_gap_civil_grand")), Math.abs(N("c421_register_gap_nhso_rights"))].sort(function (p, q) { return p - q; });
+    txt(g1, 0, 100, "ต่างกันตามวิชาชีพ", 12, "t-muted");
     var strips = [
-      strip(56, "ขอบเขตบุคลากร", N("c421_scope_gap_min_abs"), N("c421_scope_gap_max_abs"), "var(--accent)", "-" + F("c421_scope_gap_min_abs") + "% ถึง -" + F("c421_scope_gap_max_abs") + "%", "t-accent"),
+      strip(56, "สังกัดที่นับ", N("c421_scope_gap_min_abs"), N("c421_scope_gap_max_abs"), "var(--accent)", "-" + F("c421_scope_gap_min_abs") + "% ถึง -" + F("c421_scope_gap_max_abs") + "%", "t-accent"),
       strip(120, "ทะเบียนประชากร", reg[0], reg[1], "var(--neutral)", F("c421_register_gap_civil_grand") + "% และ " + F("c421_register_gap_nhso_rights") + "%", "t-pro")
     ];
     // step 2: diverging bars, the same MOPH physicians against four denominators
     S("line", { x1: 0, y1: 200, x2: 640, y2: 200, style: "stroke:var(--line)" }, g2);
-    txt(g2, 0, 232, "แพทย์ สธ. ชุดเดียวกัน เทียบกับตัวหารต่างชนิด (% เปลี่ยน)", 14, "t-muted");
+    txt(g2, 0, 232, "แพทย์กระทรวงชุดเดียวกัน เทียบกับอะไรจึงเห็นว่าเพิ่มหรือลด (%)", 14, "t-muted");
     S("line", { x1: Z, y1: 248, x2: Z, y2: 516, class: "axis" }, g2);
     var rows = [
       ["ประชากร", "", "c424_moph_physicians_civil_population_long"],
-      ["ครั้งผู้ป่วยนอก", "", "c424_moph_physicians_op_visits_moph_long"],
-      ["วันนอน", "", "c424_moph_physicians_ip_days_moph_long"],
-      ["งานผู้ป่วยใน", "ถ่วงความซับซ้อน (AdjRW)", "c424_moph_physicians_adjrw_casemix_long"]
+      ["ครั้งที่มารักษา", "แบบผู้ป่วยนอก", "c424_moph_physicians_op_visits_moph_long"],
+      ["วันที่ผู้ป่วยนอนโรงพยาบาล", "", "c424_moph_physicians_ip_days_moph_long"],
+      ["งานผู้ป่วยใน", "ให้น้ำหนักผู้ป่วยที่รักษายาก", "c424_moph_physicians_adjrw_casemix_long"]
     ];
     var bars = rows.map(function (r, i) {
       var y = 254 + i * 66, v = N(r[2]), w = Math.abs(v) * K;
@@ -265,7 +268,7 @@
     var sc = [
       { id: "c421_dens_physicians_all_sectors_end", lab: "ทุกสังกัด", col: "var(--accent)", cls: "t-accent" },
       { id: "c421_dens_physicians_public_total_end", lab: "ภาครัฐ", col: "var(--p1)", cls: "t-need" },
-      { id: "c421_dens_physicians_moph_end", lab: "สธ.", col: "var(--p2)", cls: "t-strong" }
+      { id: "c421_dens_physicians_moph_end", lab: "กระทรวงสาธารณสุข", col: "var(--p2)", cls: "t-strong" }
     ];
     var maxv = N(sc[0].id), base = 252, R0 = 112, cx = 124, circles = [], lastY = -1e9;
     sc.forEach(function (s) {
@@ -303,7 +306,7 @@
 
   /* ---------------- s05 switching rulers: one map; the rulers, then the four main denominators ---------------- */
   FIGS.s05 = function (host) {
-    var svg = main(host, 530, "จังหวัดกลุ่มต่ำสุดเมื่อสลับไม้บรรทัดหกชนิด และการจัดกลุ่มตามสี่ตัวหารหลัก");
+    var svg = main(host, 530, "จังหวัดกลุ่มต่ำสุดเมื่อเปลี่ยนฐานวัดหกแบบ และการจัดกลุ่มตามสี่ฐานหลัก");
     var R = T.rulers || {}, order = R.six_order || [], groups = R.groups || {};
     var m = mapAt(svg, 118, 4, 520);
     var base = function (c) { m.paint(c, "var(--surface-2)", "var(--line-strong)", 0.5); };
@@ -321,9 +324,9 @@
     var named = S("g", { style: "opacity:0" }, svg);
     mapLabels(named, m, core, 14, "t-bad", 24, "var(--bad-text)");
     // lower-left slot: the six rulers (step 1), swapped for the four main denominators (step 2)
-    var sv = side(host, 230, "ไม้บรรทัดหกชนิด และสี่ตัวหารหลัก");
+    var sv = side(host, 230, "ไม้บรรทัดหกแบบ และสี่ฐานหลัก");
     var tabs = S("g", {}, sv);
-    txt(tabs, 0, 18, "ไม้บรรทัดที่ใช้จัดอันดับ", 14, "t-muted");
+    txt(tabs, 0, 18, "ไม้บรรทัด: สิ่งที่นำมาเทียบกับจำนวนแพทย์", 14, "t-muted");
     var chips = order.map(function (d, i) {
       var x = (i % 2) * 232, y = 34 + Math.floor(i / 2) * 44, g = S("g", {}, tabs);
       var box = S("rect", { x: x, y: y, width: 222, height: 36, rx: 8, style: "fill:var(--card);stroke:var(--line);transition:fill .3s, stroke .3s" }, g);
@@ -340,11 +343,11 @@
       });
     }
     var leg = S("g", { style: "opacity:0" }, sv);
-    txt(leg, 0, 18, "สี่ตัวหารหลัก", 15, "t-strong");
-    txt(leg, 0, 44, "ประชากร · บริการที่เกิดขึ้น · บริการคาดหมายมาตรฐาน · ภาระโรค", 13, "t-muted");
-    [["var(--bad)", "ต่ำทุกตัวหารหลัก", F("c46_dis_n_all_four") + " จังหวัด", "t-bad"],
-     ["var(--accent)", "ต่ำตามภาระโรค ไม่ต่ำตามบริการ", F("c46_dis_n_burden_not_service") + " จังหวัด", "t-accent"],
-     ["var(--p1)", "ต่ำตามบริการ ไม่ต่ำตามภาระโรค", F("c46_dis_n_service_not_burden") + " จังหวัด", "t-need"]].forEach(function (r, i) {
+    txt(leg, 0, 18, "สี่ฐานหลัก", 15, "t-strong");
+    txt(leg, 0, 44, "ประชากร · บริการที่ทำจริง · บริการที่แบบจำลองปรับให้เทียบกันได้ · ภาระโรค", 13, "t-muted");
+    [["var(--bad)", "ต่ำทั้งสี่วิธี", F("c46_dis_n_all_four") + " จังหวัด", "t-bad"],
+     ["var(--accent)", "ต่ำเมื่อเทียบภาระโรค แต่ไม่ต่ำเมื่อเทียบบริการ", F("c46_dis_n_burden_not_service") + " จังหวัด", "t-accent"],
+     ["var(--p1)", "ต่ำเมื่อเทียบบริการ แต่ไม่ต่ำเมื่อเทียบภาระโรค", F("c46_dis_n_service_not_burden") + " จังหวัด", "t-need"]].forEach(function (r, i) {
       var y = 86 + i * 40;
       S("rect", { x: 0, y: y - 15, width: 18, height: 18, rx: 4, style: "fill:" + r[0] }, leg);
       runs(leg, 30, y, [[r[1] + "  ", 15, "t-strong"], [r[2], 15, r[3]]]);
@@ -398,23 +401,23 @@
   // 2.2, 1.8 and 1.9 to 1 in luminance, every pair by OKLab dE >= 19 (worst CVD pair 8.5, and the
   // five lowest are labelled), every class >= 3:1 against the ground.
   var BURDEN_BANDS = [
-    { max: 0.5, lab: "น้อยกว่าครึ่งหนึ่ง", fill: "#ffa9d3" },
+    { max: 0.5, lab: "ต่ำกว่าครึ่งของค่าประเทศ", fill: "#ffa9d3" },
     { max: 0.8, lab: "ต่ำกว่าค่าประเทศ", fill: "var(--bad)" },
     { max: 1.25, lab: "ใกล้ค่าประเทศ", fill: "#585d6f" },
     { max: 1e9, lab: "สูงกว่าค่าประเทศ", fill: "var(--p1)" }
   ];
   function band(v) { for (var i = 0; i < BURDEN_BANDS.length; i++) if (v < BURDEN_BANDS[i].max) return BURDEN_BANDS[i]; return BURDEN_BANDS[BURDEN_BANDS.length - 1]; }
   FIGS.s06 = function (host) {
-    var svg = main(host, 530, "ภาระโรคปรับอายุ ต่ำสุดที่นนทบุรีและสูงสุดที่ชัยภูมิ แล้วแพทย์ทุกสังกัดเทียบกับภาระโรครายจังหวัด แพทย์ยังกระจุกอยู่ในจังหวัดที่ภาระโรคต่ำ");
+    var svg = main(host, 530, "ภาระโรคปรับอายุ ต่ำสุดที่นนทบุรีและสูงสุดที่ชัยภูมิ แล้วแพทย์ทุกสังกัดเทียบกับภาระโรครายจังหวัด แพทย์อยู่มากในจังหวัดที่ป่วยน้อยกว่า");
     // Step 1 pre-positions the hero: the map in grey with only the two provinces the speaker names.
     // Step 2 colours it and its header becomes the step's claim, the index as its detail.
     var h1 = S("g", {}, svg);
     txt(h1, 0, 22, "ภาระโรคปรับอายุ ต่ำสุดและสูงสุด", 16, "t-strong");
-    txt(h1, 0, 46, "ปีสุขภาวะที่สูญเสียต่อประชากรแสนคน", 13, "t-muted");
+    txt(h1, 0, 46, "ปีสุขภาพดีที่เสียไปต่อประชากรแสนคน", 13, "t-muted");
     var h2 = S("g", { style: "opacity:0" }, svg);
-    txt(h2, 0, 24, "แต่แพทย์ยังกระจุกอยู่ในจังหวัดที่ภาระโรคต่ำ", 18, "t-strong");
-    runs(h2, 0, 52, [["ดัชนีกระจุกตัว ", 13, "t-muted"], [F("c45_ci_physicians_all_sectors_daly_2025"), 16, "t-bad"], [" · กฎการดูแลผกผัน (inverse care law)", 13, "t-muted"]]);
-    txt(h2, 0, 76, "แผนที่: แพทย์ทุกสังกัดเทียบกับภาระโรค แต่ละจังหวัดเทียบค่าประเทศ · พ.ศ. 2568", 13, "t-muted");
+    txt(h2, 0, 24, "แพทย์อยู่มากในจังหวัดที่ป่วยน้อยกว่า", 18, "t-strong");
+    runs(h2, 0, 52, [[F("c45_ci_physicians_all_sectors_daly_2025"), 16, "t-bad"], ["  ค่าติดลบสรุปทิศทางนี้", 13, "t-muted"]]);
+    txt(h2, 0, 76, "แผนที่: แพทย์ทุกสังกัดต่อประชากรที่ให้น้ำหนักตามภาระโรค เทียบกับประเทศ · พ.ศ. 2568", 13, "t-muted");
     var B = T.burden || { idx: {} }, idx = B.idx || {};
     var m = mapAt(svg, 120, 92, 434);
     var hi = U.codeOf("ชัยภูมิ"), lo = U.codeOf("นนทบุรี");
@@ -434,7 +437,7 @@
     var low = Object.keys(idx).sort(function (a, b) { return idx[a] - idx[b]; }).slice(0, 5);
     mapLabels(g2, m, low, 15, "t-bad", 25, "var(--bad-text)");
     var lg = S("g", {}, g2), lx = 444;
-    txt(lg, lx, 392, "แพทย์ต่อภาระโรค", 13, "t-muted");
+    txt(lg, lx, 392, "แพทย์เทียบภาระโรค", 13, "t-muted");
     BURDEN_BANDS.forEach(function (b, i) {
       var y = 410 + i * 28;
       S("rect", { x: lx, y: y, width: 20, height: 20, rx: 4, style: "fill:" + b.fill }, lg);
@@ -442,18 +445,19 @@
     });
     // lower-left, under the lead: who carries the burden, and how fast it grows (both steps)
     var sv = side(host, 384, "สัดส่วนของคนอายุหกสิบปีขึ้นไปในประชากรและในภาระโรค");
-    txt(sv, 0, 20, "สัดส่วนของคนอายุหกสิบปีขึ้นไป", 16, "t-strong");
+    txt(sv, 0, 20, "คนอายุหกสิบปีขึ้นไป", 16, "t-strong");
     function waffle(x, y, share, label, col) {
       txt(sv, x, y - 12, label, 14, "t-muted");
       var cells = [];
       for (var i = 0; i < 100; i++) cells.push(S("rect", { x: x + (i % 10) * 20, y: y + Math.floor(i / 10) * 20, width: 16, height: 16, rx: 3, style: "fill:var(--surface-3)" }, sv));
       return { cells: cells, n: Math.round(share), col: col };
     }
-    var w1 = waffle(0, 70, N("c45_share60_pop"), "ในประชากร", "var(--neutral)");
-    var w2 = waffle(244, 70, N("c45_share60_daly"), "ในภาระโรค (DALY)", "var(--accent)");
+    var w1 = waffle(0, 70, N("c45_share60_pop"), "ส่วนในประชากร", "var(--neutral)");
+    var w2 = waffle(244, 70, N("c45_share60_daly"), "ส่วนในปีสุขภาพดีที่สูญเสีย", "var(--accent)");
     var v1 = txt(sv, 0, 312, "", 32, "t-pro"), v2 = txt(sv, 244, 312, "", 32, "t-accent");
-    var grow = runs(sv, 0, 362, [["พ.ศ. 2556–2568 ภาระคาดหมาย ", 15, "t-strong"], ["+" + F("c45_expected_growth_1325") + "%", 18, "t-accent"], [" ประชากร ", 15, "t-strong"], ["+" + F("c45_pop_growth_1325") + "%", 18, "t-pro"]]);
-    grow.style.opacity = 0;
+    var grow = runs(sv, 0, 356, [["พ.ศ. 2556–2568 ภาระโรคที่คำนวณ ", 15, "t-strong"], ["+" + F("c45_expected_growth_1325") + "%", 18, "t-accent"], [" ประชากร ", 15, "t-strong"], ["+" + F("c45_pop_growth_1325") + "%", 18, "t-pro"]]);
+    var growN = txt(sv, 0, 380, "ให้อัตราของแต่ละวัยคงเดิม", 12, "t-muted");
+    grow.style.opacity = 0; growN.style.opacity = 0;
     return stepper(host, 2, function (k, anim, jobs) {
       if (k === 1) {
         h2.style.opacity = 0; g2.style.opacity = 0; h1.style.opacity = 1; l1.style.opacity = 1; grey();
@@ -465,7 +469,7 @@
         });
         jobs.add(U.count(v1, F("c45_share60_pop"), { post: "%", ms: anim ? 1100 : 0 }));
         jobs.add(U.count(v2, F("c45_share60_daly"), { post: "%", ms: anim ? 1100 : 0, delay: 400 }));
-        fade(grow, true, anim ? 350 : 0, jobs, 1500);
+        fade(grow, true, anim ? 350 : 0, jobs, 1500); fade(growN, true, anim ? 350 : 0, jobs, 1500);
       }
       if (k === 2) {
         classes();
@@ -497,15 +501,16 @@
     point(ph[0], H3[0], "t-strong");
     var seg1 = S("path", { d: "M" + H3[0].x + "," + H3[0].y + " L" + H3[1].x + "," + H3[1].y, style: "fill:none;stroke:var(--p1-text);stroke-width:3" }, ph[1]);
     point(ph[1], H3[1], "t-need", true);
-    txt(ph[1], 150, 340, "ลงทุนชนบท 2519–2528", 15, "t-need");
+    txt(ph[1], 150, 340, "ลงทุนโรงพยาบาลชนบท 2519–2528", 15, "t-need");
     txt(ph[1], 150, 364, "รพ.ชนบท " + F("lit.rural_hosp_start") + " → " + F("lit.rural_hosp_end") + " แห่ง", 13, "t-muted");
     txt(ph[1], 150, 386, "แพทย์ชนบท " + F("lit.rural_md_start") + " → " + F("lit.rural_md_end") + " คน", 13, "t-muted");
     var seg2 = S("path", { d: "M" + H3[1].x + "," + H3[1].y + " L" + H3[2].x + "," + H3[2].y, style: "fill:none;stroke:var(--bad-text);stroke-width:3" }, ph[2]);
     point(ph[2], H3[2], "t-bad");
-    txt(ph[2], H3[2].x + 14, H3[2].y + 32, "แรงดึงของ รพ.เอกชน", 15, "t-bad");
+    txt(ph[2], 180, 282, "ช่วงที่โรงพยาบาลเอกชนขยายตัว", 15, "t-bad");   // under the pink segment, clear of the divider
     var GP = T.gap || { years: [], ratio: [] }, gx = tx(2551);
     S("line", { x1: gx, x2: gx, y1: PY1, y2: PY0, style: "stroke:var(--line-strong);stroke-dasharray:4 5" }, ph[3]);
     txt(ph[3], gx + 8, PY1 + 14, "ข้อมูลคนละชุด", 13, "t-muted");
+    txt(ph[3], gx + 8, PY1 + 33, "เทียบขนาดได้ แต่ต่อเป็นเส้นเดียวกันไม่ได้", 12, "t-muted");
     var gpts = GP.years.map(function (yr, i) { return [tx(yr), ty(GP.ratio[i])]; });
     var seg3 = S("path", { d: gpts.map(function (q, i) { return (i ? "L" : "M") + q[0].toFixed(1) + "," + q[1].toFixed(1); }).join(""), style: "fill:none;stroke:var(--accent-text);stroke-width:3.4;stroke-linejoin:round" }, ph[3]);
     if (gpts.length) {
@@ -520,7 +525,7 @@
     txt(ph[3], 0, 516, "ประชากรตามทะเบียนของกรุงเทพฯ ต่ำกว่าคนที่อยู่จริง ค่ากรุงเทพฯ จึงสูงกว่าที่เป็นจริง", 12, "t-muted");
     var segs = [null, { p: seg1, len: Math.hypot(H3[1].x - H3[0].x, H3[1].y - H3[0].y) }, { p: seg2, len: Math.hypot(H3[2].x - H3[1].x, H3[2].y - H3[1].y) }, { p: seg3, len: polyLen(gpts) }];
     // lower-left: the cycle, at a size the room can read
-    var sv = side(host, 236, "วงจรเหตุปัจจัยแบบวนและสะสมของ Myrdal");
+    var sv = side(host, 236, "วงจรของ Myrdal: พื้นที่ที่มีทีมและการฝึกดึงคนเพิ่ม");
     var hub = { x: 108, y: 124 };
     var ringG = S("g", { transform: "translate(" + hub.x + "," + hub.y + ")" }, sv);
     S("circle", { r: 76, style: "fill:none;stroke:var(--accent-text);stroke-width:2;stroke-dasharray:118 22;opacity:.85" }, ringG);
@@ -528,8 +533,8 @@
     S("circle", { cx: hub.x, cy: hub.y, r: 50, style: "fill:var(--accent-soft);stroke:var(--accent-text);stroke-width:1.4" }, sv);
     txt(sv, hub.x, hub.y - 4, "พื้นที่", 16, "t-strong", "middle");
     txt(sv, hub.x, hub.y + 18, "ได้เปรียบ", 16, "t-strong", "middle");
-    txt(sv, hub.x, 30, "บริการ การฝึก ทีม", 14, "t-accent", "middle");
-    txt(sv, hub.x, 228, "ดึงและรักษาคน", 14, "t-accent", "middle");
+    txt(sv, hub.x, 30, "มีทีมและการฝึก", 14, "t-accent", "middle");
+    txt(sv, hub.x, 228, "ดึงคนเพิ่ม", 14, "t-accent", "middle");
     var peri = [[290, 92], [356, 78], [420, 112], [404, 172], [330, 186], [272, 150]].map(function (p) { return { x: p[0], y: p[1] }; });
     var nodes = peri.map(function (p) {
       var cx = (p.x + hub.x) / 2, cy = Math.min(p.y, hub.y) - 12;
@@ -553,9 +558,9 @@
     });
     if (U.isStatic()) parts.forEach(function (q) { q.el.style.display = "none"; });
     var states = [
-      function () { dir = -1; mode.textContent = "ผลดูดกลับ (backwash)"; modeTh.textContent = "คนไหลเข้าหาพื้นที่ได้เปรียบ"; nodes.forEach(function (n) { n.c.setAttribute("style", "fill:var(--surface-2);stroke:var(--line-strong);stroke-width:1.4"); }); },
-      function () { dir = 1; mode.textContent = "ผลกระจายออก (spread)"; modeTh.textContent = "แรงจากภายนอกที่มีทิศและแรงพอ"; nodes.forEach(function (n) { n.c.setAttribute("style", "fill:var(--p1);stroke:var(--p1-text);stroke-width:1.4"); }); },
-      function () { dir = -1; mode.textContent = "ผลดูดกลับ (backwash)"; modeTh.textContent = "แรงดึงของภาคเอกชนกลับมา"; nodes.forEach(function (n) { n.c.setAttribute("style", "fill:var(--surface-2);stroke:var(--bad-text);stroke-width:1.6"); }); },
+      function () { dir = -1; mode.textContent = "พื้นที่ที่พร้อมยิ่งดึงคน"; modeTh.textContent = "ขยายบริการและการฝึกได้อีก"; nodes.forEach(function (n) { n.c.setAttribute("style", "fill:var(--surface-2);stroke:var(--line-strong);stroke-width:1.4"); }); },
+      function () { dir = 1; mode.textContent = "นโยบายช่วยพื้นที่ที่ขาด"; modeTh.textContent = "รัฐลงทุนโรงพยาบาลชนบท"; nodes.forEach(function (n) { n.c.setAttribute("style", "fill:var(--p1);stroke:var(--p1-text);stroke-width:1.4"); }); },
+      function () { dir = -1; mode.textContent = "พื้นที่ที่พร้อมยิ่งดึงคน"; modeTh.textContent = "ช่วงที่โรงพยาบาลเอกชนขยายตัว"; nodes.forEach(function (n) { n.c.setAttribute("style", "fill:var(--surface-2);stroke:var(--bad-text);stroke-width:1.6"); }); },
       function () { dir = -1; mode.textContent = "วงจรยังหมุน"; modeTh.textContent = "ความต่างกลับกว้างขึ้นในช่วงการศึกษานี้"; nodes.forEach(function (n) { n.c.setAttribute("style", "fill:var(--surface-2);stroke:var(--bad-text);stroke-width:1.6"); }); }
     ];
     return stepper(host, 3, function (s, anim, jobs) {
@@ -574,13 +579,13 @@
   // The cycle is drawn once, with no arrows between the readings: they are four places the same
   // loop shows itself, not a causal chain. Step 2's chase sits under the sentence it illustrates.
   FIGS.s08 = function (host) {
-    var svg = main(host, 530, "ทักษะ ตำแหน่ง ตำแหน่งว่าง และบริการ ไหลไปหาที่ที่มีอยู่แล้ว และเป้าหมายตามบริการที่วิ่งหนีแพทย์ที่ส่งไป");
+    var svg = main(host, 530, "แพทย์เฉพาะทาง ตำแหน่ง ตำแหน่งว่าง และเตียงกับวันนอน กระจุกในพื้นที่ที่มีพร้อม และเป้าที่ตั้งจากบริการซึ่งเพิ่มตามแพทย์ที่ส่งไป");
     var C = { x: 320, y: 270 }, Rr = 112;
     var ringG = S("g", { transform: "translate(" + C.x + "," + C.y + ")" }, svg);
     S("circle", { r: Rr, style: "fill:none;stroke:var(--accent-text);stroke-width:2.2;stroke-dasharray:150 26;opacity:.8" }, ringG);
     S("path", { d: "M" + (Rr - 9) + ",-40 l10,-4 l0,12 z", style: "fill:var(--accent-text)" }, ringG);
-    txt(svg, C.x, C.y - 8, "ไหลไปหา", 16, "t-muted", "middle");
-    txt(svg, C.x, C.y + 24, "ที่ที่มีอยู่แล้ว", 21, "t-accent", "middle");
+    txt(svg, C.x, C.y - 8, "พื้นที่ที่มีพร้อม", 16, "t-muted", "middle");
+    txt(svg, C.x, C.y + 24, "ยิ่งมีโอกาสได้เพิ่ม", 19, "t-accent", "middle");
     var rot = 0;
     U.loop(svg, function (dt) { rot = (rot + dt * 0.012) % 360; ringG.setAttribute("transform", "translate(" + C.x + "," + C.y + ") rotate(" + rot + ")"); });
     function reading(ang, bx, by, anchor, key, lines, ey) {
@@ -593,30 +598,30 @@
       return g;
     }
     var rs = [
-      reading(-140, 210, 24, "end", "ทักษะ", function (g, x, y, a) {
+      reading(-140, 210, 24, "end", "แพทย์เฉพาะทาง", function (g, x, y, a) {
         txt(g, x, y + 50, F("c46_conc_top10_all1") + "%", 36, "t-strong", a);
-        txt(g, x, y + 80, "ของแพทย์เฉพาะทาง อยู่ใน", 14, "t-strong", a);
-        txt(g, x, y + 102, "สถานพยาบาลหนึ่งในสิบ", 14, "t-strong", a);
+        txt(g, x, y + 80, "อยู่ในสถานพยาบาลหนึ่งในสิบ", 14, "t-strong", a);
+        txt(g, x, y + 102, "ที่มีแพทย์เฉพาะทางมากที่สุด", 14, "t-strong", a);
         txt(g, x, y + 126, "จาก " + F("c46_conc_top10_allT") + "% ใน พ.ศ. 2564", 13, "t-muted", a);
       }, 140),
-      reading(-40, 430, 24, "start", "ตำแหน่ง", function (g, x, y, a) {
+      reading(-40, 430, 24, "start", "ตำแหน่งที่มีงบจ้าง", function (g, x, y, a) {
         txt(g, x, y + 50, "×" + F("c47_pos100k_ratio"), 36, "t-strong", a);
-        txt(g, x, y + 80, "ตำแหน่งนายแพทย์ต่อประชากร", 14, "t-strong", a);
-        txt(g, x, y + 102, "จังหวัดมากสุดเทียบน้อยสุด", 13, "t-muted", a);
+        txt(g, x, y + 80, "ตำแหน่งแพทย์กระทรวงต่อประชากร", 14, "t-strong", a);
+        txt(g, x, y + 102, "จังหวัดสูงสุดเทียบต่ำสุด", 13, "t-muted", a);
       }, 140),
       reading(40, 430, 386, "start", "ตำแหน่งว่าง", function (g, x, y, a) {
         txt(g, x, y + 50, F("c47_vacrate_level_F3") + "%", 36, "t-bad", a);
         txt(g, x, y + 80, "ใน รพ.ชุมชนขนาดเล็ก", 14, "t-strong", a);
         txt(g, x, y + 102, "รพ.ศูนย์ " + F("c47_vacrate_level_A") + "%", 13, "t-muted", a);
       }, 366),
-      reading(140, 210, 386, "end", "บริการตามเตียง", function (g, x, y, a) {
+      reading(140, 210, 386, "end", "เตียงกับวันนอน", function (g, x, y, a) {
         // the elasticity as two proportional bars: beds +1% -> bed-days +0.708%
         var e = N("c423_assoc_ip_moph_long_pooled_year_fe_beds"), W = 200;
-        txt(g, x, y + 30, "เตียงเพิ่ม 1%", 14, "t-strong", a);
+        txt(g, x, y + 30, "เตียงมากขึ้น 1%", 14, "t-strong", a);
         S("rect", { x: x - W, y: y + 38, width: W, height: 16, rx: 3, style: "fill:var(--neutral)" }, g);
-        runs(g, x, y + 82, [["วันนอนเพิ่ม ", 14, "t-strong"], [F("c423_assoc_ip_moph_long_pooled_year_fe_beds") + "%", 20, "t-accent"]], a);
+        runs(g, x, y + 82, [["วันนอนมากขึ้น ", 14, "t-strong"], [F("c423_assoc_ip_moph_long_pooled_year_fe_beds") + "%", 20, "t-accent"]], a);
         S("rect", { x: x - W, y: y + 90, width: W * e, height: 16, rx: 3, style: "fill:var(--accent)" }, g);
-        txt(g, x, y + 130, "ความยืดหยุ่น", 13, "t-muted", a);
+        txt(g, x, y + 130, "ความสัมพันธ์ ไม่ใช่ผลเชิงสาเหตุ", 13, "t-muted", a);
       }, 366)
     ];
     // step 2, lower-left: the target runs from the doctors sent. The named start block is the
@@ -624,11 +629,11 @@
     // c55_gainB_first_1 of a doctor (solid gold). The pink gap sits at the end of the doctors' row
     // from the first frame and, at each doctor, moves right and shrinks by only 0.12 of a block.
     // The start gap and the five doctors are illustrative; the only number shown is the claim.
-    var sv = side(host, 300, "เป้าหมายตามบริการที่วิ่งหนีแพทย์ที่ส่งไป ช่องว่างแทบไม่ลด ภาพอธิบายกลไก"), run = S("g", { style: "opacity:0" }, sv);
+    var sv = side(host, 300, "เพิ่มแพทย์แล้วบริการเพิ่ม เป้าที่ตั้งจากบริการจึงเพิ่มตาม ส่วนขาดลดได้น้อย ผลจากแบบจำลอง"), run = S("g", { style: "opacity:0" }, sv);
     var gB = N("c55_gainB_first_1"), UW = 64, G0 = 2, K = 5;
     txt(run, 0, 20, "แพทย์เพิ่มหนึ่งคน", 15, "t-muted");
     runs(run, 0, 58, [["เป้าหมายเพิ่ม ", 20, "t-strong"], [F("c55_gainB_first_1") + " คน", 30, "t-accent"]]);
-    txt(run, 0, 98, "เป้าหมายตามบริการ", 13, "t-muted");
+    txt(run, 0, 98, "เป้าที่ตั้งจากบริการ", 13, "t-muted");
     txt(run, 0, 170, "แพทย์ที่ส่งไป", 13, "t-muted");
     S("rect", { x: 0, y: 108, width: G0 * UW - 3, height: 34, rx: 4, style: "fill:var(--accent-soft);stroke:var(--accent)" }, run);
     txt(run, (G0 * UW - 3) / 2, 131, "เป้าหมายตอนเริ่ม", 12.5, "t-accent", "middle");
@@ -638,15 +643,15 @@
       dP.push(S("rect", { x: i * UW, y: 180, width: UW - 3, height: 34, rx: 4, style: "fill:var(--p1);opacity:0" }, run));
     }
     var gapR = S("rect", { y: 180, height: 34, rx: 4, style: "fill:var(--bad-soft);stroke:var(--bad-text);stroke-width:1.8;stroke-dasharray:5 4" }, run);
-    var gapL = txt(run, 0, 244, "ช่องว่าง", 15, "t-bad", "end");
+    var gapL = txt(run, 0, 244, "ส่วนขาด", 15, "t-bad", "end");
     function setGap(k) { var x0 = k * UW, x1 = (G0 + gB * k) * UW - 3; gapR.setAttribute("x", x0.toFixed(1)); gapR.setAttribute("width", Math.max(0, x1 - x0).toFixed(1)); gapL.setAttribute("x", x1.toFixed(1)); }
     setGap(0);
-    txt(run, 0, 282, "ช่องฟ้าคือแพทย์หนึ่งคน ช่องทองทึบคือเป้าหมายที่เพิ่มตาม · ภาพอธิบายกลไก", 12, "t-muted");
+    txt(run, 0, 282, "ช่องฟ้าคือแพทย์หนึ่งคน ช่องทองทึบคือเป้าที่เพิ่มตาม · ผลจากแบบจำลอง", 12, "t-muted");
     return stepper(host, 2, function (k, anim, jobs) {
       if (k === 1) { run.style.opacity = 0; rs.forEach(function (g, i) { if (anim) g.style.opacity = 0; fade(g, true, anim ? 350 : 0, jobs, 200 + i * 300); }); }
       if (k === 2) {
-        if (!anim) { dP.concat(tP).forEach(function (e) { e.style.opacity = 1; }); setGap(K); gapL.textContent = "ช่องว่างแทบไม่ลด"; run.style.opacity = 1; return; }
-        dP.concat(tP).forEach(function (e) { e.style.opacity = 0; }); setGap(0); gapL.textContent = "ช่องว่าง";
+        if (!anim) { dP.concat(tP).forEach(function (e) { e.style.opacity = 1; }); setGap(K); gapL.textContent = "ส่วนขาดลดได้น้อย"; run.style.opacity = 1; return; }
+        dP.concat(tP).forEach(function (e) { e.style.opacity = 0; }); setGap(0); gapL.textContent = "ส่วนขาด";
         fade(run, true, 300, jobs);
         // one doctor every 0.6 s: blue in, gold in, the gap slides on and shrinks a little
         dP.forEach(function (r, i) {
@@ -655,7 +660,7 @@
           fade(tP[i], true, 200, jobs, t0 + 250);
           later(jobs, t0 + 250, function () { jobs.add(U.tween(300, function (t) { setGap(i + t); })); });
         });
-        later(jobs, 700 + K * 600, function () { gapL.textContent = "ช่องว่างแทบไม่ลด"; });
+        later(jobs, 700 + K * 600, function () { gapL.textContent = "ส่วนขาดลดได้น้อย"; });
       }
     });
   };
@@ -664,17 +669,17 @@
   // Water level = what stays per entry (1 minus exits per entry), so the drawing carries the same
   // contrast as the ratios. The drip runs three times, then rests.
   FIGS.s09 = function (host) {
-    var svg = wide(host, 380, "รับเข้าและออกของแพทย์และพยาบาลวิชาชีพ ปีงบ 2560–2568");
+    var svg = wide(host, 380, "เหตุการณ์รับเข้าและออกของแพทย์และพยาบาลวิชาชีพ สำนักงานปลัดกระทรวงสาธารณสุข ปีงบ 2560–2568");
     function bucket(x, label, inId, outId, ratioId) {
       var g = S("g", {}, svg), top = 70, bot = 318, Wt = 250, Wb = 186, cx = x + Wt / 2;
       txt(g, cx, 26, label, 20, "t-strong", "middle");
       S("path", { d: "M" + x + "," + top + " L" + (x + (Wt - Wb) / 2) + "," + bot + " L" + (x + (Wt + Wb) / 2) + "," + bot + " L" + (x + Wt) + "," + top, style: "fill:var(--card);stroke:var(--line-strong);stroke-width:2" }, g);
       var water = S("path", { d: "", style: "fill:var(--p1);opacity:.42" }, g);
-      var stay = txt(g, cx, 0, "ส่วนที่เหลือ", 13, "t-need", "middle");
-      runs(g, x + Wt + 14, top + 14, [["รับเข้า ", 15, "t-muted"], [F(inId), 20, "t-need"]]);
-      runs(g, x + (Wt + Wb) / 2 + 14, bot + 4, [["ออก ", 15, "t-muted"], [F(outId), 20, "t-hosp"]]);
+      var stay = txt(g, cx, 0, "รับเข้าลบออก เทียบกับรับเข้า", 13, "t-need", "middle");
+      runs(g, x + Wt + 14, top + 14, [["รับเข้า ", 15, "t-muted"], [F(inId), 20, "t-need"], [" ครั้ง", 13, "t-muted"]]);
+      runs(g, x + (Wt + Wb) / 2 + 14, bot + 4, [["ออก ", 15, "t-muted"], [F(outId), 20, "t-hosp"], [" ครั้ง", 13, "t-muted"]]);
       txt(g, x + Wt + 14, 196, F(ratioId), 44, "t-accent");
-      txt(g, x + Wt + 14, 224, "ออกต่อรับเข้า", 14, "t-muted");
+      txt(g, x + Wt + 14, 224, "เหตุการณ์ออก ÷ รับเข้า", 14, "t-muted");
       var level = 1 - N(ratioId), H = bot - top;
       function setLevel(l) {
         var y = bot - H * l, k = (bot - y) / H, xl = x + (Wt - Wb) / 2 - (Wt - Wb) / 2 * k, xr = x + (Wt + Wb) / 2 + (Wt - Wb) / 2 * k;
@@ -691,6 +696,7 @@
     }
     var bs = [bucket(150, "แพทย์", "c44_physicians_entries_total", "c44_physicians_exits_total", "c44_physicians_exit_entry_ratio"),
               bucket(650, "พยาบาลวิชาชีพ", "c44_professional_nurses_entries_total", "c44_professional_nurses_exits_total", "c44_professional_nurses_exit_entry_ratio")];
+    txt(svg, 0, 374, "นับเป็นครั้ง คนเดิมอาจนับซ้ำ · ระดับน้ำคือรับเข้าลบออก เทียบกับรับเข้า ไม่ใช่การติดตามว่าผู้รับใหม่ยังอยู่กี่คน", 12, "t-muted");
     var t0 = null;
     U.loop(svg, function (dt, ts) {
       if (t0 === null) t0 = ts;
@@ -710,27 +716,28 @@
 
   /* ---------------- s10 how much vs who: two full-width bars ---------------- */
   FIGS.s10 = function (host) {
-    var svg = wide(host, 344, "ความเพียงพอระดับประเทศ พ.ศ. 2568 และ 2583 และช่องว่าง พ.ศ. 2583 แยกส่วนระดับประเทศกับส่วนที่แก้ได้ด้วยการเกลี่ย");
+    var svg = wide(host, 344, "จำนวนแพทย์กระทรวงเป็นร้อยละของเป้าตัวอย่าง พ.ศ. 2568 และ 2583 และจำนวนที่ยังขาดในปี 2583 ซึ่งการย้ายระหว่างจังหวัดลดไม่ได้");
     var W = 1000, a0 = N("c51_attain_2025"), a1 = N("c54_nat_PR_P");
-    txt(svg, 0, 20, "ความเพียงพอระดับประเทศของแพทย์ สธ. เทียบค่าอ้างอิงตัวอย่าง " + F("lit.target_ratio"), 15, "t-muted");
+    txt(svg, 0, 20, "จำนวนแพทย์กระทรวงเป็นร้อยละของเป้าตัวอย่าง " + F("lit.target_ratio") + " ประชากรที่กระทรวงรับผิดชอบ (ไม่ใช่มาตรฐานกระทรวง)", 15, "t-muted");
     S("rect", { x: 0, y: 58, width: W, height: 36, rx: 6, style: "fill:var(--surface-3)" }, svg);
     var fill = S("rect", { x: 0, y: 58, width: W * a0, height: 36, rx: 6, style: "fill:var(--accent)" }, svg);
     S("line", { x1: W * a0, x2: W * a0, y1: 50, y2: 104, style: "stroke:var(--text-1);stroke-width:2.5" }, svg);
-    runs(svg, W * a0, 128, [["2568 ", 14, "t-muted"], [F("c51_attain_2025"), 18, "t-strong"]], "middle");
-    var endL = runs(svg, W * a1 + 14, 85, [["2583 ", 15, "t-muted"], [F("c54_nat_PR_P"), 26, "t-accent"]]); endL.style.opacity = 0;
-    txt(svg, 0, 124, "0", 13, "t-muted", "start");
-    txt(svg, W, 124, "1 = ค่าอ้างอิงตัวอย่าง", 13, "t-muted", "end");
-    txt(svg, 0, 158, "แพทย์ สธ. " + F("c51_H0_total") + " → " + F("c54_stock2040_PR") + " คน (2568 → 2583) · ค่าอ้างอิงตัวอย่างปี 2568 ต้องมี " + F("c51_target_2025") + " คน", 14, "t-muted");
+    runs(svg, W * a0, 128, [["2568 ", 14, "t-muted"], [F("c51_attain_2025|pct") + "%", 18, "t-strong"]], "middle");
+    var endL = runs(svg, W * a1 + 14, 85, [["2583 ", 15, "t-muted"], [F("c54_nat_PR_P|pct") + "%", 26, "t-accent"]]); endL.style.opacity = 0;
+    txt(svg, 0, 124, "0%", 13, "t-muted", "start");
+    txt(svg, W, 124, "100% = ครบเป้า", 13, "t-muted", "end");
+    txt(svg, 0, 158, "แพทย์กระทรวง " + F("c51_H0_total") + " → " + F("c54_stock2040_PR") + " คน (2568 → 2583) · เป้าตัวอย่างปี 2568 ต้องมี " + F("c51_target_2025") + " คน", 14, "t-muted");
     // The gap in 2583 as one bar split in two: the national part and the part moving doctors between
     // provinces could close (c54_gapsp: doctors above target elsewhere; zero when every province is short).
     var g2 = S("g", { style: "opacity:0" }, svg), GW = 930;
-    txt(g2, 0, 206, "ช่องว่าง พ.ศ. 2583", 15, "t-muted");
+    txt(g2, 0, 206, "จำนวนแพทย์ที่ยังขาดจากเป้า ปี 2583", 15, "t-muted");
     var gbar = S("rect", { x: 0, y: 220, width: 0, height: 60, rx: 6, style: "fill:var(--p3)" }, g2);
-    var inl = runs(g2, 22, 260, [["ระดับประเทศ ", 18, "t-strong"], [F("c54_gapnat_PR_P") + " คน", 26, "t-strong"]]); inl.style.opacity = 0;
+    var inl = runs(g2, 22, 260, [["ขาดรวม ", 18, "t-strong"], [F("c54_gapnat_PR_P") + " คน", 26, "t-strong"]]); inl.style.opacity = 0;
     S("line", { x1: GW + 1, x2: GW + 1, y1: 210, y2: 290, style: "stroke:var(--accent-text);stroke-width:3" }, g2);
-    txt(g2, GW + 16, 240, "แก้ได้ด้วยการเกลี่ย", 15, "t-accent");
-    txt(g2, GW + 16, 274, F("c54_gapsp_PR_P") + " คน", 26, "t-accent");
-    txt(g2, 0, 330, "ไม่มีจังหวัดใดมีแพทย์เกินเป้าหมาย ทุกจังหวัดยังขาด ช่องว่างทั้งหมดจึงเป็นการขาดระดับประเทศ", 15, "t-strong");
+    txt(g2, GW + 16, 230, "ลดได้ด้วยการย้าย", 15, "t-accent");
+    txt(g2, GW + 16, 250, "ระหว่างจังหวัด", 15, "t-accent");
+    txt(g2, GW + 16, 284, F("c54_gapsp_PR_P") + " คน", 26, "t-accent");
+    txt(g2, 0, 330, "ทุกจังหวัดยังต่ำกว่าเป้า ย้ายไปเติมที่หนึ่งก็ทำให้อีกที่ขาด ส่วนขาดรวมจึงไม่ลด · ผลจากแบบจำลอง", 15, "t-strong");
     return stepper(host, 1, function (k, anim, jobs) {
       jobs.add(U.tween(anim ? 1100 : 0, function (t) { fill.setAttribute("width", W * (a0 + (a1 - a0) * t)); }, { delay: 200 }));
       fade(endL, true, anim ? 300 : 0, jobs, 1000);
@@ -771,28 +778,29 @@
     return { show: show, years: P.years, P: P };
   }
   FIGS.s11 = function (host) {
-    var svg = main(host, 530, "ตำแหน่งนายแพทย์เต็มภายในสามปีภายใต้กรอบคงที่ แต่ละช่องคือหนึ่งจังหวัด");
+    var svg = main(host, 530, "ถ้าไม่เพิ่มตำแหน่ง ตำแหน่งแพทย์เต็มภายในสามปี แต่ละช่องคือหนึ่งจังหวัด");
     var J = jars(svg, "P-R|F0", { x: 352, y: 10, size: 29, gap: 3 });
     var fullYear = N("c5f_PR_F0_first_unplaced");
-    txt(svg, 0, 22, "แผนกรอบคงที่ · แต่ละช่องคือหนึ่งจังหวัด", 13, "t-muted");
+    txt(svg, 0, 22, "ถ้าไม่เพิ่มตำแหน่ง · แต่ละช่องคือหนึ่งจังหวัด", 13, "t-muted");
     var head = runs(svg, 0, 80, [["เต็มปี ", 26, "t-accent"], [F("c5f_PR_F0_first_unplaced"), 40, "t-accent"]]); head.style.opacity = 0;
     var yearT = txt(svg, 0, 116, "ภาพนี้คือ พ.ศ. 2569", 15, "t-muted");
     // legend: only marks that are on screen (the blue key leaves when no province is below its cap)
-    S("rect", { x: 0, y: 150, width: 18, height: 18, rx: 3, style: "fill:var(--neutral)" }, svg); txt(svg, 28, 165, "เต็มกรอบแล้ว", 14, "t-strong");
-    S("line", { x1: 0, x2: 18, y1: 193, y2: 193, style: "stroke:var(--bad-text);stroke-width:2.5" }, svg); txt(svg, 28, 198, "ขีดรับของตำแหน่ง", 14, "t-strong");
-    S("rect", { x: 0, y: 218, width: 18, height: 18, rx: 3, style: "fill:none;stroke:var(--accent-text);stroke-width:2" }, svg); txt(svg, 28, 233, "19 จังหวัดล่างสุด", 14, "t-strong");
+    S("rect", { x: 0, y: 150, width: 18, height: 18, rx: 3, style: "fill:var(--neutral)" }, svg); txt(svg, 28, 165, "แพทย์เต็มตำแหน่งแล้ว", 14, "t-strong");
+    S("line", { x1: 0, x2: 18, y1: 193, y2: 193, style: "stroke:var(--bad-text);stroke-width:2.5" }, svg); txt(svg, 28, 198, "จำนวนที่ตำแหน่งรองรับได้", 14, "t-strong");
+    S("rect", { x: 0, y: 218, width: 18, height: 18, rx: 3, style: "fill:none;stroke:var(--accent-text);stroke-width:2" }, svg); txt(svg, 28, 233, "19 จังหวัดที่แพทย์เทียบเป้าต่ำสุด", 14, "t-strong");
     var keyBlue = S("g", {}, svg);
-    S("rect", { x: 0, y: 252, width: 18, height: 18, rx: 3, style: "fill:var(--p1)" }, keyBlue); txt(keyBlue, 28, 267, "แพทย์ยังไม่ถึงขีดรับ", 14, "t-strong");
+    S("rect", { x: 0, y: 252, width: 18, height: 18, rx: 3, style: "fill:var(--p1)" }, keyBlue); txt(keyBlue, 28, 267, "แพทย์ยังไม่เต็มตำแหน่ง", 14, "t-strong");
     txt(svg, 0, 330, "แพทย์ใหม่ที่ไม่มีตำแหน่งรองรับ (สะสม)", 14, "t-muted");
     var un = txt(svg, 0, 380, "0", 36, "t-bad");
     txt(svg, 0, 412, "คน ถึง พ.ศ. 2583", 13, "t-muted");
+    txt(svg, 0, 436, "ไม่ได้แปลว่าตกงานทั้งหมด", 13, "t-muted");
     // step 2, lower-left: switch the formula after the frame is full
-    var sv = side(host, 210, "สลับสูตรจัดสรรหลังกรอบเต็ม 19 จังหวัดล่างสุดได้ความเพียงพอเท่ากัน"), formula = S("g", { style: "opacity:0" }, sv);
-    txt(formula, 0, 18, "สลับสูตรจัดสรร · 19 จังหวัดล่างสุด พ.ศ. 2583", 14, "t-muted");
-    var rows = [["ประชากร", "c5f_PR_F0_bq_P"], ["บริการคาดหมายมาตรฐาน", "c5f_NR_F0_bq_P"], ["ภาระโรค", "c5f_BR_F0_bq_P"]].map(function (r, i) {
+    var sv = side(host, 210, "เปลี่ยนเกณฑ์แบ่งแพทย์ใหม่หลังตำแหน่งเต็ม 19 จังหวัดที่ต่ำสุดได้ผลเท่ากัน"), formula = S("g", { style: "opacity:0" }, sv);
+    txt(formula, 0, 18, "เกณฑ์แบ่งแพทย์ใหม่ · แพทย์เทียบเป้าใน 19 จังหวัดที่ต่ำสุด ปี 2583", 14, "t-muted");
+    var rows = [["ประชากร", F("c5f_PR_F0_bq_P|pct") + "%"], ["บริการที่คำนวณให้เทียบกันได้", F("c5f_NR_F0_bq_P|pct") + "%"], ["ภาระโรค", F("c5f_BR_F0_bq_P|pct") + "%"]].map(function (r, i) {
       var g = S("g", { style: "opacity:0" }, formula), y = 60 + i * 40;
       txt(g, 0, y, r[0], 17, "t-strong");
-      txt(g, 380, y + 2, F(r[1]), 26, "t-accent", "end");
+      txt(g, 380, y + 2, r[1], 26, "t-accent", "end");
       return g;
     });
     var stamp = txt(formula, 0, 196, "เท่ากันทุกสูตร", 24, "t-accent"); stamp.style.opacity = 0;
@@ -829,30 +837,30 @@
 
   /* ---------------- s12 same positions, placed right: the 2x comparison is the hero ---------------- */
   FIGS.s12 = function (host) {
-    var svg = wide(host, 400, "ตำแหน่งจำนวนเท่ากัน เกลี่ยตามสัดส่วนเดิมเทียบวางตามความจำเป็น และจำนวนตำแหน่งที่การเกลี่ยตามสัดส่วนต้องใช้เพื่อได้ผลเท่ากัน", "xMidYMin meet");
+    var svg = wide(host, 400, "เพิ่มตำแหน่งเท่ากัน แบ่งตามสัดส่วนเดิมเทียบให้พื้นที่ขาดก่อน และจำนวนตำแหน่งที่การแบ่งตามสัดส่วนเดิมต้องใช้เพื่อได้ผลเท่ากัน", "xMidYMin meet");
     // step 1, left: three outcomes of the same added positions, arrows on one column
     var g1 = S("g", {}, svg), CA = 318, CR = 392, CB = 470;
-    txt(g1, 0, 20, "ตำแหน่งเพิ่มเท่ากัน " + F("c54_positions_added_PR") + " ตำแหน่ง · ผลใน พ.ศ. 2583", 15, "t-muted");
-    txt(g1, CA, 62, "เกลี่ยตามสัดส่วนเดิม", 14, "t-pro", "middle");
-    txt(g1, CB, 62, "วางตามความจำเป็น", 14, "t-need", "middle");
-    var stats = [["19 จังหวัดล่างสุด", "ความเพียงพอ", "c5f_PR_F1_bq_P", "c5f_PR_bq_P"],
-                 ["Gini", "ยิ่งต่ำยิ่งเท่าเทียม", "c5f_PR_F1_gini_P", "c5f_PR_gini_P"],
-                 ["แพทย์ผูกพัน", "ที่กลับบ้านไม่ได้ (คน)", "c5f_PR_F1_committed_unplaced", "c54_committed_not_home_PR"]].map(function (r, i) {
+    txt(g1, 0, 20, "เพิ่มตำแหน่งเท่ากัน " + F("c54_positions_added_PR") + " ตำแหน่ง · ผลปี 2583", 15, "t-muted");
+    txt(g1, CA, 62, "แบ่งตามสัดส่วนตำแหน่งเดิม", 14, "t-pro", "middle");
+    txt(g1, CB, 62, "ให้พื้นที่ขาดก่อน", 14, "t-need", "middle");
+    var stats = [["19 จังหวัดที่แพทย์เทียบเป้าต่ำสุด", "% ของเป้า", F("c5f_PR_F1_bq_P|pct") + "%", F("c5f_PR_bq_P|pct") + "%"],
+                 ["ความต่างระหว่างจังหวัด", "Gini ยิ่งต่ำยิ่งต่างกันน้อย", F("c5f_PR_F1_gini_P"), F("c5f_PR_gini_P")],
+                 ["แพทย์ตามสัญญา", "ที่ไม่มีตำแหน่งให้กลับภูมิลำเนา (คน)", F("c5f_PR_F1_committed_unplaced"), F("c54_committed_not_home_PR")]].map(function (r, i) {
       var y = 112 + i * 62, g = S("g", { style: "opacity:0" }, g1);
       txt(g, 0, y - 6, r[0], 17, "t-strong"); txt(g, 0, y + 16, r[1], 13, "t-muted");
-      txt(g, CA, y + 6, F(r[2]), 26, "t-pro", "middle");
+      txt(g, CA, y + 6, r[2], 26, "t-pro", "middle");
       txt(g, CR, y + 2, "→", 20, "t-muted", "middle");
-      txt(g, CB, y + 8, F(r[3]), 32, "t-need", "middle");
+      txt(g, CB, y + 8, r[3], 32, "t-need", "middle");
       return g;
     });
     // step 2, right, the hero: positions needed for the same result
     var g2 = S("g", { style: "opacity:0" }, svg), BX = 600, BW = 430, mx = N("c5f_prorata_equiv_added");
     S("line", { x1: 560, x2: 560, y1: 0, y2: 300, style: "stroke:var(--line)" }, g2);
-    txt(g2, BX, 20, "ตำแหน่งที่ต้องเพิ่ม เพื่อได้ผลเท่ากัน", 15, "t-muted");
-    txt(g2, BX, 66, "วางตามความจำเป็น", 16, "t-need");
+    txt(g2, BX, 20, "ตำแหน่งที่ต้องเพิ่ม เพื่อให้กลุ่มจังหวัดที่ขาดได้ผลเท่ากัน", 15, "t-muted");
+    txt(g2, BX, 66, "ให้พื้นที่ขาดก่อน", 16, "t-need");
     var b1 = S("rect", { x: BX, y: 78, width: 0, height: 58, rx: 5, style: "fill:var(--p1)" }, g2);
     var v1 = txt(g2, BX + BW * N("c54_positions_added_PR") / mx + 14, 118, F("c54_positions_added_PR"), 30, "t-strong");
-    txt(g2, BX, 176, "เกลี่ยตามสัดส่วนเดิม", 16, "t-pro");
+    txt(g2, BX, 176, "แบ่งตามสัดส่วนเดิม", 16, "t-pro");
     var b2 = S("rect", { x: BX, y: 188, width: 0, height: 58, rx: 5, style: "fill:var(--neutral)" }, g2);
     var v2 = txt(g2, BX + BW + 14, 228, F("c5f_prorata_equiv_added"), 30, "t-strong");
     var ratio = runs(g2, BX + BW, 296, [[F("c5f_prorata_equiv_ratio"), 44, "t-accent"], [" เท่า", 26, "t-accent"]], "end");
@@ -860,9 +868,9 @@
     // step 3, bottom left: the provinces every rule agrees on for the 2570-2574 frame
     var g3 = S("g", { style: "opacity:0" }, svg);
     S("line", { x1: 0, x2: 520, y1: 290, y2: 290, style: "stroke:var(--line)" }, g3);
-    txt(g3, 0, 318, "รอบกรอบ 2570–2574 ที่กำลังจัดทำ", 14, "t-muted");
-    runs(g3, 0, 360, [[F("c5f_robust_core_n") + " จังหวัด", 28, "t-accent"], [" ควรได้ตำแหน่งใหม่ไม่ว่าจะใช้เกณฑ์ใด", 16, "t-strong"]]);
-    txt(g3, 0, 396, "ขาดแพทย์ " + F("c5f_core_need_n") + " · ต้องรับแพทย์ผูกพันหรือผู้กลับจากฝึกอบรม " + F("c5f_core_commit_n"), 13, "t-muted");
+    txt(g3, 0, 318, "รอบตำแหน่ง 2570–2574 ที่กำลังจัดทำ", 14, "t-muted");
+    runs(g3, 0, 360, [[F("c5f_robust_core_n") + " จังหวัด", 28, "t-accent"], [" ควรได้ตำแหน่งใหม่ตรงกันในเกณฑ์ที่ทดลอง", 16, "t-strong"]]);
+    txt(g3, 0, 396, "ขาดแพทย์ " + F("c5f_core_need_n") + " จังหวัด · ต้องรับแพทย์ตามสัญญาหรือผู้กลับจากฝึกอบรม " + F("c5f_core_commit_n") + " จังหวัด", 13, "t-muted");
     return stepper(host, 3, function (k, anim, jobs) {
       if (k === 1) { g2.style.opacity = 0; g3.style.opacity = 0; stats.forEach(function (g, i) { if (anim) g.style.opacity = 0; fade(g, true, anim ? 300 : 0, jobs, 200 + i * 300); }); }
       if (k === 2) {
@@ -876,32 +884,33 @@
 
   /* ---------------- s13 Bueng Kan's ladder (zero-based; the reference is 1, off the top) ---------------- */
   FIGS.s13 = function (host) {
-    var svg = wide(host, 400, "ความเพียงพอของบึงกาฬ พ.ศ. 2583 ภายใต้แต่ละกติกา", "xMidYMin meet");
+    var svg = wide(host, 400, "แพทย์ของบึงกาฬเป็นร้อยละของเป้าตัวอย่าง พ.ศ. 2583 ภายใต้แต่ละกติกา", "xMidYMin meet");
     var y0 = 376, k = 640, RL = 526, RR = 646;
     function Y(v) { return y0 - v * k; }
     S("line", { x1: RL - 20, x2: RR + 20, y1: y0, y2: y0, class: "axis" }, svg);
-    txt(svg, RL - 32, y0 + 6, "0", 16, "t-muted", "end");
+    txt(svg, RL - 32, y0 + 6, "0%", 16, "t-muted", "end");
     [RL, RR].forEach(function (x) { S("line", { x1: x, y1: y0, x2: x, y2: 34, style: "stroke:var(--line-strong);stroke-width:2.5" }, svg); });
-    txt(svg, (RL + RR) / 2, 18, "ค่าอ้างอิง = 1 ↑", 14, "t-muted", "middle");
+    txt(svg, (RL + RR) / 2, 18, "100% = ครบเป้า ↑", 14, "t-muted", "middle");
     var rungs = [
-      ["c54_worst_province_attain_2025", "ปี 2568 จุดตั้งต้น", "var(--muted)", "t-pro"],
-      ["c5f_pw_F0", "กรอบคงที่", "var(--neutral)", "t-pro"],
-      ["c5f_pw_F1", "เพิ่มตามสัดส่วน", "var(--neutral)", "t-pro"],
-      ["c5f_pw_main", "วางตามความจำเป็น (แผนหลัก)", "var(--p1)", "t-need"],
-      ["c5f_pw_need", "ไม่จำกัดงบ", "var(--accent)", "t-accent"]
+      ["c54_worst_province_attain_2025", "ปี 2568 จุดตั้งต้น", "var(--muted)", "t-pro", F("c54_worst_province_attain_2025|pct") + "%"],
+      ["c5f_pw_F0", "ไม่เพิ่มตำแหน่ง", "var(--neutral)", "t-pro", F("c5f_pw_F0|pct") + "%"],
+      ["c5f_pw_F1", "เพิ่มตามสัดส่วนเดิม", "var(--neutral)", "t-pro", F("c5f_pw_F1|pct") + "%"],
+      ["c5f_pw_main", "ให้พื้นที่ขาดก่อน (แผนหลัก)", "var(--p1)", "t-need", F("c5f_pw_main|pct") + "%"],
+      ["c5f_pw_need", "ไม่จำกัดงบ", "var(--accent)", "t-accent", F("c5f_pw_need|pct") + "%"]
     ];
     var rg = rungs.map(function (r) {
       var y = Y(N(r[0])), g = S("g", { style: "opacity:0" }, svg);
       S("line", { x1: RL, x2: RR, y1: y, y2: y, style: "stroke:" + r[2] + ";stroke-width:4" }, g);
       txt(g, RR + 18, y + 7, r[1], 18, r[3] === "t-pro" ? "t-strong" : r[3]);
-      txt(g, RL - 18, y + 7, F(r[0]), 20, r[3], "end");
+      txt(g, RL - 18, y + 7, r[4], 20, r[3], "end");
       return g;
     });
     var marker = S("circle", { cx: (RL + RR) / 2, cy: Y(N("c54_worst_province_attain_2025")), r: 11, style: "fill:var(--p1-text)" }, svg);
     var tb = S("g", {}, svg);
     txt(tb, 430, 150, "บึงกาฬ", 34, "t-bad", "end");
-    txt(tb, 430, 184, "ความเพียงพอ พ.ศ. 2583", 16, "t-strong", "end");
+    txt(tb, 430, 184, "แพทย์เป็นร้อยละของเป้าตัวอย่าง", 16, "t-strong", "end");
     txt(tb, 430, 212, "ตำแหน่ง " + F("c5f_pw_K0") + " → " + F("c5f_pw_K_main") + " ตามแผนหลัก", 14, "t-muted", "end");
+    txt(tb, 430, 240, "แต่ละขั้นเป็นกติกาคนละแบบ ผลปี 2583", 14, "t-muted", "end");
     return stepper(host, 1, function (kk, anim, jobs) {
       rg.forEach(function (g, i) { fade(g, true, anim ? 300 : 0, jobs, i * 200); });
       var a = N("c54_worst_province_attain_2025"), b = N("c5f_pw_main");
@@ -914,7 +923,7 @@
   // (outpatient visits and case-mix-weighted inpatient work, the S index): the model has no hospital
   // finance data, and services are the base of a hospital's maintenance-fund revenue.
   FIGS.s14 = function (host) {
-    var svg = main(host, 530, "ลูกจ้างที่โรงพยาบาลจ้างเอง เทียบลูกจ้างจากงบส่วนกลางที่วางตามความจำเป็น");
+    var svg = main(host, 530, "ลูกจ้างที่โรงพยาบาลจ่ายจากรายได้ของตน เทียบลูกจ้างที่ส่วนกลางจ่ายและให้พื้นที่ขาดก่อน");
     var low = (T.low19 || []).reduce(function (o, c) { o[c] = 1; return o; }, {});
     function panel(x, plan, title, sub, col, cls) {
       var g = S("g", {}, svg);
@@ -932,24 +941,24 @@
       Object.keys(low).forEach(function (c) { if (m.el[c]) S("path", { d: m.el[c].getAttribute("d"), style: "fill:none;stroke:var(--accent-text);stroke-width:" + (1.6 / m.sc).toFixed(2) }, top); });
       return { g: g, bubbles: bubbles };
     }
-    var A = panel(0, "P-R|GDh5", "โรงพยาบาลจ้างจากรายได้", ["ประมาณรายได้จากสัดส่วนบริการของ รพ. สธ.", "ผู้ป่วยนอกและผู้ป่วยในถ่วงความซับซ้อน"], "var(--p3)", "t-hosp");
-    var B = panel(330, "P-R|GDc5", "ส่วนกลางจ่าย วางตามความจำเป็น", ["วางในจังหวัดที่ขาดก่อน", "ไม่ขึ้นกับรายได้ของโรงพยาบาล"], "var(--p1)", "t-need");
+    var A = panel(0, "P-R|GDh5", "โรงพยาบาลจ่ายจากรายได้ของตน", ["ใช้ปริมาณบริการประมาณส่วนแบ่งรายได้", "เพราะไม่มีข้อมูลการเงินโรงพยาบาล"], "var(--p3)", "t-hosp");
+    var B = panel(330, "P-R|GDc5", "ส่วนกลางจ่าย ให้พื้นที่ขาดก่อน", ["จัดลูกจ้างให้จังหวัดที่ขาดก่อน", "ไม่ขึ้นกับรายได้ของโรงพยาบาล"], "var(--p1)", "t-need");
     B.g.style.opacity = 0;
     // lower-left: the result, one name for the target set
-    var sv = side(host, 266, "ส่วนของลูกจ้างที่อยู่ใน 19 จังหวัดที่ขาดที่สุด");
-    txt(sv, 0, 18, "ลูกจ้างที่อยู่ใน 19 จังหวัดที่ขาดที่สุด", 15, "t-muted");
-    function hero(x, shareId, label, bqId, cls) {
+    var sv = side(host, 266, "ส่วนของลูกจ้างรอบแรกที่อยู่ใน 19 จังหวัดที่ขาดที่สุดในปีตั้งต้น");
+    txt(sv, 0, 18, "ลูกจ้างรอบแรกที่อยู่ใน 19 จังหวัดที่ขาดที่สุดในปีตั้งต้น", 15, "t-muted");
+    function hero(x, shareId, label, bqText, cls) {
       var g = S("g", {}, sv);
       txt(g, x, 92, F(shareId) + "%", 56, cls);
       txt(g, x, 124, label, 15, cls);
-      runs(g, x, 166, [["ความเพียงพอ ", 13, "t-muted"], [F(bqId), 20, cls]]);
+      txt(g, x, 156, "แพทย์เทียบเป้า 19 จังหวัดที่ขาดที่สุด", 13, "t-muted"); runs(g, x, 182, [["ปี 2583 ", 13, "t-muted"], [bqText, 20, cls]]);
       return g;
     }
-    var hA = hero(0, "c5f_gdh_low19_share", "โรงพยาบาลจ้างจากรายได้", "c5f_PR_GDh5_bq_P", "t-hosp");
-    var hB = hero(240, "c5f_gdc_low19_share", "ส่วนกลางจ่าย", "c5f_PR_GDc5_bq_P", "t-need");
+    var hA = hero(0, "c5f_gdh_low19_share", "โรงพยาบาลจ่าย", F("c5f_PR_GDh5_bq_P|pct") + "%", "t-hosp");
+    var hB = hero(240, "c5f_gdc_low19_share", "ส่วนกลางจ่าย", F("c5f_PR_GDc5_bq_P|pct") + "%", "t-need");
     var key = S("g", {}, sv);
     S("rect", { x: 0, y: 206, width: 22, height: 16, rx: 3, style: "fill:var(--surface-3);stroke:var(--accent-text);stroke-width:2" }, key);
-    txt(key, 32, 220, "เส้นทองบนแผนที่ = 19 จังหวัดที่ขาดที่สุดในปีฐาน", 13, "t-muted");
+    txt(key, 32, 220, "เส้นทอง = 19 จังหวัดที่ขาดที่สุดในปีตั้งต้น", 13, "t-muted");
     S("circle", { cx: 6, cy: 249, r: 4, style: "fill:var(--neutral)" }, key); S("circle", { cx: 20, cy: 247, r: 7, style: "fill:var(--neutral)" }, key);
     txt(key, 32, 254, "ขนาดวง = จำนวนลูกจ้างในจังหวัด", 13, "t-muted");
     hB.style.opacity = 0;
@@ -965,27 +974,27 @@
 
   /* ---------------- s15 replan yearly (the two-layer plan under the lead) + honest validation ---------------- */
   FIGS.s15 = function (host) {
-    var svg = main(host, 530, "แผนตายตัวเทียบการตัดสินใหม่ทุกปี และผลทดสอบย้อนหลังตามเกณฑ์ที่ประกาศก่อนรัน");
+    var svg = main(host, 530, "กำหนดล่วงหน้าตลอดสิบห้าปีเทียบจัดใหม่ทุกปี และผลทดสอบกับข้อมูลอดีตตามเกณฑ์ที่กำหนดก่อนทดสอบ");
     var g1 = S("g", {}, svg), g2 = S("g", { style: "opacity:0" }, svg), CA = 420, CR = 494, CB = 566;
-    txt(g1, CA, 22, "ตารางตายตัว", 15, "t-pro", "middle");
-    txt(g1, CB, 22, "ตัดสินใหม่ทุกปี", 15, "t-need", "middle");
-    function pair(y, l1, l2, a, b) {
+    txt(g1, CA, 22, "กำหนดล่วงหน้าตลอดสิบห้าปี", 15, "t-pro", "middle");
+    txt(g1, CB, 22, "จัดใหม่ทุกปี", 15, "t-need", "middle");
+    function pair(y, l1, l2, va, vb) {
       var g = S("g", { style: "opacity:0" }, g1);
       txt(g, 0, y, l1, 15, "t-strong"); txt(g, 0, y + 22, l2, 13, "t-muted");
-      txt(g, CA, y + 12, F(a), 30, "t-pro", "middle");
+      txt(g, CA, y + 12, va, 30, "t-pro", "middle");
       txt(g, CR, y + 8, "→", 20, "t-muted", "middle");
-      txt(g, CB, y + 14, F(b), 36, "t-need", "middle");
+      txt(g, CB, y + 14, vb, 36, "t-need", "middle");
       return g;
     }
-    var pairs = [pair(78, "ส่งแพทย์ใหม่ไปจังหวัดที่ไม่มี", "ตำแหน่งว่างจริง (คนต่ออนาคต)", "c53_blocked_mean_P-R", "c53_blocked_adaptive_replanning_P-R"),
-                 pair(160, "19 จังหวัดล่างสุด", "ความเพียงพอ พ.ศ. 2583", "c53_fixed_schedule_same_paths_bq_P", "c53_adaptive_replanning_bq_P")];
+    var pairs = [pair(78, "แพทย์ที่แผนส่งไปจังหวัดไม่มีตำแหน่งว่าง", "ยอดสะสมสิบห้าปี เฉลี่ยต่ออนาคตจำลองหนึ่งแบบ", F("c53_blocked_mean_P-R"), F("c53_blocked_adaptive_replanning_P-R")),
+                 pair(160, "แพทย์เทียบเป้าใน 19 จังหวัด", "ที่ได้ค่าต่ำสุด ปี 2583 (% ของเป้า)", F("c53_fixed_schedule_same_paths_bq_P|pct") + "%", F("c53_adaptive_replanning_bq_P|pct") + "%")];
     txt(g1, 0, 228, "เฉลี่ยจาก " + F("c53_n_paths") + " อนาคตจำลองแบบจับคู่", 13, "t-muted");
     S("line", { x1: 0, y1: 252, x2: 640, y2: 252, style: "stroke:var(--line)" }, g2);
-    txt(g2, 0, 282, "เกณฑ์ทดสอบย้อนหลังที่ประกาศก่อนรัน", 14, "t-muted");
+    txt(g2, 0, 282, "ทดสอบกับข้อมูลอดีต · เกณฑ์กำหนดก่อนทดสอบ", 14, "t-muted");
     var crit = [
-      ["ความคลาดเคลื่อนสามปีล่วงหน้า", F("c5a_hc_mae_sf_unconditional_h3") + " คนต่อจังหวัด · ค่าเดิม " + F("c5a_hc_mae_persistence_h3") + " · ตามประชากร " + F("c5a_hc_mae_poponly_h3"), true],
-      ["ช่วงคาดการณ์ครอบค่าจริง", F("c5a_hc_c2_value") + " · เกณฑ์ " + F("lit.c2_lo") + "–" + F("lit.c2_hi"), false],
-      ["รายชื่อกลุ่มล่างตรงกับจริง", F("c5a_hc_jac_sf_unconditional_h3") + " · เกณฑ์ " + F("lit.c3_min") + " · รายชื่อเดิม " + F("c5a_hc_jac_persistence_h3"), false]
+      ["จำนวนแพทย์รายจังหวัดคลาดเคลื่อนเท่าใด", F("c5a_hc_mae_sf_unconditional_h3") + " คนต่อจังหวัด · ค่าเดิม " + F("c5a_hc_mae_persistence_h3") + " · ตามประชากร " + F("c5a_hc_mae_poponly_h3"), true],
+      ["ค่าจริงอยู่ในช่วงที่คาดไว้บ่อยพอหรือไม่", F("c5a_hc_c2_value") + " · เกณฑ์ " + F("lit.c2_lo") + "–" + F("lit.c2_hi"), false],
+      ["รายชื่อจังหวัดที่ขาดตรงกับข้อมูลจริงหรือไม่", F("c5a_hc_jac_sf_unconditional_h3") + " · เกณฑ์ " + F("lit.c3_min") + " · รายชื่อเดิม " + F("c5a_hc_jac_persistence_h3"), false]
     ];
     var items = crit.map(function (c, i) {
       var g = S("g", { style: "opacity:0" }, g2), y = 298 + i * 78;
@@ -997,18 +1006,18 @@
     });
     // lower-left, under the lead it draws: positions decided every five years, postings every year.
     // Each box spans exactly its years' dots.
-    var sv = side(host, 236, "ตำแหน่งตัดสินทุกห้าปี การส่งแพทย์ใหม่ตัดสินทุกปี");
+    var sv = side(host, 236, "ทบทวนตำแหน่งทุกห้าปี จัดแพทย์ใหม่ทุกปี");
     var slot = 460 / 15;
     function cx(y) { return (y - 2569 + 0.5) * slot; }
-    txt(sv, 0, 20, "ตำแหน่ง · ตัดสินทุกห้าปี", 16, "t-accent");
+    txt(sv, 0, 20, "ทบทวนตำแหน่ง · ทุกห้าปี", 16, "t-accent");
     [[2570, 2574], [2575, 2579], [2580, 2583]].forEach(function (f) {
       S("rect", { x: cx(f[0]) - slot / 2 + 2, y: 38, width: (f[1] - f[0] + 1) * slot - 4, height: 54, rx: 7, style: "fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.5" }, sv);
       txt(sv, (cx(f[0]) + cx(f[1])) / 2, 71, f[0] + "–" + f[1], 14, "t-accent", "middle");
     });
     for (var y = 2569; y <= 2583; y++) S("circle", { cx: cx(y), cy: 126, r: 9, style: "fill:var(--p1)" }, sv);
     txt(sv, cx(2569), 160, "2569", 13, "t-muted", "middle"); txt(sv, cx(2583), 160, "2583", 13, "t-muted", "middle");
-    txt(sv, 0, 200, "ส่งแพทย์ใหม่ · ตัดสินทุกปี", 16, "t-need");
-    txt(sv, 0, 226, "จากตำแหน่งว่างที่เกิดขึ้นจริง", 14, "t-muted");
+    txt(sv, 0, 200, "จัดแพทย์ใหม่ · ทุกปี", 16, "t-need");
+    txt(sv, 0, 226, "ตามตำแหน่งที่ว่างจริง", 14, "t-muted");
     return stepper(host, 2, function (k, anim, jobs) {
       if (k === 1) { g2.style.opacity = 0; pairs.forEach(function (p, i) { if (anim) p.style.opacity = 0; fade(p, true, anim ? 300 : 0, jobs, 300 + i * 400); }); }
       if (k === 2) { fade(g2, true, anim ? 300 : 0, jobs); items.forEach(function (g, i) { fade(g, true, anim ? 350 : 0, jobs, 250 + i * 400); }); }
@@ -1017,7 +1026,7 @@
 
   /* ---------------- s16 complaints vs what separates leavers (direct labels, no legend) ---------------- */
   FIGS.s16 = function (host) {
-    var svg = wide(host, 340, "ความไม่พอใจเทียบความสัมพันธ์กับความตั้งใจออก และปัจจัยเชิงโครงสร้าง");
+    var svg = wide(host, 340, "ผู้ไม่พอใจแต่ละเรื่องเทียบความสัมพันธ์กับความตั้งใจออก และปัจจัยเชิงโครงสร้าง");
     var g1 = S("g", {}, svg), g2 = S("g", { style: "opacity:0" }, svg);
     var X0 = 62, X1 = 680, Y0 = 290, Y1 = 30, LA = Math.log(0.85), LB = Math.log(3.2);
     function x(v) { return X0 + v / 66 * (X1 - X0); }
@@ -1025,9 +1034,9 @@
     S("line", { x1: X0, y1: Y0, x2: X1, y2: Y0, class: "axis" }, g1);
     S("line", { x1: X0, y1: Y0, x2: X0, y2: Y1, class: "axis" }, g1);
     S("line", { x1: X0, y1: y(1), x2: X1, y2: y(1), style: "stroke:var(--line-strong);stroke-dasharray:5 5" }, g1);
-    txt(g1, X0 + 8, y(1) + 22, "OR = 1 คือไม่ต่างระหว่างคนอยู่กับคนคิดออก", 12.5, "t-muted");
-    txt(g1, 0, 14, "OR ของความตั้งใจออก", 13, "t-muted");
-    txt(g1, (X0 + X1) / 2, Y0 + 44, "สัดส่วนผู้ตอบที่ไม่พอใจ (%)", 13, "t-muted", "middle");
+    txt(g1, X0 + 8, y(1) + 22, "OR = 1 คือสองกลุ่มไม่ต่างกัน ไม่ใช่ร้อยละของผู้ที่จะออก", 12.5, "t-muted");
+    txt(g1, 0, 14, "ความตั้งใจออก: ผู้ไม่พอใจเทียบผู้พอใจ (OR)", 13, "t-muted");
+    txt(g1, (X0 + X1) / 2, Y0 + 44, "ผู้ไม่พอใจเรื่องนั้น (%)", 13, "t-muted", "middle");
     [0, 60].forEach(function (v) { txt(g1, x(v), Y0 + 22, String(v), 13, "t-muted", "middle"); });
     [1, 3].forEach(function (v) { txt(g1, X0 - 10, y(v) + 5, String(v), 13, "t-muted", "end"); });
     // [label, dissatisfied %, OR, dx, dy, anchor, gold]
@@ -1047,20 +1056,23 @@
       return g;
     });
     var grp = S("g", { style: "opacity:0" }, g1);
-    txt(grp, 420, 56, "บ่นน้อย แต่แยกคนที่คิดออกได้", 16, "t-accent");
-    txt(grp, 520, 168, "บ่นมาก แต่ไม่แยก", 16, "t-pro");
+    txt(grp, 420, 48, "มีคนบ่นน้อยกว่า", 16, "t-accent");
+    txt(grp, 420, 70, "แต่สัมพันธ์กับการคิดออกชัด", 16, "t-accent");
+    txt(grp, 510, 140, "มีคนบ่นมาก", 16, "t-pro");
+    txt(grp, 510, 162, "แต่ไม่พบความสัมพันธ์ชัด", 16, "t-pro");
     // step 2, right: structural factors
     S("line", { x1: 730, x2: 730, y1: 0, y2: 330, style: "stroke:var(--line)" }, g2);
     txt(g2, 760, 22, "ปัจจัยเชิงโครงสร้าง", 15, "t-muted");
-    var st = [["หน่วยในพื้นที่ทุรกันดาร", "→ ตั้งใจออก", "c77_or_itl3B_remote", "t-bad"],
-              ["การจ้างที่ไม่มั่นคง", "→ ตั้งใจออก", "c77_or_itl3B_employment_temporary", "t-bad"],
-              ["ทำงานในจังหวัดบ้านเกิด", "→ คิดย้ายออกจากพื้นที่", "c77_or_leave_areaB_home_province_match", "t-need"]];
+    var st = [["พื้นที่ทุรกันดาร", "→ คิดออกจากสังกัดมากกว่า", "c77_or_itl3B_remote", "t-bad"],
+              ["การจ้างไม่มั่นคง", "→ คิดออกจากสังกัดมากกว่า", "c77_or_itl3B_employment_temporary", "t-bad"],
+              ["ทำงานจังหวัดบ้านเกิด", "→ คิดย้ายพื้นที่น้อยกว่า", "c77_or_leave_areaB_home_province_match", "t-need"]];
     var rows = st.map(function (r, i) {
       var g = S("g", { style: "opacity:0" }, g2), yy = 84 + i * 84;
       txt(g, 760, yy, r[0], 16, "t-strong"); txt(g, 760, yy + 24, r[1], 14, "t-muted");
       txt(g, 1132, yy + 14, "OR " + F(r[2]), 30, r[3], "end");
       return g;
     });
+    txt(g2, 760, 326, "ความสัมพันธ์จากผู้ที่ยังทำงาน ไม่ใช่เหตุและผล", 12, "t-muted");
     return stepper(host, 2, function (k, anim, jobs) {
       if (k === 1) { g2.style.opacity = 0; pts.forEach(function (p, i) { if (anim) p.style.opacity = 0; fade(p, true, anim ? 300 : 0, jobs, 200 + i * 140); }); fade(grp, true, anim ? 350 : 0, jobs, anim ? 1400 : 0); }
       if (k === 2) { fade(g2, true, anim ? 300 : 0, jobs); rows.forEach(function (r, i) { fade(r, true, anim ? 300 : 0, jobs, 200 + i * 300); }); }
@@ -1072,12 +1084,12 @@
   // that start on screen. 1 capacity grows to the obligation; 2 the obligation shrinks to capacity
   // (the cut part stays dashed); 3 a family segment fills the gap at the end of the capacity bar.
   FIGS.s17 = function (host) {
-    var svg = main(host, 530, "ช่องว่างปิดได้สามทาง");
+    var svg = main(host, 530, "ตัวเลขว่าขาดน้อยลงเกิดได้สามทาง");
     var OB = 150, CP = 88, Y1 = 160, Y2 = 300, BH = 56;
-    txt(svg, 0, Y1 + 32, "พันธะ", 16, "t-muted");
-    txt(svg, 0, Y2 + 32, "ขีดความสามารถ", 16, "t-muted");
-    var heads = [["เพิ่มขีดความ", "สามารถจริง"], ["เปลี่ยนเป้าหมาย", "หรือขอบเขต"], ["ย้ายภาระ", "ไปให้ผู้อื่น"]];
-    var outc = [["ปิดจริง", "t-need"], ["ปิดบนกระดาษ", "t-pro"], ["ย้ายไปที่บ้าน", "t-bad"]];
+    txt(svg, 0, Y1 + 24, "บริการที่ประชาชน", 14, "t-muted"); txt(svg, 0, Y1 + 44, "ควรได้รับ", 14, "t-muted");
+    txt(svg, 0, Y2 + 24, "บริการ", 14, "t-muted"); txt(svg, 0, Y2 + 44, "ที่ทำได้จริง", 14, "t-muted");
+    var heads = [["เพิ่มคน", "และเวลาทำงาน"], ["ลดเป้าหมาย", "หรือกลุ่มคนที่นับ"], ["ย้ายงาน", "ให้ผู้อื่น"]];
+    var outc = [[["ให้บริการ", "ได้เพิ่มจริง"], "t-need"], [["ตัวเลขดีขึ้น", "แต่ทำงานได้เท่าเดิม"], "t-pro"], [["ครอบครัว", "หรือวิชาชีพอื่น", "รับงานเพิ่ม"], "t-bad"]];
     var parts = heads.map(function (h, i) {
       var x = 128 + i * 172, g = S("g", {}, svg);
       S("circle", { cx: x + 14, cy: 58, r: 15, style: "fill:" + (i === 2 ? "var(--bad)" : "var(--text-2)") }, g);
@@ -1093,7 +1105,7 @@
       var lab = txt(g, x + CP + (OB - CP) / 2, Y2 + BH + 30, "ช่องว่าง", 14, "t-bad", "middle");
       var famL = S("g", { style: "opacity:0" }, g);
       txt(famL, x + OB, Y2 + BH + 30, "ครอบครัว", 15, "t-bad", "end"); txt(famL, x + OB, Y2 + BH + 52, "และวิชาชีพอื่น", 13, "t-bad", "end");
-      var out = txt(g, x, 478, outc[i][0], 22, outc[i][1]); out.style.opacity = 0;
+      var out = S("g", { style: "opacity:0" }, g); outc[i][0].forEach(function (s, j) { txt(out, x, 466 - (outc[i][0].length - 2) * 22 + j * 23, s, 17, outc[i][1]); });
       return { g: g, x: x, ob: ob, cap: cap, gap: gap, fam: fam, lab: lab, famL: famL, out: out };
     });
     var ways = [
@@ -1102,13 +1114,13 @@
       function (p, anim, jobs) { jobs.add(U.tween(anim ? 1100 : 0, function (t) { p.fam.setAttribute("width", (OB - CP) * t); }, { delay: 300 })); fade(p.famL, true, anim ? 300 : 0, jobs, 900); }
     ];
     // step 4, lower-left under its sentence: way three is closer than it looks
-    var sv = side(host, 196, "ร้อยละของผู้ตอบที่เป็นผู้ดูแลหลักในครอบครัว และที่คิดเกษียณก่อนกำหนด"), call = S("g", { style: "opacity:0" }, sv);
-    txt(call, 0, 18, "ทางที่ 3 ในชีวิตจริงของผู้ตอบ", 14, "t-bad");
+    var sv = side(host, 196, "คนทำงานมีงานดูแลที่บ้านด้วย ร้อยละของผู้ตอบที่เป็นผู้ดูแลหลัก และที่คิดเกษียณก่อนกำหนด"), call = S("g", { style: "opacity:0" }, sv);
+    txt(call, 0, 18, "คนทำงานมีงานดูแลที่บ้านด้วย", 14, "t-bad");
     txt(call, 0, 84, F("c77_pct_primary_carer") + "%", 56, "t-bad");
     txt(call, 0, 120, "ของผู้ตอบเป็นผู้ดูแลหลัก", 15, "t-strong"); txt(call, 0, 144, "ของผู้สูงอายุหรือผู้ป่วยในครอบครัว", 15, "t-strong");
     txt(call, 250, 84, F("c77_early_retire_all") + "%", 56, "t-bad");
     txt(call, 250, 120, "คิดเกษียณก่อนกำหนด", 15, "t-strong"); txt(call, 250, 144, "หรือลดชั่วโมงทำงาน", 15, "t-strong");
-    txt(call, 0, 184, "การสำรวจผู้ปฏิบัติงาน พ.ศ. 2569", 12, "t-muted");
+    txt(call, 0, 184, "การสำรวจผู้ปฏิบัติงาน พ.ศ. 2569 · คนละคำถาม ยังไม่ได้บอกว่างานดูแลทำให้คิดลดงาน", 12, "t-muted");
     return stepper(host, 4, function (k, anim, jobs) {
       if (k === 1) {   // only the first way is on screen; every column starts with its gap open
         call.style.opacity = 0;
@@ -1136,37 +1148,37 @@
   // provisioning, Myrdal's cumulative causation, labour economics. Proposal 7, the yearly review,
   // is the loop back to counting.
   FIGS.s18 = function (host) {
-    var svg = U.svgHost(host, "-10 0 640 516", "รอยต่อสี่จุด และข้อเสนอเจ็ดข้อที่วางตรงจุดที่แก้ เรียงตามลำดับที่ต้องทำ", "xMidYMin meet"); U.defs(svg);
-    var d = provisioning(svg, { e: ["กรอบคือสูตร · เต็มปี " + F("c5f_PR_F0_first_unplaced"), "ไม่มีตำแหน่ง " + F("c5f_PR_F0_unplaced") + " คน", "ทีม การฝึก การยอมรับ", "ป่วยหนัก หมอน้อย " + F("c45_ci_physicians_all_sectors_daly_2025")] });
+    var svg = U.svgHost(host, "-10 0 640 516", "ปัญหาสี่จุด และข้อเสนอเจ็ดข้อที่วางตรงจุดที่แก้ เรียงตามลำดับที่ต้องทำ", "xMidYMin meet"); U.defs(svg);
+    var d = provisioning(svg, { e: ["ไม่เพิ่มตำแหน่ง เต็มปี " + F("c5f_PR_F0_first_unplaced"), "ไม่มีตำแหน่งรองรับ " + F("c5f_PR_F0_unplaced") + " คน", "ทีม การฝึก การยอมรับ", "จังหวัดที่ป่วยมากมักมีหมอน้อย"] });
     d.breaks.forEach(function (g) { g.style.opacity = 1; });
     var FR = {
-      sp: { c: "var(--p1)", n: "การจัดให้มีบริการทางสังคม", m: "ใครมีพันธะ และเรานับอะไร" },
-      my: { c: "var(--accent)", n: "วงจรสะสม (Myrdal)", m: "แรงจากภายนอกที่ต้องมีทิศ" },
-      lab: { c: "var(--p2)", n: "เศรษฐศาสตร์แรงงาน", m: "สิ่งที่ผูกคนไว้ และใครรับภาระ" }
+      sp: { c: "var(--p1)", n: "การจัดให้มีบริการทางสังคม", m: "ใครควรได้บริการอะไร" },
+      my: { c: "var(--accent)", n: "วงจรสะสม (Myrdal)", m: "นโยบายช่วยพื้นที่เสียเปรียบ" },
+      lab: { c: "var(--p2)", n: "เศรษฐศาสตร์แรงงาน", m: "ช่วยคนอยู่ต่อและนับผู้รับภาระ" }
     };
     // the loop back from the service to counting (proposal 7), drawn under the chips
     var loop = S("path", { d: "M205,400 C150,400 -2,410 -2,330 L-2,84 C-2,68 4,60 12,60", style: "fill:none;stroke:var(--p1);stroke-width:2.4;opacity:0" }, svg);
     var head = S("path", { d: "M5,53 L15,60 L5,67 Z", style: "fill:var(--p1);opacity:0" }, svg);
     var st = [
-      { n: 1, x: 240, y: 60, f: "sp", lx: 262, ly: 58, a: "start", t: ["กระทบยอดจำนวน", "และขอบเขต"] },
-      { n: 2, x: 240, y: 150, f: "sp", lx: 262, ly: 148, a: "start", t: ["เทียบแผนหลายฐาน", "เปิดผลได้–เสีย"] },
-      { n: 3, x: 310, y: 278, f: "my", lx: 310, ly: 318, a: "middle", t: ["ตำแหน่งตามความจำเป็น", "ส่วนกลางจ่าย"] },
-      { n: 4, x: 466, y: 105, f: "my", lx: 446, ly: 111, a: "end", t: ["ผูกโควตาผลิตกับตำแหน่ง"] },
-      { n: 5, x: 466, y: 195, f: "lab", lx: 446, ly: 201, a: "end", t: ["ออกแบบการธำรงคนในระบบ เริ่มที่ทุรกันดาร"] },
-      { n: 6, x: 348, y: 444, f: "lab", lx: 372, ly: 450, a: "start", t: ["ทีมและการดูแลต่อเนื่อง", "ไม่ซ่อนภาระผู้ดูแล"] },
-      { n: 7, x: 55, y: 389, f: "sp", lx: 34, ly: 430, a: "start", t: ["ทบทวนรายปี", "เปิดเหตุผลให้ตรวจ"] }
+      { n: 1, x: 240, y: 60, f: "sp", lx: 262, ly: 58, a: "start", fs: 13, t: ["ตรวจยอดคน", "และสังกัดให้ตรงกัน"] },
+      { n: 2, x: 240, y: 150, f: "sp", lx: 262, ly: 148, a: "start", fs: 13, t: ["เทียบทุกแผนด้วยเกณฑ์", "เดียวกันหลายด้าน"] },
+      { n: 3, x: 310, y: 278, f: "my", lx: 310, ly: 318, a: "middle", t: ["เพิ่มตำแหน่งให้พื้นที่ขาดก่อน", "ส่วนกลางจ่าย"] },
+      { n: 4, x: 466, y: 105, f: "my", lx: 446, ly: 111, a: "end", t: ["วางแผนฝึกคู่ตำแหน่ง"] },
+      { n: 5, x: 466, y: 195, f: "lab", lx: 446, ly: 201, a: "end", t: ["การธำรงคนในระบบ เริ่มที่ทุรกันดาร"] },
+      { n: 6, x: 348, y: 444, f: "lab", lx: 372, ly: 450, a: "start", t: ["ทีมและบริการต่อเนื่อง", "นับงานผู้ดูแลด้วย"] },
+      { n: 7, x: 55, y: 389, f: "sp", lx: 34, ly: 430, a: "start", t: ["ทบทวนรายปี", "เปิดเหตุผลให้ตรวจสอบ"] }
     ];
     var chips = st.map(function (c) {
       var g = S("g", { style: "opacity:0" }, svg);
       if (c.n === 6) S("path", { d: "M320,444 H333", style: "fill:none;stroke:var(--bad-text);stroke-width:2" }, g);   // joined to seam 4
       S("circle", { cx: c.x, cy: c.y, r: 15, style: "fill:" + FR[c.f].c + ";stroke:var(--bg);stroke-width:2.5" }, g);
       txt(g, c.x, c.y + 5.5, String(c.n), 16, "", "middle", { style: "fill:var(--inverse);font-weight:700" });
-      c.t.forEach(function (line, i) { txt(g, c.lx, c.ly + i * 22, line, 15.5, "t-strong", c.a); });
+      c.t.forEach(function (line, i) { txt(g, c.lx, c.ly + i * 22, line, c.fs || 15.5, "t-strong", c.a); });
       return g;
     });
     // lower-left: what the colours mean, at reading size
     var sv = side(host, 300, "สีของข้อเสนอบอกกรอบของเรื่องที่ข้อเสนอนั้นมาจาก"), leg = S("g", { style: "opacity:0" }, sv);
-    txt(leg, 0, 20, "ตัวเลขคือลำดับที่ต้องทำ · สีบอกว่ามาจากกรอบใด", 14, "t-muted");
+    txt(leg, 0, 20, "ตัวเลขคือลำดับที่ต้องทำ · สีบอกแนวคิดที่ใช้", 14, "t-muted");
     ["sp", "my", "lab"].forEach(function (k, i) {
       var y = 72 + i * 70;
       S("circle", { cx: 12, cy: y - 6, r: 11, style: "fill:" + FR[k].c }, leg);
@@ -1206,6 +1218,18 @@
     var src = (T.assets && T.assets.qr) || "../../assets/qr/hrh-model.svg";
     q.innerHTML = '<span class="qr"><img src="' + src + '" alt="QR เว็บไซต์ HRH-model"></span>' +
       '<p>ตรวจทุกผล และลองเปลี่ยนแผนเองได้ใน <b class="nobr">Workforce Lab</b></p><p class="url">psitthirat.github.io/<wbr><span class="nobr">HRH-model</span></p>';
+  });
+
+  /* print: stars without the glow discs (same as ws3-next). The engine's print star layer (hud.js printStars,
+   * CSS variable --print-stars) draws each soft glow as a faint disc; in the PDF they print as grey dots. Keep
+   * the stars (r < 2) and drop the glows after the engine has set the layer. */
+  window.PEITHO.hooks.afterRender.push(function () {
+    var root = document.documentElement;
+    if (!root.classList.contains("print")) return;
+    var m = (root.style.getPropertyValue("--print-stars") || "").match(/^url\("data:image\/svg\+xml;charset=utf-8,(.*)"\)$/);
+    if (!m) return;
+    var svg = decodeURIComponent(m[1]).replace(/<circle [^>]*\br="([\d.]+)"[^>]*\/>/g, function (c, r) { return +r >= 2 ? "" : c; });
+    root.style.setProperty("--print-stars", 'url("data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg) + '")');
   });
 
   window.FIGS = FIGS;

@@ -372,12 +372,6 @@
   "source": "outputs/chapter5/claims_5_4.csv"
  },
  {
-  "token": "c54_positions_added_first_PR",
-  "display": "1,446",
-  "unit": "ตำแหน่ง",
-  "source": "outputs/chapter5/claims_5_4.csv"
- },
- {
   "token": "c54_stock2040_PR",
   "display": "29,214",
   "unit": "คน",
@@ -540,18 +534,6 @@
   "source": "outputs/chapter5/claims_5_frame.csv"
  },
  {
-  "token": "c5f_gd_PR_GDc5_exit_stockloss",
-  "display": "839",
-  "unit": "คน",
-  "source": "outputs/chapter5/claims_5_frame.csv"
- },
- {
-  "token": "c5f_gd_PR_GDh5_exit_stockloss",
-  "display": "1,018",
-  "unit": "คน",
-  "source": "outputs/chapter5/claims_5_frame.csv"
- },
- {
   "token": "c5f_gdc_low19_share",
   "display": "49",
   "unit": "%",
@@ -561,12 +543,6 @@
   "token": "c5f_gdh_low19_share",
   "display": "17",
   "unit": "%",
-  "source": "outputs/chapter5/claims_5_frame.csv"
- },
- {
-  "token": "c5f_occ",
-  "display": "26,112",
-  "unit": "คน",
   "source": "outputs/chapter5/claims_5_frame.csv"
  },
  {
@@ -621,12 +597,6 @@
   "token": "c5f_pw_need",
   "display": "0.446",
   "unit": "",
-  "source": "outputs/chapter5/claims_5_frame.csv"
- },
- {
-  "token": "c5f_pw_vacant0",
-  "display": "30",
-  "unit": "ตำแหน่ง",
   "source": "outputs/chapter5/claims_5_frame.csv"
  },
  {
@@ -781,12 +751,6 @@
  },
  {
   "token": "c77_pct_primary_carer",
-  "display": "43",
-  "unit": "%",
-  "source": "outputs/chapter7_7/claims.csv"
- },
- {
-  "token": "c77_pct_target",
   "display": "43",
   "unit": "%",
   "source": "outputs/chapter7_7/claims.csv"
