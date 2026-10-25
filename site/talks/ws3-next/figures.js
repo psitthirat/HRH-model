@@ -337,7 +337,7 @@
     // (Supabase table talk_notes, read with the public key); saving needs the internal passcode, checked
     // in the database by save_talk_note. Without a connection the boxes work as before: this browser only.
     var BK = (window.TALKDATA && window.TALKDATA.backend) || {}, ONLINE = !!(BK.url && BK.key);
-    var CODE_KEY = "peitho:" + DECK_ID + ":talk-code";
+    var CODE_KEY = "peitho:talk-code";   // the same passcode as the speaker notes (deck.js)
     function hhmm(t) { var d = new Date(t); return isNaN(d) ? "" : ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2); }
     function setChip(b, state, t) {
       b.disabled = state !== "dirty";
@@ -366,9 +366,11 @@
         if (ONLINE) setChip(chip, "dirty");
       });
       chip.addEventListener("click", function () {
-        var code = null;
-        try { code = sessionStorage.getItem(CODE_KEY); } catch (e) { /* storage blocked */ }
-        if (!code) code = window.prompt("ใส่รหัสเพื่อบันทึก ข้อความที่บันทึกจะแสดงในทุกเครื่องที่เปิดสไลด์นี้");
+        var known = null;
+        try { known = sessionStorage.getItem(CODE_KEY); } catch (e) { /* storage blocked */ }
+        // A masked box (deck.js), so the passcode never shows on the projector.
+        var ask = window.PEITHO && window.PEITHO.askCode ? window.PEITHO.askCode : function (m) { return Promise.resolve(window.prompt(m)); };
+        (known ? Promise.resolve(known) : ask("ใส่รหัสเพื่อบันทึก ข้อความที่บันทึกจะแสดงในทุกเครื่องที่เปิดสไลด์นี้")).then(function (code) {
         if (!code) return;
         setChip(chip, "saving");
         api("/rest/v1/rpc/save_talk_note", { p_deck: DECK_ID, p_slot: i + 1, p_body: note.textContent, p_code: code.trim() })
@@ -382,6 +384,7 @@
               alert("รหัสไม่ถูกต้อง");
             } else alert("บันทึกไม่สำเร็จ ตรวจการเชื่อมต่ออินเทอร์เน็ต ข้อความยังเก็บไว้ในเครื่องนี้");
           });
+        });
       });
       return { c: c, note: note, chip: chip };
     });
