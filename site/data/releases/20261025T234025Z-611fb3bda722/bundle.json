@@ -815,12 +815,12 @@
   "wf.running": "จำนวนคงเหลือหลังแต่ละขั้น",
   "wf.note": "ต้นปี − ออก + กลับเข้า ± ฝึกอบรมสุทธิ + รับใหม่ = ปลายปี เป็นค่าประมาณภายใต้สมมติฐาน การฝึกอบรมย้ายแพทย์ระหว่างจังหวัดและหักล้างกันระดับประเทศ การรับใหม่เป็นค่าต่อเนื่องของแผนภายใต้กรอบตำแหน่ง ซึ่งปัดเมื่อแสดงผล"
  },
- "release_id": "20261025T111740Z-69f674c050cb",
- "generated_at": "2026-10-25T11:17:40+00:00",
+ "release_id": "20261025T234025Z-611fb3bda722",
+ "generated_at": "2026-10-25T23:40:25+00:00",
  "lab": {
   "schema_version": "workforce-lab.manifest/1",
   "manifest": "lab/lab.json",
-  "sha256": "76d05d5c7c94721c2e937baea5d39f33c3fa53f21cbe1127c93bab47a9380a39",
+  "sha256": "5e00c7ff6de2b3224bff985db2ba6a56467fa9153cbd2703ded0fdf4b696b78b",
   "scene_map": {
    "S00": {
     "status": "reference_only",
@@ -2547,15 +2547,15 @@
    "metric_definition_version": "chapter5-metrics/1",
    "view_definition_version": "chapter5-views/1",
    "scenario_schema_version": "workforce-lab.scenario/1",
-   "source_release_id": "20261025T111740Z-69f674c050cb",
+   "source_release_id": "20261025T234025Z-611fb3bda722",
    "source_scope": "moph_hrr_76_as_provisional_managed_stock",
-   "release_id": "20261025T111740Z-69f674c050cb",
+   "release_id": "20261025T234025Z-611fb3bda722",
    "analytical_data_version": "a27840a5b4a0458ed3920b0b51eca27a12a7efd5dcbbd1bc6f4138384737bd52",
    "fitted_model_version": "bf5fc440e240c2f3d71d7afd62a59fe76a4e423fbc31fe62cb42dc336a45dc98",
    "metric_definition_hash": "fe9eaba2036cbc96843751ec1c55bd95249217769bef256cb2d4cd2f7fdc8dc6",
    "view_definition_hash": "884cb27636ce45b2cc8acf4ef9e115b201e0f17d2ae6428d380ffbc5c2898a1e",
    "scenario_preset_version": "49869415c8eb1625830af9ca862826a1b773b82f3d6926382098c15c37fe5adb",
-   "frontend_build_id": "f62e4d8a7b8d1d36aaf54ee6756877d93f91691d8f48dd89708e38ebcd887a0a"
+   "frontend_build_id": "0d744d5913d00158ab41a4d8c0ac05ad8258b44bb9d57d55167c4687b0b4e970"
   }
  },
  "meta": {
