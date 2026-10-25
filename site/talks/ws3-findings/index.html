@@ -8,6 +8,11 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='12' fill='%2303040f'/%3E%3Cpath d='M8 34h32' stroke='%23ff8f8a' stroke-width='4'/%3E%3Cpath d='M8 34 20 16l8 10 6-8 6 16' fill='none' stroke='%23ff8f8a' stroke-width='3.5' stroke-linejoin='round'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="../engine/deck.css">
 <link rel="stylesheet" href="../engine/hud.css">
+<style>
+/* Larger text for the room (prep meeting with อ.สัมฤทธิ์, 25 Oct 2569): lead, body and small text +9%. */
+body { --fs-lead: max(18.5px, calc(var(--u) * 1.46)); --fs-body: max(16.5px, calc(var(--u) * 1.18)); --fs-small: max(13.5px, calc(var(--u) * .94)); }
+.slide__foot { font-size: max(12.5px, calc(var(--u) * .86)); }  /* source lines keep the engine size, so none re-wraps */
+</style>
 </head>
 <body class="mode-present">
 <a class="skip" href="#deck">ข้ามไปที่สไลด์</a>

@@ -764,12 +764,6 @@
    "source": "outputs/chapter7_7/claims.csv"
   },
   {
-   "token": "c77_early_retire_all",
-   "display": "34",
-   "unit": "%",
-   "source": "outputs/chapter7_7/claims.csv"
-  },
-  {
    "token": "c77_exit_abroad_itl3",
    "display": "5",
    "unit": "%",
@@ -812,15 +806,15 @@
    "source": "outputs/chapter7_7/claims.csv"
   },
   {
-   "token": "c77_or_itl3B_remote",
-   "display": "2.35",
+   "token": "c77_or_itl3B_primary_carer",
+   "display": "0.90",
    "unit": "",
    "source": "outputs/chapter7_7/claims.csv"
   },
   {
-   "token": "c77_pct_primary_carer",
-   "display": "43",
-   "unit": "%",
+   "token": "c77_or_itl3B_remote",
+   "display": "2.35",
+   "unit": "",
    "source": "outputs/chapter7_7/claims.csv"
   },
   {
@@ -894,6 +888,36 @@
    "display": "13.8",
    "unit": "",
    "source": "monograph 01_scarcity.md:115; Wibulpolprasert & Pengpaibon 2003"
+  },
+  {
+   "token": "lit.ltc_carers_quit",
+   "display": "34,310",
+   "unit": "",
+   "source": "รายงานการดูแลระยะยาวในชุมชน (2569) ตารางที่ 26 หน้า 178: 14,062 (ในเขตเทศบาล) + 20,248 (นอกเขตเทศบาล)"
+  },
+  {
+   "token": "lit.ltc_family_carer_muni",
+   "display": "92",
+   "unit": "",
+   "source": "รายงานการดูแลระยะยาวในชุมชน (2569) หน้า 175 รูปที่ 27; สำรวจผู้สูงอายุ สสช. 2567"
+  },
+  {
+   "token": "lit.ltc_family_carer_rural",
+   "display": "94",
+   "unit": "",
+   "source": "รายงานการดูแลระยะยาวในชุมชน (2569) หน้า 175 รูปที่ 27; สำรวจผู้สูงอายุ สสช. 2567"
+  },
+  {
+   "token": "lit.ltc_system_carer_muni",
+   "display": "4",
+   "unit": "",
+   "source": "รายงานการดูแลระยะยาวในชุมชน (2569) หน้า 175 รูปที่ 27"
+  },
+  {
+   "token": "lit.ltc_system_carer_rural",
+   "display": "2",
+   "unit": "",
+   "source": "รายงานการดูแลระยะยาวในชุมชน (2569) หน้า 175 รูปที่ 27"
   },
   {
    "token": "lit.no_md_hosp_1997",

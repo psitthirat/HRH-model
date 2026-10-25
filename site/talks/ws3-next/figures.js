@@ -100,6 +100,12 @@
       ".nx-quote{margin:0}",
       // s13: the closing line in four lines, the last one whole ("ของแต่ละทางเลือกปรากฏชัด")
       "#slide-13 .display{font-size:calc(var(--fs-display)*.9)}",
+      // Larger text for the room (prep meeting with อ.สัมฤทธิ์, 25 Oct 2569): lead, body and small text +9%.
+      // s07 (six full cards) keeps the engine sizes.
+      "body{--fs-lead:max(18.5px,calc(var(--u)*1.46));--fs-body:max(16.5px,calc(var(--u)*1.18));--fs-small:max(13.5px,calc(var(--u)*.94))}",
+      "#slide-7{--fs-lead:max(17px,calc(var(--u)*1.34));--fs-body:max(15px,calc(var(--u)*1.08));--fs-small:max(12.5px,calc(var(--u)*.86))}",
+      "#slide-10 .nx-table{font-size:max(16.5px,calc(var(--u)*1.24)) !important}",
+      ".slide__foot{font-size:max(12.5px,calc(var(--u)*.86))}",   // source lines keep the engine size, so none re-wraps
       // round 3: use the lower left of the text column (s03 key, s04 names, s06 conditions, s08 two rows)
       ".nx-key{display:flex;flex-direction:column;gap:calc(var(--u)*.55);margin:auto 0;padding-top:calc(var(--u)*1);border-top:1px solid var(--line)}",
       ".nx-key p{display:flex;align-items:baseline;gap:.55em;margin:0;font-size:var(--fs-body);line-height:1.42;color:var(--text-2)}",
@@ -378,21 +384,27 @@
       });
     });
     if (U.isStatic()) parts.forEach(function (p) { p.el.setAttribute("cx", p.x); p.el.setAttribute("cy", p.y); });
+    // Each chip is a list of lines; chips stack by their own height. Adequacy chips name the group they
+    // measure (the 19 provinces lowest in 2583) and the hospital-pays case says what its percentage means
+    // (prep meeting with อ.สัมฤทธิ์, 25 Oct 2569). The last chip is the survey's headline: what people are most
+    // dissatisfied with does not separate those who intend to leave (Percy 25 Oct 2569, replacing the carer chip).
+    var CF = 13.5, CL = 18, top = 58;
     var chips = [
-      "กรอบเต็ม: ทุกสูตรได้ " + F("c5f_PR_F0_bq_P|pct") + "% ของเป้าหมาย",
+      ["กรอบเต็ม: ทุกสูตรได้ " + F("c5f_PR_F0_bq_P|pct") + "% ของเป้าหมาย", "วัดใน 19 จังหวัดที่ขาดที่สุดในปี 2583"],
       ["เพิ่มตามสัดส่วนใช้ตำแหน่ง " + F("c5f_prorata_equiv_ratio") + " เท่า", "ของการวางตามจำเป็น"],
-      ["รพ.จ่าย " + F("c5f_PR_GDh5_bq_P|pct") + "%", "ส่วนกลางจ่ายและจัดตามจำเป็น " + F("c5f_PR_GDc5_bq_P|pct") + "%"],
-      F("c46_dis_n_all_four") + " จังหวัดอยู่กลุ่มต่ำสุดทั้งสี่วิธีวัด",
+      ["เพิ่มลูกจ้าง: แพทย์ใน 19 จังหวัดที่ขาดที่สุดถึงเป้า", "รพ.จ่าย กระจายได้สำเร็จตามเป้า " + F("c5f_PR_GDh5_bq_P|pct") + "%", "ส่วนกลางจ่ายและจัดตามจำเป็น " + F("c5f_PR_GDc5_bq_P|pct") + "%"],
+      [F("c46_dis_n_all_four") + " จังหวัดอยู่กลุ่มต่ำสุดทั้งสี่วิธีวัด"],
       // c46_conc_top10_all1 counts specialists (people) among facilities that have any (owner wording, 23 Oct)
       ["แพทย์เฉพาะทาง " + F("c46_conc_top10_all1") + "% อยู่ในสถานพยาบาล", "กลุ่มบนหนึ่งในสิบ"],
-      "ผู้ตอบ " + F("c77_pct_primary_carer") + "% เป็นผู้ดูแลหลักในครอบครัว"
+      ["คนบ่นมาก: นโยบายกำลังคน " + F("c77_dis_moph_policy") + "% รายได้ " + F("c77_dis_income") + "%", "แต่สองเรื่องนี้ไม่สัมพันธ์ชัดกับการคิดจะลาออก", "ที่สัมพันธ์ชัด: ทีม ชีวิตในพื้นที่ การฝึก การยอมรับ"]
     ].map(function (s, i) {
-      var g = S("g", { style: "opacity:0" }, svg), y = 84 + i * 60, wy = box.y + 40 + i * 56, wx = box.x + box.w;
-      S("path", { d: "M" + wx + "," + wy + " C" + (wx + 30) + "," + wy + " 320," + (y + 4) + " 342," + (y + 4), style: "fill:none;stroke:var(--accent);stroke-width:1.2;stroke-dasharray:3 4" }, g);
+      var h = s.length * CL + 12, y = top, cy = y + h / 2, wy = box.y + 40 + i * 56, wx = box.x + box.w;
+      top += h + 10;
+      var g = S("g", { style: "opacity:0" }, svg);
+      S("path", { d: "M" + wx + "," + wy + " C" + (wx + 30) + "," + wy + " 320," + cy + " 342," + cy, style: "fill:none;stroke:var(--accent);stroke-width:1.2;stroke-dasharray:3 4" }, g);
       S("path", { d: "M" + (wx - 7) + "," + (wy - 9) + " L" + wx + "," + wy + " L" + (wx - 7) + "," + (wy + 9) + " M" + (wx - 10) + "," + wy + " H" + wx, style: "fill:none;stroke:var(--accent);stroke-width:2;stroke-linecap:round" }, g);
-      S("rect", { x: 342, y: y - 20, width: 296, height: 46, rx: 6, style: "fill:var(--card);stroke:var(--line-strong)" }, g);
-      if (Array.isArray(s)) { txt(g, 354, y - 1, s[0], 12.5, "t-strong"); txt(g, 354, y + 16, s[1], 12.5, "t-strong"); }
-      else txt(g, 354, y + 8, s, 12.5, "t-strong");
+      S("rect", { x: 342, y: y, width: 296, height: h, rx: 6, style: "fill:var(--card);stroke:var(--line-strong)" }, g);
+      s.forEach(function (line, j) { txt(g, 354, y + 6 + CL * (j + 1) - 5, line, CF, "t-strong"); });
       return g;
     });
     return stepper(host, 2, function (k, anim, jobs) {
@@ -528,11 +540,15 @@
   // Titles are broken by hand at their phrase boundary; the level tag is neutral (its words say the level).
   FIGS.s07 = function (host) {
     var progs = [
-      ["บริการสุขภาพในพื้นที่<br>หลังถ่ายโอนให้ท้องถิ่น", "ชุมชน", "ใครกำกับ ใครจัดงบ<br>ให้ทีมปฐมภูมิทำงานต่อและก้าวหน้าได้แม้เปลี่ยนนายจ้าง", "รพ.สต. ที่สำรวจ <b>" + F("c77_units_P_local") + "</b> จาก <b>" + F("c77_units_P") + "</b> แห่ง ถ่ายโอนให้ท้องถิ่นแล้ว"],
+      ["บริการสุขภาพในพื้นที่<br>หลังถ่ายโอนให้ท้องถิ่น", "ชุมชน", "ใครกำกับ ใครจัดงบ<br>ให้ทีมปฐมภูมิทำงานต่อและก้าวหน้าได้แม้เปลี่ยนนายจ้าง",
+        // national count from the HSIU dashboard, not the survey sample (prep meeting with อ.สัมฤทธิ์, 25 Oct 2569)
+        "รพ.สต. ถ่ายโอนให้ อบจ. แล้ว <b>" + F("lit.hsiu_pcu_transferred") + "</b> จาก <b>" + F("lit.hsiu_pcu_total") + "</b> แห่ง<br>อบจ. <b>" + F("lit.hsiu_pao_full") + "</b> จาก " + F("lit.hsiu_pao_total") + " แห่งรับครบ <b>" + F("lit.hsiu_pao_none") + "</b> แห่งยังไม่รับ<br><span class=\"nx-src\">HSIU สวรส. ข้อมูล ณ 7 ก.ย. 2569</span>"],
       ["รับคนจากพื้นที่<br>เชื่อมการฝึกกับงานและความก้าวหน้า", "ชุมชนและเศรษฐกิจ", "การรับคนในพื้นที่ ฝึกในภูมิภาค และมีทางก้าวหน้า ช่วยให้คนทำงานในพื้นที่ต่อได้เพียงใด", "ทำงานในจังหวัดภูมิลำเนา สัมพันธ์กับการคิดย้ายออกจากพื้นที่น้อยลง (อัตราส่วนออดส์ <b>" + F("c77_or_leave_areaB_home_province_match") + "</b>) แต่ไม่พบความสัมพันธ์ชัดเจนกับการคิดลาออกจากสังกัด"],
-      ["ผู้จ้างและตำแหน่ง<br>ที่รองรับบริการที่ประชาชนควรได้รับ", "เศรษฐกิจและรัฐ", "ผู้จ้างและผู้จ่ายแบบใดช่วยกระจายคน ใครรับต้นทุน และคนทำงานมั่นคงเพียงใด", "ผลจำลองความเพียงพอ: รพ.จ่ายเอง <b>" + F("c5f_PR_GDh5_bq_P|pct") + "%</b>;<br>ส่วนกลางจ่ายและจัดตามความจำเป็น <b>" + F("c5f_PR_GDc5_bq_P|pct") + "%</b><br><span class=\"nx-src\">ร้อยละของเป้าหมายตัวอย่าง " + F("lit.target_ratio") + " ประชากร</span>"],
+      ["ผู้จ้างและตำแหน่ง<br>ที่รองรับบริการที่ประชาชนควรได้รับ", "เศรษฐกิจและรัฐ", "ผู้จ้างและผู้จ่ายแบบใดช่วยกระจายคน ใครรับต้นทุน และคนทำงานมั่นคงเพียงใด", "รพ.จ่าย กระจายได้สำเร็จตามเป้า <b>" + F("c5f_PR_GDh5_bq_P|pct") + "%</b><br>ส่วนกลางจ่ายและจัดตามความจำเป็น <b>" + F("c5f_PR_GDc5_bq_P|pct") + "%</b><br><span class=\"nx-src\">แพทย์ใน 19 จังหวัดที่ขาดที่สุด ปี 2583 เทียบเป้า " + F("lit.target_ratio") + "</span>"],
       ["ความรับผิดชอบของเอกชน<br>และแพทย์ที่ทำงานทั้งรัฐและเอกชน", "เศรษฐกิจ", "การจ่ายเงินและเงื่อนไขอนุญาตช่วยให้เอกชนร่วมดูแลพื้นที่ขาดบริการได้หรือไม่", "แพทย์เฉพาะทางทุกสังกัด <b>" + F("c46_conc_top10_all1") + "%</b> อยู่ในสถานพยาบาลกลุ่มที่มีมากที่สุดหนึ่งในสิบ"],
-      ["การจัดงานดูแล<br>และสนับสนุนผู้ดูแล", "สังคมและเศรษฐกิจ", "การจ้างผู้ดูแลในชุมชน คนช่วยดูแลแทนชั่วคราว และบริการระยะยาว ลดภาระให้ใคร อย่างไร", "ผู้ตอบแบบสำรวจ\u00a0<b>" + F("c77_pct_primary_carer") + "%</b> เป็นผู้ดูแลหลักในครอบครัว"],
+      ["การจัดงานดูแล<br>และสนับสนุนผู้ดูแล", "สังคมและเศรษฐกิจ", "การจ้างผู้ดูแลในชุมชน คนช่วยดูแลแทนชั่วคราว และบริการระยะยาว ลดภาระให้ใคร อย่างไร",
+        // who carries home care: the team's LTC report (NSO older-persons survey 2567), not our workforce survey (Percy 25 Oct 2569)
+        "ผู้ดูแลหลักเป็นคนในครอบครัว <b>" + F("lit.ltc_family_carer_muni") + "–" + F("lit.ltc_family_carer_rural") + "%</b><br>จากระบบบริการ " + F("lit.ltc_system_carer_rural") + "–" + F("lit.ltc_system_carer_muni") + "% <span class=\"nx-src\">(ผู้สูงอายุที่พึ่งพิง สสช. 2567)</span>"],
       ["ร่วมตัดสินว่าคนพอหรือไม่<br>และจะจัดสรรอย่างไร", "สังคม", "การให้ผู้เกี่ยวข้องใช้แบบจำลองร่วมกัน ช่วยเลือกเกณฑ์และยอมรับผลได้อย่างไร", "ผลจำลอง: ใช้ประชากรหรือปริมาณบริการ<br>แพทย์ใหม่สะสมสิบห้าปีในปทุมธานีต่าง <b>" + F("c54_maxcum_PR_vs_SR") + "</b> คน"]
     ];
     var grid = H("div", "nx-grid nx-progs", null, host);

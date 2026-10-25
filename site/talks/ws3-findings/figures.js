@@ -1115,14 +1115,16 @@
       function (p, anim, jobs) { jobs.add(U.tween(anim ? 1100 : 0, function (t) { p.ob.setAttribute("width", OB - (OB - CP) * t); p.gap.setAttribute("width", (OB - CP) * (1 - t)); }, { delay: 300 })); },
       function (p, anim, jobs) { jobs.add(U.tween(anim ? 1100 : 0, function (t) { p.fam.setAttribute("width", (OB - CP) * t); }, { delay: 300 })); fade(p.famL, true, anim ? 300 : 0, jobs, 900); }
     ];
-    // step 4, lower-left under its sentence: way three is closer than it looks
-    var sv = side(host, 196, "คนทำงานมีงานดูแลที่บ้านด้วย ร้อยละของผู้ตอบที่เป็นผู้ดูแลหลัก และที่คิดเกษียณก่อนกำหนด"), call = S("g", { style: "opacity:0" }, sv);
-    txt(call, 0, 18, "คนทำงานมีงานดูแลที่บ้านด้วย", 14, "t-bad");
-    txt(call, 0, 84, F("c77_pct_primary_carer") + "%", 56, "t-bad");
-    txt(call, 0, 120, "ของผู้ตอบเป็นผู้ดูแลหลัก", 15, "t-strong"); txt(call, 0, 144, "ของผู้สูงอายุหรือผู้ป่วยในครอบครัว", 15, "t-strong");
-    txt(call, 250, 84, F("c77_early_retire_all") + "%", 56, "t-bad");
-    txt(call, 250, 120, "คิดเกษียณก่อนกำหนด", 15, "t-strong"); txt(call, 250, 144, "หรือลดชั่วโมงทำงาน", 15, "t-strong");
-    txt(call, 0, 184, "การสำรวจผู้ปฏิบัติงาน พ.ศ. 2569 · คนละคำถาม ยังไม่ได้บอกว่างานดูแลทำให้คิดลดงาน", 12, "t-muted");
+    // step 4, lower-left under its sentence: way three is closer than it looks.
+    // Who carries home care comes from outside our survey: the team's LTC report on the NSO older-persons
+    // survey 2567 (Percy 25 Oct 2569; the survey's carer test is not presented).
+    var sv = side(host, 172, "งานดูแลผู้สูงอายุที่บ้านตกอยู่กับครอบครัว"), call = S("g", { style: "opacity:0" }, sv);
+    txt(call, 0, 18, "งานดูแลผู้สูงอายุที่บ้านตกอยู่กับครอบครัว", 15, "t-bad");
+    txt(call, 0, 84, F("lit.ltc_family_carer_muni") + "–" + F("lit.ltc_family_carer_rural") + "%", 56, "t-bad");
+    txt(call, 0, 118, "ผู้ดูแลหลักของผู้สูงอายุที่มีภาวะพึ่งพิง", 15, "t-strong"); txt(call, 0, 140, "เป็นคนในครอบครัว", 15, "t-strong");
+    txt(call, 262, 84, F("lit.ltc_carers_quit"), 56, "t-bad");
+    txt(call, 262, 118, "คนในครอบครัวลาออกจากงาน", 15, "t-strong"); txt(call, 262, 140, "มาดูแลผู้สูงอายุ", 15, "t-strong");
+    txt(call, 0, 162, "สำรวจผู้สูงอายุ สสช. 2567 · รายงานการดูแลระยะยาวในชุมชน 2569", 12, "t-muted");
     return stepper(host, 4, function (k, anim, jobs) {
       if (k === 1) {   // only the first way is on screen; every column starts with its gap open
         call.style.opacity = 0;

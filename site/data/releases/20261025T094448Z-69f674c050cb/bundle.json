@@ -815,12 +815,12 @@
   "wf.running": "จำนวนคงเหลือหลังแต่ละขั้น",
   "wf.note": "ต้นปี − ออก + กลับเข้า ± ฝึกอบรมสุทธิ + รับใหม่ = ปลายปี เป็นค่าประมาณภายใต้สมมติฐาน การฝึกอบรมย้ายแพทย์ระหว่างจังหวัดและหักล้างกันระดับประเทศ การรับใหม่เป็นค่าต่อเนื่องของแผนภายใต้กรอบตำแหน่ง ซึ่งปัดเมื่อแสดงผล"
  },
- "release_id": "20261024T102158Z-518bfb6e458d",
- "generated_at": "2026-10-24T10:21:58+00:00",
+ "release_id": "20261025T094448Z-69f674c050cb",
+ "generated_at": "2026-10-25T09:44:48+00:00",
  "lab": {
   "schema_version": "workforce-lab.manifest/1",
   "manifest": "lab/lab.json",
-  "sha256": "b8f2a3d6ddc51aff537bd9b83f75947c427b953267b4c618dcbbf41b0f42a542",
+  "sha256": "c1a0ba1754f20df31ee8b71d0402081df648d106cb2f05e8ac0c5e778a277e98",
   "scene_map": {
    "S00": {
     "status": "reference_only",
@@ -2542,15 +2542,15 @@
   },
   "versions": {
    "engine_version": "06f1eb0b77c2e55b5d611a8fb6cdf7cefcf219c9417dc38e51aaf95bbc4848d3",
-   "inputs_version": "aa2d4c6a13a228a4bb7fa4037766fa765df543cb40a9ecbf6fce5e46e88a707d",
-   "parameter_definition_version": "df6a35ffe25d7133ffbe936822c93393115a0ac813cf16ba1fee1ae62a0353a4",
+   "inputs_version": "a27840a5b4a0458ed3920b0b51eca27a12a7efd5dcbbd1bc6f4138384737bd52",
+   "parameter_definition_version": "a35f6b267146f40217517b7d9c74341a0daf351e0b30f1b5014efb1fa0de23e9",
    "metric_definition_version": "chapter5-metrics/1",
    "view_definition_version": "chapter5-views/1",
    "scenario_schema_version": "workforce-lab.scenario/1",
-   "source_release_id": "20261024T102158Z-518bfb6e458d",
+   "source_release_id": "20261025T094448Z-69f674c050cb",
    "source_scope": "moph_hrr_76_as_provisional_managed_stock",
-   "release_id": "20261024T102158Z-518bfb6e458d",
-   "analytical_data_version": "aa2d4c6a13a228a4bb7fa4037766fa765df543cb40a9ecbf6fce5e46e88a707d",
+   "release_id": "20261025T094448Z-69f674c050cb",
+   "analytical_data_version": "a27840a5b4a0458ed3920b0b51eca27a12a7efd5dcbbd1bc6f4138384737bd52",
    "fitted_model_version": "bf5fc440e240c2f3d71d7afd62a59fe76a4e423fbc31fe62cb42dc336a45dc98",
    "metric_definition_hash": "fe9eaba2036cbc96843751ec1c55bd95249217769bef256cb2d4cd2f7fdc8dc6",
    "view_definition_hash": "884cb27636ce45b2cc8acf4ef9e115b201e0f17d2ae6428d380ffbc5c2898a1e",
@@ -339416,6 +339416,61 @@
    "derivation": "[internal location omitted] [frame] cycle_starts[1] - 1",
    "source": {}
   },
+  "lit_hsiu_pcu_total": {
+   "id": "lit_hsiu_pcu_total",
+   "value": "9,878",
+   "display": "9,878",
+   "unit": "",
+   "kind": "literature",
+   "evidence": "observed",
+   "datasets": [],
+   "derivation": "[internal location omitted] [facts.hsiu_pcu_total]: HSIU สวรส. Dashboard การถ่ายโอนภารกิจ รพ.สต. https://hsiu.hsri.or.th/transfer/dashboard หน้าภาพรวม ข้อมูล ณ 7 ก.ย. 2569 (ตรวจซ้ำ 25 ต.ค. 2569)",
+   "source": {}
+  },
+  "lit_hsiu_pcu_transferred": {
+   "id": "lit_hsiu_pcu_transferred",
+   "value": "5,176",
+   "display": "5,176",
+   "unit": "",
+   "kind": "literature",
+   "evidence": "observed",
+   "datasets": [],
+   "derivation": "[internal location omitted] [facts.hsiu_pcu_transferred]: HSIU dashboard ภาพรวม ข้อมูล ณ 7 ก.ย. 2569",
+   "source": {}
+  },
+  "lit_ltc_family_carer_muni": {
+   "id": "lit_ltc_family_carer_muni",
+   "value": "92",
+   "display": "92",
+   "unit": "",
+   "kind": "literature",
+   "evidence": "observed",
+   "datasets": [],
+   "derivation": "[internal location omitted] [facts.ltc_family_carer_muni]: รายงานการดูแลระยะยาวในชุมชน (2569) หน้า 175 รูปที่ 27; สำรวจผู้สูงอายุ สสช. 2567",
+   "source": {}
+  },
+  "lit_ltc_family_carer_rural": {
+   "id": "lit_ltc_family_carer_rural",
+   "value": "94",
+   "display": "94",
+   "unit": "",
+   "kind": "literature",
+   "evidence": "observed",
+   "datasets": [],
+   "derivation": "[internal location omitted] [facts.ltc_family_carer_rural]: รายงานการดูแลระยะยาวในชุมชน (2569) หน้า 175 รูปที่ 27; สำรวจผู้สูงอายุ สสช. 2567",
+   "source": {}
+  },
+  "lit_ltc_carers_quit": {
+   "id": "lit_ltc_carers_quit",
+   "value": "34,310",
+   "display": "34,310",
+   "unit": "",
+   "kind": "literature",
+   "evidence": "observed",
+   "datasets": [],
+   "derivation": "[internal location omitted] [facts.ltc_carers_quit]: รายงานการดูแลระยะยาวในชุมชน (2569) ตารางที่ 26 หน้า 178: 14,062 (ในเขตเทศบาล) + 20,248 (นอกเขตเทศบาล)",
+   "source": {}
+  },
   "w_catchup_by_entries": {
    "id": "w_catchup_by_entries",
    "value": true,
@@ -340597,51 +340652,6 @@
     "status": "computed"
    }
   },
-  "c77_units_P": {
-   "id": "c77_units_P",
-   "value": 76.0,
-   "display": "76",
-   "unit": "หน่วย",
-   "kind": "claim",
-   "evidence": "derived",
-   "datasets": [],
-   "derivation": "claim registry [internal location omitted]",
-   "source": {
-    "claim_id": "c77_units_P",
-    "section": "7_7",
-    "status": "computed"
-   }
-  },
-  "c77_units_P_local": {
-   "id": "c77_units_P_local",
-   "value": 39.0,
-   "display": "39",
-   "unit": "หน่วย",
-   "kind": "claim",
-   "evidence": "derived",
-   "datasets": [],
-   "derivation": "claim registry [internal location omitted]",
-   "source": {
-    "claim_id": "c77_units_P_local",
-    "section": "7_7",
-    "status": "computed"
-   }
-  },
-  "c77_pct_primary_carer": {
-   "id": "c77_pct_primary_carer",
-   "value": 43.05177111716621,
-   "display": "43",
-   "unit": "%",
-   "kind": "claim",
-   "evidence": "derived",
-   "datasets": [],
-   "derivation": "claim registry [internal location omitted]",
-   "source": {
-    "claim_id": "c77_pct_primary_carer",
-    "section": "7_7",
-    "status": "computed"
-   }
-  },
   "c77_dis_moph_policy": {
    "id": "c77_dis_moph_policy",
    "value": 59.8,
@@ -340818,6 +340828,21 @@
    "derivation": "claim registry [internal location omitted]",
    "source": {
     "claim_id": "c77_or_itl3B_remote",
+    "section": "7_7",
+    "status": "computed"
+   }
+  },
+  "c77_or_itl3B_primary_carer": {
+   "id": "c77_or_itl3B_primary_carer",
+   "value": 0.8958959085347508,
+   "display": "0.90",
+   "unit": "",
+   "kind": "claim",
+   "evidence": "derived",
+   "datasets": [],
+   "derivation": "claim registry [internal location omitted]",
+   "source": {
+    "claim_id": "c77_or_itl3B_primary_carer",
     "section": "7_7",
     "status": "computed"
    }
@@ -350877,7 +350902,10 @@
    "facts": [
     "c44_physicians_exit_entry_ratio",
     "c44_professional_nurses_exit_entry_ratio",
-    "c77_pct_primary_carer"
+    "c77_or_itl3B_primary_carer",
+    "lit_ltc_carers_quit",
+    "lit_ltc_family_carer_muni",
+    "lit_ltc_family_carer_rural"
    ],
    "headline": {
     "text": "ตัวชี้วัดดีขึ้นได้เพราะขีดความสามารถเพิ่ม เพราะเป้าหมายหรือขอบเขตเปลี่ยน หรือเพราะงานย้ายไปอยู่กับครอบครัวและผู้ทำงานกลุ่มอื่น"
@@ -350897,8 +350925,8 @@
       "lead": "งานที่ระบบไม่รับไม่ได้หายไป",
       "points": [
        {
-        "title": "ผู้ทำงานสุขภาพก็อยู่ในครัวเรือนที่รับงานดูแล",
-        "text": "ผู้ตอบสำรวจร้อยละ 43 เป็นผู้ดูแลหลักของผู้สูงอายุหรือผู้ป่วยในครอบครัว"
+        "title": "งานดูแลผู้สูงอายุที่บ้านตกอยู่กับครอบครัว",
+        "text": "ผู้ดูแลหลักของผู้สูงอายุที่มีภาวะพึ่งพิงเป็นคนในครอบครัวร้อยละ 92–94 และคนในครอบครัว 34,310 คนลาออกจากงานมาดูแล (การสำรวจผู้สูงอายุของสำนักงานสถิติแห่งชาติ ในรายงานการดูแลระยะยาวในชุมชน) ส่วนผู้ทำงานสุขภาพที่เป็นผู้ดูแลหลักในครอบครัว คิดออกไม่ต่างจากผู้อื่นชัดเจน (OR 0.90)"
        },
        {
         "title": "แรงกดดันต่อพยาบาล",
@@ -350925,8 +350953,8 @@
      "lead": "งานที่ระบบไม่รับไม่ได้หายไป",
      "points": [
       {
-       "title": "ผู้ทำงานสุขภาพก็อยู่ในครัวเรือนที่รับงานดูแล",
-       "text": "ผู้ตอบสำรวจร้อยละ 43 เป็นผู้ดูแลหลักของผู้สูงอายุหรือผู้ป่วยในครอบครัว"
+       "title": "งานดูแลผู้สูงอายุที่บ้านตกอยู่กับครอบครัว",
+       "text": "ผู้ดูแลหลักของผู้สูงอายุที่มีภาวะพึ่งพิงเป็นคนในครอบครัวร้อยละ 92–94 และคนในครอบครัว 34,310 คนลาออกจากงานมาดูแล (การสำรวจผู้สูงอายุของสำนักงานสถิติแห่งชาติ ในรายงานการดูแลระยะยาวในชุมชน) ส่วนผู้ทำงานสุขภาพที่เป็นผู้ดูแลหลักในครอบครัว คิดออกไม่ต่างจากผู้อื่นชัดเจน (OR 0.90)"
       },
       {
        "title": "แรงกดดันต่อพยาบาล",
@@ -350968,10 +350996,10 @@
     "c5f_F0_cap_target",
     "c5f_PR_F1_bq_P",
     "c5f_PR_bq_P",
+    "c77_or_itl3B_primary_carer",
     "c77_or_itl3B_remote",
-    "c77_pct_primary_carer",
-    "c77_units_P",
-    "c77_units_P_local"
+    "lit_hsiu_pcu_total",
+    "lit_hsiu_pcu_transferred"
    ],
    "headline": {
     "text": "ข้อจำกัดที่ผูกผลมากที่สุดอยู่ที่ตำแหน่ง ผู้จ้าง ที่ตั้งการฝึก ตลาด และงานดูแล ซึ่งสูตรจัดสรรรายปีแตะไม่ถึง"
@@ -350992,13 +351020,6 @@
      "kind": "table",
      "caption_th": "การกระจุกตัวของแพทย์เฉพาะทาง (16 สาขา ไม่รวมแพทย์ทั่วไป) ระหว่างสถานพยาบาล: Gini, สัดส่วนของ 10% สถานพยาบาลที่มีมากที่สุด และสัดส่วนตามระดับสถานพยาบาล",
      "section": "4_6",
-     "report_number": null
-    },
-    {
-     "asset_id": "T77_PCU_TRANSFER",
-     "kind": "table",
-     "caption_th": "รพ.สต. ที่ถ่ายโอนไป อปท. เทียบ รพ.สต. สังกัด สป.สธ. (ไม่รวมหน่วยที่ระบุสังกัดไม่ได้)",
-     "section": "7_7",
      "report_number": null
     }
    ],
@@ -351029,11 +351050,11 @@
         "การกระจุกตัวของทักษะเฉพาะทาง"
        ],
        [
-        "หน่วยในพื้นที่ทุรกันดาร ออดส์ของความตั้งใจออก 2.35 เท่า; รพ.สต. ในตัวอย่าง 39 จาก 76 แห่งถ่ายโอนไปท้องถิ่นแล้ว",
+        "หน่วยในพื้นที่ทุรกันดาร ออดส์ของความตั้งใจออก 2.35 เท่า; รพ.สต. ทั่วประเทศถ่ายโอนให้ อบจ. แล้ว 5,176 จาก 9,878 แห่ง (ข้อมูล HSIU สวรส.)",
         "ระบบการจ้างและนายจ้างหลายราย"
        ],
        [
-        "ผู้ตอบร้อยละ 43 เป็นผู้ดูแลหลักในครอบครัว",
+        "ผู้ทำงานที่เป็นผู้ดูแลหลักในครอบครัว คิดออกไม่ต่างจากผู้อื่นชัดเจน (OR 0.90)",
         "งานดูแลในครัวเรือน"
        ]
       ]
@@ -351064,11 +351085,11 @@
        "การกระจุกตัวของทักษะเฉพาะทาง"
       ],
       [
-       "หน่วยในพื้นที่ทุรกันดาร ออดส์ของความตั้งใจออก 2.35 เท่า; รพ.สต. ในตัวอย่าง 39 จาก 76 แห่งถ่ายโอนไปท้องถิ่นแล้ว",
+       "หน่วยในพื้นที่ทุรกันดาร ออดส์ของความตั้งใจออก 2.35 เท่า; รพ.สต. ทั่วประเทศถ่ายโอนให้ อบจ. แล้ว 5,176 จาก 9,878 แห่ง (ข้อมูล HSIU สวรส.)",
        "ระบบการจ้างและนายจ้างหลายราย"
       ],
       [
-       "ผู้ตอบร้อยละ 43 เป็นผู้ดูแลหลักในครอบครัว",
+       "ผู้ทำงานที่เป็นผู้ดูแลหลักในครอบครัว คิดออกไม่ต่างจากผู้อื่นชัดเจน (OR 0.90)",
        "งานดูแลในครัวเรือน"
       ]
      ]
@@ -351495,9 +351516,10 @@
    "denominator": "—",
    "report_section": "11.6",
    "facts": [
-    "c77_pct_primary_carer",
-    "c77_units_P",
-    "c77_units_P_local"
+    "lit_hsiu_pcu_total",
+    "lit_hsiu_pcu_transferred",
+    "lit_ltc_family_carer_muni",
+    "lit_ltc_family_carer_rural"
    ],
    "headline": {
     "text": "แต่ละแผนเริ่มจากข้อจำกัดที่ผลการศึกษาชี้ แล้วถามว่าทางเลือกใดจะเปลี่ยนข้อจำกัดนั้น"
