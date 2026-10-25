@@ -770,6 +770,30 @@
    "source": "outputs/chapter7_7/claims.csv"
   },
   {
+   "token": "c77_exit_abroad_itl3",
+   "display": "5",
+   "unit": "%",
+   "source": "outputs/chapter7_7/claims.csv"
+  },
+  {
+   "token": "c77_exit_private_hospital",
+   "display": "10",
+   "unit": "%",
+   "source": "outputs/chapter7_7/claims.csv"
+  },
+  {
+   "token": "c77_exit_private_hospital_itl3",
+   "display": "20",
+   "unit": "%",
+   "source": "outputs/chapter7_7/claims.csv"
+  },
+  {
+   "token": "c77_exit_retire_itl3",
+   "display": "46",
+   "unit": "%",
+   "source": "outputs/chapter7_7/claims.csv"
+  },
+  {
    "token": "c77_itl_3y_all",
    "display": "16",
    "unit": "%",

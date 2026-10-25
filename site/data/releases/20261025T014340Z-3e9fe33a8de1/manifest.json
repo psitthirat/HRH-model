@@ -1,7 +1,7 @@
 {
- "release_id": "20261024T075614Z-518bfb6e458d",
+ "release_id": "20261025T014340Z-3e9fe33a8de1",
  "schema_version": "1.0.0",
- "generated_at": "2026-10-24T07:56:14+00:00",
+ "generated_at": "2026-10-25T01:43:40+00:00",
  "data_as_of": "2026-10-22T16:59:50Z",
  "status": "promoted",
  "freshness": {
@@ -29,7 +29,7 @@
  },
  "files": {
   "bundle.json": {
-   "sha256": "3d16375e74687256f4b00fb5bcc4c213c6628e0348a6a8beb9292443fc1abdfe",
+   "sha256": "adc6de3be70fa7cf4f34f5965652d04357ff9a20f8dfc6ba541d57ae62ec73c2",
    "bytes": 5662940
   },
   "geo.json": {
@@ -41,8 +41,8 @@
    "bytes": 889776
   },
   "lab/lab.json": {
-   "sha256": "b7b397156995f711311c687ee991a349dc3db6ae8d51fa74336c030c836c7009",
-   "bytes": 327599
+   "sha256": "49b8be25cd88e515ef18ba0dad1a424c97a1e63dff1d080ba635f2d5958c08de",
+   "bytes": 327617
   },
   "lab/engine/chapter4/__init__.py": {
    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -157,95 +157,95 @@
    "bytes": 47172
   },
   "lab/inputs.json": {
-   "sha256": "aa2d4c6a13a228a4bb7fa4037766fa765df543cb40a9ecbf6fce5e46e88a707d",
-   "bytes": 8188997
+   "sha256": "a27840a5b4a0458ed3920b0b51eca27a12a7efd5dcbbd1bc6f4138384737bd52",
+   "bytes": 8189015
   },
   "lab/presets/NFB0p5-R.json": {
-   "sha256": "9af0ce173d62b927f011b2c6d673dccda4e165ff262d683886f0370100d1be64",
+   "sha256": "f26c62f6af0e031641767dceedf9d8d696c073786f7f181e52e4a967f8e01a23",
    "bytes": 9134790
   },
   "lab/presets/NFB1-R.json": {
-   "sha256": "5314c976302d63d495c2a3929bd311578f98d7d95aa88ab347283d4631eb56b3",
+   "sha256": "8c28dfc4d50c98687e500a434755e2abe4165354212f8e9cb23eba7b6bc37429",
    "bytes": 9121122
   },
   "lab/presets/P-R.json": {
-   "sha256": "2299caaad3c647052691ecfe1787791916f29a5d2bd349d68a89ac3b259292db",
+   "sha256": "4145ca64795fc1ff27a9d8d1def150f90eb70a69d25ee2a39ee8ae069dad645e",
    "bytes": 9074490
   },
   "lab/presets/S-R.json": {
-   "sha256": "b0e3bc07341c97ec1993597949d656e793bdeca10e0b307f90bc465dc488393e",
+   "sha256": "2d74192b5e5f01bff5f68e7d18611f73cdb6f003f092f135d28ed46e984d3be0",
    "bytes": 9099371
   },
   "lab/presets/N-R.json": {
-   "sha256": "a6cbfab4c40f65db4887d901f3d9765f6f5d904cf906ba72ffed9727eb6b4731",
+   "sha256": "b9ce2e5f9a8149901321b0d958f1581d74812d8c0ffa0d9f23125d51e546398d",
    "bytes": 9094503
   },
   "lab/presets/P-R_g10.json": {
-   "sha256": "5bd51f847bd02606bf59adc497fd879c5db2bec0f799e2478f2cc3649986cf7f",
+   "sha256": "9ea1e771bd757b06164ecc4727d797597280d2b22a3a71c0f691e358d9208567",
    "bytes": 9123403
   },
   "lab/presets/P-R_F0.json": {
-   "sha256": "b7767d75873aaf77874171f678b6e9b640bc3b737a218722dcc77317d5dd3c9b",
+   "sha256": "c76fb88f8e11a156e69c15a80cbe830e826acbbe353ebee2b061538266ebb829",
    "bytes": 9092561
   },
   "lab/presets/P-R_F1.json": {
-   "sha256": "edba2f987b1d3411d406384e818f60a18fb4564f0c25d11424e70eba7d17e9f6",
+   "sha256": "34c803027ea9cc97002b4899ec0d20c61293bca772c398c1b095256e89712eb4",
    "bytes": 9109263
   },
   "lab/presets/P-R_need.json": {
-   "sha256": "4602297cdd0846cdb10f3aecf7460d41acb429f90884654f70b3c05c447829d4",
+   "sha256": "ce70a0974c99fd6e4f7c3840531ffa8895b944efd3e587edb236f97d1cb36ac7",
    "bytes": 9129248
   },
   "lab/presets/P-R_GDh5.json": {
-   "sha256": "41ffd516efeefa4ad64b1d0cb9d652de4febc87889d3372edbcdd91ee296447c",
+   "sha256": "7c1bc91f87fbf6302c68422e3c60279f59f899fee10ea3513ea27e0d4edac1a2",
    "bytes": 9133208
   },
   "lab/presets/P-R_GDc5.json": {
-   "sha256": "19a085fb7675ce955e0431ea399792fc66036dc879bec90de490d053bedcf466",
+   "sha256": "30457276867f3b192e48a654cf4f4aeefac48771c36b181693c0dcf550f849ac",
    "bytes": 9132083
   },
   "lab/presets/SQ-C.json": {
-   "sha256": "576f07167004f3d2351dad4a52c4699e0d8469c78d2c8e07c66a1796ca926af0",
+   "sha256": "5ef00de5c42f7ad3c3545170ba423f2d4478c0bf75191a352431e9716fbced83",
    "bytes": 9106177
   },
   "lab/presets/B-R.json": {
-   "sha256": "faa509069483a84944f71f10b5ef3c292ff05da8b3c21f248e2f5c7c92376f36",
+   "sha256": "92cc59fe23d60d3c771966b3e81f7413c9e0cae58ad7218ae73d7a6b36dec406",
    "bytes": 9094629
   },
   "lab/presets/P-R_resp_all.json": {
-   "sha256": "1f17b818dc0e19ba05a07937ddfaaab40c0d9554d57d3cdac0d5b2ab8a151dbc",
+   "sha256": "972106dc4e63fc723f3f20153d4b7c134c6b7007d5033e8aa073e35e9d6f5299",
    "bytes": 9132515
   },
   "lab/presets/P-R_pool1500.json": {
-   "sha256": "c5c5d56f013a5b33927645e46ff259767e32417fb354c1d56071e0ee7e9ac75f",
+   "sha256": "5efad34073162f2065556b42c0ba75e94e7b0e1d523becd39008eacda2d3c437",
    "bytes": 9148594
   },
   "lab/presets/P-R_pool2150.json": {
-   "sha256": "6c77e447107772ff8f96d4a22e75d0b04bb5ff9cf42aa3fc79797da729485c42",
+   "sha256": "e31153bdd22b16e037c1f8a1a792c304d2bf024e0e71c3b8466dbf8fafb25cc4",
    "bytes": 9137882
   },
   "lab/presets/P-R_noframe.json": {
-   "sha256": "a2ae8bd3e30d3ce8b81c43303e7a2445ac11371de485fee802a381de7e55ed91",
+   "sha256": "6ff2d63a9c71c588558163cd223104aa71084722b0ec079a5263a136eec2d4db",
    "bytes": 8741784
   },
   "lab/presets/P-RT.json": {
-   "sha256": "07ce296c5523c297d9635ebdc926dc297073bbda1aa2b25818ff659df10b0201",
+   "sha256": "501d5c63e70738851c697893ab6220a4ef0ab2435f045b4dd8e5a1c7d57547f8",
    "bytes": 9421841
   },
   "lab/presets/S-RT.json": {
-   "sha256": "b839b13a9b3c16d01e525d2e5151ebc9ad2421ebd6a6b3ed427a623b97f9ecac",
+   "sha256": "4ea70c8f5091a6fb1037ce6f07f06611232d17d399f4e772437fce814674f423",
    "bytes": 9401093
   },
   "lab/presets/N-RT.json": {
-   "sha256": "5ec4b8113579be61601ac89a5f35a084107e98730cadfea3ed910dc30884ebac",
+   "sha256": "fc0340e4891e605bd332f1c5f3772d2d30ee20bb85322d9b3086b57a4f36351f",
    "bytes": 9430553
   },
   "lab/presets/B-RT.json": {
-   "sha256": "87456ac0e4284d9721111f3a88c15913a1d9ce0cff9aaf033adfb36de32f095b",
+   "sha256": "6f5f26b64fc574807a6c161ac8eef737967ed9d67bbee1fdab694c91653b154d",
    "bytes": 9401539
   },
   "lab/presets/P-RT_noframe.json": {
-   "sha256": "4528d94d59c005897fb241ad21e36aec1ffa056815a44c1ab68de32b3dc1c4c4",
+   "sha256": "93ad95ea5c703e54dc4d6e3191f1fabf6aa9ca0de273fd19bbc3bd18a0476db9",
    "bytes": 8772534
   }
  }
