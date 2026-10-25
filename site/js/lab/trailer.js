@@ -45,6 +45,13 @@ export function maybeShowTrailer(lang = 'th') {
   queueMicrotask(() => openTrailer(lang));
 }
 
+// The Thai user guide (PDF built from the Lab manual source in the HRH project folder); opens in a new tab.
+export const MANUAL = 'downloads/workforce-lab-manual-th.pdf';
+export function manualLink(lang = 'th', cls = 'btn btn--ghost lab-hub__manual') {
+  return h('a', { class: cls, href: MANUAL, target: '_blank', rel: 'noopener', 'data-lab-manual': '' },
+    L(lang, '📘 คู่มือการใช้ Lab (PDF)', '📘 User guide (PDF, Thai)'));
+}
+
 export function trailerButton(lang = 'th') {
   return h('button', { type: 'button', class: 'btn btn--ghost lab-hub__trailer', onclick: () => openTrailer(lang) },
     L(lang, '▶ ดูคลิปแนะนำ (5:42)', '▶ Watch the introduction (5:42)'));

@@ -171,7 +171,10 @@
 }
 
 /* Lab trailer (story/js/lab/trailer.js): first-visit dialog and the replay button */
-.lab-hub__trailer { margin: 4px 0 10px; }
+.lab-hub__help { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 4px 0 10px; }
+.lab-hub__trailer { margin: 0; }
+.lab-hub__manual { text-decoration: none; }
+.lab-rooms__manual { margin-left: auto; text-decoration: none; color: var(--accent); }
 .lab-trailer { width: min(1100px, calc(100vw - 32px)); max-height: calc(100vh - 32px); padding: 16px; border: 1px solid var(--border, rgba(255,255,255,.15));
   border-radius: 14px; background: var(--surface, #0b0d20); color: var(--text-primary, #f6f6fb); }
 .lab-trailer::backdrop { background: rgba(3, 4, 15, 0.78); }

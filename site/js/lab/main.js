@@ -15,6 +15,7 @@ import { policyOptions, policyCatalogueVersion } from './policy-data.js';
 // Lab system (design doc docs/workforce_lab_system_design_th.md): home, rooms, accounts, regional scope, submissions.
 import { getAccount, accountChip, requireSignIn, isActive, isReviewer, requiredFor, openAuthDialog } from './account.js';
 import { renderHub } from './hub.js';
+import { manualLink } from './trailer.js';
 import { renderMyData, summaryOf } from './mydata.js';
 import { renderWorkspaceRoom } from './workspace-room.js';
 import { renderReview } from './review.js';
@@ -614,6 +615,7 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
     const nav=h('nav',{class:'lab-rooms','aria-label':lang==='en'?'Lab rooms':'ห้องใน Lab'});
     for(const [id,th,en] of rooms)nav.append(h('button',{type:'button',class:'btn lab-rooms__item','data-room-nav':id,...(id==='modules'?{'data-action':'service-modules'}:{}),
       'aria-current':current===id?'page':null,text:lang==='en'?en:th,onclick:()=>{if(busy||(current==='explore'&&labMode==='explore'&&!validateForm()))return;openRoom(id);}}));
+    nav.append(manualLink(lang,'btn lab-rooms__item lab-rooms__manual'));
     return nav;
   }
   function roomLead(){
