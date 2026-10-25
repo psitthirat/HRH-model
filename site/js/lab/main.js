@@ -39,6 +39,22 @@ async function json(url,hash) {
   if(hash){const actual=[...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))].map(v=>v.toString(16).padStart(2,'0')).join('');if(actual!==hash)throw new Error('Lab asset checksum mismatch; reload the complete release.');}
   return JSON.parse(new TextDecoder().decode(bytes));
 }
+// Plain-language names for the Chapter 5 plans offered under "load a presentation plan" (their labels are codes).
+const PRESET_TH={'P-R':'แผนหลัก: จัดสรรตามประชากร','S-R':'จัดสรรตามบริการที่เกิดขึ้น','N-R':'จัดสรรตามบริการมาตรฐาน (M5)','B-R':'จัดสรรตามภาระโรค (DALY)',
+  'SQ-C':'คงสัดส่วนรับใหม่เดิม','NFB0.5-R':'ปรับตามทรัพยากรปีก่อน ครึ่งหนึ่ง','NFB1-R':'ปรับตามทรัพยากรปีก่อน เต็มที่',
+  'P-RT':'แผนหลัก และเปิดให้โอนย้าย','S-RT':'ตามบริการ และเปิดให้โอนย้าย','N-RT':'ตามบริการมาตรฐาน และเปิดให้โอนย้าย','B-RT':'ตามภาระโรค และเปิดให้โอนย้าย',
+  'P-R|g10':'เพิ่มตำแหน่งร้อยละ 10 ต่อรอบ','P-R|F0':'กรอบตำแหน่งคงที่','P-R|F1':'เพิ่มตำแหน่งตามสัดส่วนเดิม','P-R|need':'ไม่จำกัดงบตำแหน่ง',
+  'P-R|GDh5':'ลดข้าราชการ เพิ่มลูกจ้างที่โรงพยาบาลจ้าง','P-R|GDc5':'ลดข้าราชการ เพิ่มลูกจ้างจากงบส่วนกลาง','P-R|resp_all':'เป้าหมายคิดจากประชากรทั้งหมด',
+  'P-R|pool1500':'แพทย์ใหม่ 1,500 คนต่อปี','P-R|pool2150':'แพทย์ใหม่ 2,150 คนต่อปี','P-R|noframe':'ไม่มีกรอบตำแหน่ง (เพดานผู้มาใหม่)','P-RT|noframe':'ไม่มีกรอบตำแหน่ง และเปิดให้โอนย้าย'};
+// Thai for the hindcast consequences written by src/chapter5/hindcast.py (English in the release data).
+const CONSEQUENCE_TH={
+  'describe the engine as a forecaster':'ทำนายได้ดีกว่าวิธีง่าย ใช้คาดการณ์ระยะสั้นได้',
+  'describe the engine as a scenario engine; forecast with the better baseline':'ใช้เป็นแบบจำลองฉากทัศน์ ถ้าต้องการพยากรณ์ให้ใช้วิธีง่ายที่แม่นกว่า',
+  'intervals usable as predictive':'ใช้ช่วงคาดการณ์เป็นช่วงพยากรณ์ได้',
+  'intervals mis-calibrated; present as scenario ranges only':'ช่วงคาดการณ์ยังไม่ตรง ใช้เป็นช่วงของฉากทัศน์เท่านั้น ไม่ใช่ช่วงความเชื่อมั่น',
+  'priority group predictable at this horizon':'คาดการณ์กลุ่มจังหวัดที่ขาดมากที่สุดล่วงหน้าได้',
+  'priority group not stable; re-identify it every year':'กลุ่มจังหวัดที่ขาดมากที่สุดยังเปลี่ยนบ่อย ควรทบทวนรายชื่อทุกปี',
+};
 export async function initLab(app,{isCurrent=()=>true}={}) {
   stylesheet('lab.css');stylesheet('lab-results.css');stylesheet('lab-policies.css');stylesheet('lab-fields.css');stylesheet('lab-modules.css');stylesheet('lab-system.css');
   const release=app.R;
@@ -85,7 +101,8 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
   }});
   if(app.state.labPreset && (!persisted || entryContext))await loadEntry(app.state.labPreset,false);
   selectedPolicyId=app.state.labView==='policies'?(app.state.labPolicy||'P07'):draft.origin?.policy_option_id||null;
-  setPolicyContext(policyOptions.find(p=>p.id===selectedPolicyId));
+  // A link that opens a policy applies its defaults once; a restored draft of the same policy keeps its own values.
+  {const linked=policyOptions.find(p=>p.id===selectedPolicyId);setPolicyContext(linked,!!linked&&draft.origin?.policy_option_id!==linked.id);}
   if(!isCurrent())return {destroy(){alive=false;client.dispose();}};
   render();app.persist();
 
@@ -152,7 +169,7 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
         app.state.labView!=='present'&&accountChip(account,{lang,onWorkspace:()=>openRoom('workspace'),onChange:()=>render()}),
         button(T('back'),app.returnFromLab))));
     if(app.state.labView!=='present')root.append(roomNav());
-    if(!['hub','workspace','connect','review'].includes(app.state.labView))root.append(h('div',{class:'lab-scope-row'},h('p',{class:'lab-scope',text:T('scope'),title:T('provisional')}),h('details',{class:'lab-scope-note'},h('summary',{text:lang==='en'?'Provisional MOPH / OPS scope':'ขอบเขตชั่วคราว: ใช้จำนวนแพทย์ สธ. เป็นตัวแทน สป.สธ.'}),h('p',{class:'lab-scope--detail',text:T('provisional')}))));
+    if(!['hub','workspace','connect','review'].includes(app.state.labView))root.append(h('div',{class:'lab-scope-row'},h('p',{class:'lab-scope',text:T('scope'),title:T('provisional')}),h('details',{class:'lab-scope-note'},h('summary',{text:lang==='en'?'Provisional MOPH / OPS scope':'ขอบเขตชั่วคราว: ใช้แพทย์สังกัดกระทรวงสาธารณสุข (สธ.) แทนแพทย์สำนักงานปลัดกระทรวง (สป.สธ.)'}),h('p',{class:'lab-scope--detail',text:T('provisional')}))));
     const origin=draft.origin?.source_scene_id;if(origin)root.append(h('p',{class:'lab-origin',text:`${T('source')} ${origin} · ${release.scene(origin)?.title || ''}`}));
     const update=h('div',{class:'lab-release-update',hidden:true});root.append(update);
     checkNewRelease(update);
@@ -193,13 +210,13 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
     }
     form=h('form',{class:'lab-form lab-control-board',onsubmit:e=>{e.preventDefault();runDraft();}});root.append(form);
     const picker=h('div',{class:'lab-policy-picker-host'});form.append(picker);
-    policyController=renderPolicyLibrary(picker,{lang,selectedId:selectedPolicyId,onSelect:selectPolicy});
+    policyController=renderPolicyLibrary(picker,{lang,selectedId:selectedPolicyId,onSelect:selectPolicy,describe:policySettings});
     const metadata=h('div',{class:'lab-scenario-meta'});
     metadata.append(h('label',{},h('span',{text:T('name')}),h('input',{type:'text',value:draft.name||draft.title||'',maxLength:120,oninput:e=>{draft.name=e.target.value;saveSoon();}})));
     const select=h('select',{'aria-label':T('preset'),onchange:e=>{
       if(!validateForm()){e.target.value='';return;}if(e.target.value)loadEntry(e.target.value).catch(showError);
     }},h('option',{value:'',text:T('preset')}));
-    for(const p of presets)select.append(h('option',{value:p.id,text:localized(p,'label',lang)||p.id}));
+    for(const p of presets)select.append(h('option',{value:p.id,text:presetText(p)}));
     metadata.append(h('label',{},h('span',{text:T('preset')}),select));
     form.append(controlPanel());
     const reading=h('div',{class:'lab-control-reading'});
@@ -288,15 +305,37 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
       different:lang==='en'?`Not reproduced: a solver-stage objective differs from the published value by ${pct(r.maxObjective)}, more than the accepted gap ${pct(r.gap)}. Download the diagnostics and report it.`:`ทำซ้ำไม่ได้: ค่าเป้าหมายของ solver ต่างจากที่เผยแพร่ ${pct(r.maxObjective)} มากกว่าช่องว่างที่ยอมรับ ${pct(r.gap)} กรุณาดาวน์โหลดข้อมูลวินิจฉัยและแจ้งผู้วิจัย`}[r.match];
     check.textContent=`${verdict} ${counts}`;
   }
+  function presetText(p){const code=p.id,name=lang==='en'?'':PRESET_TH[code];return name?`${code} · ${name}`:(localized(p,'label',lang)||code);}
+  // "label: value" lines for the values a policy sets, in the participant's language.
+  function policySettings(policy){
+    return Object.entries(policy?.defaults||{}).filter(([id])=>!/start_year|lag_years|ramp_years/.test(id)||policy.defaults[id]!==(defaultConfig.parameters?.[id]??entryById.get(id)?.default))
+      .map(([id,value])=>{const p=entryById.get(id);return p?`${localized(p,'label',lang)}: ${displayValue(p,value,lang)}`:`${id}: ${value}`;});
+  }
+  // A result needs a name people can tell apart. Without one, name it after what changed from the study baseline.
+  function autoName(config){
+    const base=defaultConfig.parameters||{},params=config.parameters||{};
+    const changed=Object.keys({...base,...params}).filter(k=>!same(params[k]??base[k],base[k])).filter(k=>entryById.has(k));
+    if(!changed.length)return lang==='en'?'Study baseline (report values)':'แผนหลัก (ค่าตามรายงาน)';
+    const parts=changed.slice(0,2).map(k=>{const p=entryById.get(k);return `${localized(p,'label',lang)} ${displayValue(p,params[k],lang)}`;});
+    const more=changed.length>2?(lang==='en'?` and ${changed.length-2} more`:` และอีก ${changed.length-2} ค่า`):'';
+    return (lang==='en'?'Changed: ':'เปลี่ยน ')+parts.join(lang==='en'?'; ':' และ ')+more;
+  }
   function syncPolicyContext(){
     selectedPolicyId=draft.origin?.policy_option_id||null;
     controlTab=selectedPolicyId?'policy':'overview';
     app.state.labPolicy=selectedPolicyId;if(!ROOMS.includes(app.state.labView))app.state.labView=selectedPolicyId?'policies':null;app.persist();
   }
-  function setPolicyContext(policy){
-    // Choosing a policy records context only; there is no evidence-to-effect
-    // conversion, parameter default, mode change or implicit calculation.
+  function setPolicyContext(policy,apply=false){
+    // Catalogue v4 (Percy, 25 Oct 2026): choosing a policy starts from the study baseline and applies the
+    // policy's evidence-derived defaults (policy-data.js), named after the policy. Restoring a saved draft only
+    // records the context. Nothing is calculated until the participant presses Calculate.
     selectedPolicyId=policy?.id||null;
+    if(apply&&policy?.defaults){
+      const origin={...(draft.origin||{})};
+      draft=clone(defaultConfig);draft.origin=origin;
+      Object.assign(draft.parameters,clone(policy.defaults));
+      draft.name=`${policy.id} · ${localized(policy,'title',lang)}`;
+    }
     draft.origin={...(draft.origin||{})};
     delete draft.origin.policy_option_id;delete draft.origin.policy_catalog_version;
     if(policy?.route){draft.origin.policy_option_id=policy.id;draft.origin.policy_catalog_version=policyCatalogueVersion;}
@@ -306,7 +345,7 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
   }
   function selectPolicy(policy){
     if(busy||!validateForm()){policyController?.update?.({selectedId:selectedPolicyId});return;}
-    setPolicyContext(policy);app.persist();render();saveSoon();
+    setPolicyContext(policy,true);app.persist();render();saveSoon();
     form.querySelector('[data-policy-select]')?.focus({preventScroll:true});
   }
   function controlPanel(){
@@ -330,7 +369,8 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
         retention:['retention.resignation_reduction','retention.coverage','retention.start_year','retention.lag_years','retention.ramp_years'],
         supply:['supply.input_mode','supply.available_appointments','supply.national_graduates','supply.licensing','supply.participation','supply.managed_share'],
         training:['supply.input_mode','supply.student_intake','supply.completion','supply.licensing','supply.participation','supply.managed_share','supply.education_lag_years'],
-        mobility:byGroups(['mobility']).map(p=>p.id),reentry:['departures.reentry_multiplier','departures.rate_source']};
+        mobility:byGroups(['mobility']).map(p=>p.id),reentry:['departures.reentry_multiplier','departures.rate_source'],
+        frame:['frame.rule','frame.growth'],allocation:['allocation.family']};
       controls=byIds(routes[policy.route]||[]);
       content.append(h('p',{class:'lab-policy-assumption-note',text:lang==='en'
         ?'These are assumed model responses, not estimated policy effects. Editing leaves the last completed results unchanged until you calculate.'
@@ -381,7 +421,7 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
     const current=busy||['failed','infeasible','cancelled'].includes(status)?status:dirty()?'dirty':status==='ready'?'ready':status;
     feedback.dataset.status=current;clear(feedback).append(h('strong',{text:T(current)}));
     if(busy&&statusDetail)feedback.append(h('span',{text:stageLabel(statusDetail)}));
-    if(busy&&Object.keys(progressDetail).length)feedback.append(h('small',{text:Object.entries(progressDetail).filter(([k])=>/draw|year|completed|requested/.test(k)).map(([k,v])=>`${k}: ${v}`).join(' · ')}));
+    if(busy&&Object.keys(progressDetail).length){const t=progressText(progressDetail);if(t)feedback.append(h('small',{text:t}));}
     if(!busy&&statusDetail&&['failed','infeasible'].includes(status))feedback.append(h('p',{text:statusDetail}));
     if(!busy&&failedRun&&['failed','infeasible'].includes(status))feedback.append(button(lang==='en'?'Download configuration and diagnostics':'ดาวน์โหลดสมมติฐานและข้อจำกัด',()=>downloadJSON('diagnostics',failedRun)));
     const run=actions?.querySelector('[data-action="run"]'),cancel=actions?.querySelector('[data-action="cancel"]');
@@ -395,7 +435,16 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
     }
     root.querySelector('[data-action="pin"]')?.toggleAttribute('disabled',!isCompleted(selected));
   }
-  function stageLabel(stage){const labels={loading_runtime:['กำลังดาวน์โหลด Python','Downloading Python runtime'],loading_packages:['กำลังโหลดแพ็กเกจวิเคราะห์','Loading analysis packages'],loading_model:['กำลังตรวจไฟล์แบบจำลอง','Verifying model files'],validating:[T('validating'),T('validating')],preparing:['กำลังเตรียมข้อมูลและเป้าหมาย','Preparing inputs and targets'],solving:['กำลังจัดสรรตามข้อกำหนด','Solving the allocation problem'],evaluating:['กำลังคำนวณผลลัพธ์','Evaluating outcomes']};return labels[stage]?.[lang==='en'?1:0]||stage;}
+  // Solver progress in words, not raw keys ("years: 15" read as a bug to first-time users).
+  function progressText(d){
+    const en=lang==='en',out=[];
+    if(Number.isFinite(+d.years))out.push(en?`${d.years}-year plan`:`แผน ${d.years} ปี`);
+    if(Number.isFinite(+d.year))out.push(en?`year ${d.year}`:`ปี พ.ศ. ${+d.year+543}`);
+    const done=d.draw??d.completed_draws,total=d.requested_draws;
+    if(Number.isFinite(+done)&&Number.isFinite(+total))out.push(en?`${done} of ${total} simulations`:`จำลองแล้ว ${done} จาก ${total} ครั้ง`);
+    return out.join(' · ');
+  }
+  function stageLabel(stage){const labels={loading_runtime:['กำลังดาวน์โหลด Python','Downloading Python runtime'],loading_packages:['กำลังโหลดแพ็กเกจวิเคราะห์','Loading analysis packages'],loading_model:['กำลังตรวจไฟล์แบบจำลอง','Verifying model files'],validating:[T('validating'),T('validating')],preparing:['กำลังเตรียมข้อมูลและเป้าหมาย','Preparing inputs and targets'],solving:['กำลังจัดสรรตามข้อกำหนด','Solving the allocation problem'],evaluating:['กำลังคำนวณผลลัพธ์','Evaluating outcomes'],simulating_adaptive:['กำลังจำลองอนาคตหลายชุด','Simulating futures']};return labels[stage]?.[lang==='en'?1:0]||stage;}
   function showError(error){status='failed';statusDetail=String(error.message||error);showStatus();}
   function validateForm(extra){
     const invalid=[...(form?.isConnected?form.querySelectorAll('input,select,textarea'):[]),...(extra?.querySelectorAll('input,select,textarea')||[])].find(el=>!el.checkValidity());
@@ -406,7 +455,8 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
   async function execute(config){
     const regional=labMode==='explore'&&workspaceOps&&scopeIsRegional(labScope);
     if(regional){const blockers=regionalBlockers(config.parameters,lang);if(blockers.length)throw new Error((lang==='en'?'Not available for a regional plan: ':'วางแผนระดับเขตไม่ได้: ')+blockers.join('; '));}
-    const result=await client.run(clone(config),regional?{workspace:{scope:scopePayload(labScope)}}:{});
+    const named=clone(config);if(!String(named.name||'').trim())named.name=autoName(named);
+    const result=await client.run(named,regional?{workspace:{scope:scopePayload(labScope)}}:{});
     if(!alive)return null;
     status=/infeasible/.test(result.status)?'infeasible':isCompleted(result)?'completed':'failed';
     if(isCompleted(result)){selected=frozen(result);failedRun=null;comparisonAnalysis=null;}
@@ -425,8 +475,8 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
     resultController=renderLabResults(results,selected,options());
     const policy=policyOptions.find(p=>p.id===configOf(selected)?.origin?.policy_option_id);
     if(policy)results.prepend(h('p',{class:'lab-policy-result-context','data-result-policy':policy.id,text:lang==='en'
-      ?`${policy.id} · ${localized(policy,'title',lang)} — conditional on the participant's assumptions; policy effectiveness and efficiency are not established by this result.`
-      :`${policy.id} · ${localized(policy,'title',lang)} — ผลภายใต้สมมติฐานที่ผู้ทดลองกำหนด ยังไม่ยืนยันประสิทธิผลหรือประสิทธิภาพของนโยบาย`}));
+      ?`${policy.id} · ${localized(policy,'title',lang)} — defaults from ${{survey:'the project survey',cohort:'Thai studies',study:'the Chapter 5 scenarios'}[policy.readiness]||'the stated assumptions'} (see “Where the default comes from”); a conditional result, not an established policy effect.`
+      :`${policy.id} · ${localized(policy,'title',lang)} — ค่าตั้งต้นจาก${{survey:'ผลสำรวจของโครงการ',cohort:'งานวิจัยในไทย',study:'ฉากทัศน์ในรายงานบทที่ 5'}[policy.readiness]||'สมมติฐานที่กำหนด'} (ดู "ค่าตั้งต้นมาจากไหน") ผลภายใต้สมมติฐาน ยังไม่ยืนยันประสิทธิผลของนโยบาย`}));
   }
   function pinSelected(){if(!isCompleted(selected))return;if(pins.some(p=>p.run_id===selected.run_id))return;constrainComparisons();pins.push(selected);comparisonAnalysis=null;showPins();showResults();saveSoon();}
   function showPins(){if(!pinsBox)return;
@@ -455,6 +505,10 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
   function downloadJSON(name,data){download(`${name}.json`,JSON.stringify(data,null,2),'application/json');}
   async function exportRun(method){
     if(!isCompleted(selected))return;
+    // Pinned plans: run the common-criterion comparison first, so the workbook's comparison sheets are not empty.
+    if(['downloadPlan','downloadPackage','downloadResults'].includes(method)&&!options().comparisonAnalysis&&pins.some(p=>isCompleted(p)&&p.run_id!==selected.run_id)){
+      try{await compareSelected();}catch{}
+    }
     const run=selected,ctx=options();
     const btn=root.querySelector(`[data-export="${method}"]`);if(btn)btn.disabled=true;
     try{const exports=await import('./exports.js');await exports[method](run,ctx);}catch(error){showError(error);}finally{showStatus();}
@@ -478,7 +532,7 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
     details.append(h('p',{class:'lab-help',text:(en?'Held out: MOPH physicians by province after forecast origins 2020–2023, using only information available at each origin; targets up to 2025. ':'ข้อมูลที่ซ่อนไว้: ')+(en?'':v.held_out_th)}));
     const crit=h('table',{},h('thead',{},h('tr',{},...(en?['criterion','comparator','engine','benchmark','result','consequence']:['คำถาม','ตัวเทียบ','แบบจำลอง','เกณฑ์','ผล','ความหมาย']).map(k=>h('th',{text:k})))),
       h('tbody',{},...v.criteria.map(c=>h('tr',{'data-passed':String(c.passed)},h('td',{text:en?c.criterion:c.question_th}),h('td',{text:en?c.benchmark:c.comparator_th}),
-        h('td',{text:num(c.value)}),h('td',{text:c.benchmark}),h('td',{text:c.passed?(en?'passed':'ผ่าน'):(en?'not passed':'ไม่ผ่าน')}),h('td',{text:c.consequence})))));
+        h('td',{text:num(c.value)}),h('td',{text:c.benchmark}),h('td',{text:c.passed?(en?'passed':'ผ่าน'):(en?'not passed':'ไม่ผ่าน')}),h('td',{text:en?c.consequence:(CONSEQUENCE_TH[c.consequence]||c.consequence)})))));
     const names={persistence:en?'persistence':'คงจำนวนเดิม',trend:en?'trend':'แนวโน้ม',population_only:en?'population only':'ตามประชากร',
       stock_flow_unconditional:en?'stock-flow engine':'แบบจำลองเข้า-ออก',stock_flow_conditional:en?'stock-flow, actual recruitment (not a forecast)':'แบบจำลองเข้า-ออก ใช้การรับเข้าจริง (ไม่ใช่การพยากรณ์)'};
     const mod=h('table',{},h('thead',{},h('tr',{},...(en?['model (horizon 3 years)','MAE (persons)','national error %','lowest-19 Jaccard','90% interval coverage']:['แบบจำลอง (ล่วงหน้า 3 ปี)','MAE (คน)','คลาดรวมประเทศ %','Jaccard 19 จังหวัด','ช่วง 90% ครอบค่าจริง']).map(k=>h('th',{text:k})))),

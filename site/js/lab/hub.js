@@ -35,12 +35,15 @@ const STEPS = {
     en: ['Agency and team agree datasets, frequency and publication rights', 'The agency sends files or calls the API under the data contract', 'Automatic checks and comparison with the previous version', 'Draft re-run of the plans (only parts that need no re-estimation)', 'Team review, then publication as a new data version with its date'] },
 };
 const WORKBOOK = [
+  ['อ่านก่อน', 'แท็บแรกของไฟล์: สรุปผลเป็นภาษาไทย แท็บที่ควรอ่านก่อน คำตอบที่ใช้บ่อย และรายชื่อทุกแท็บในไฟล์ (ชี้เมาส์ที่หัวคอลัมน์เพื่อดูชื่อไทย)', 'The first sheet: a Thai summary, which sheets to read first, common answers and a list of every sheet (hover over a column header for its Thai name)'],
   ['Annual_Plan', 'แผนรายจังหวัด–ปี: แพทย์ใหม่ที่รับ ออก กลับเข้า โอน แพทย์ปลายปี เป้าหมาย และเหตุผลของการจัดสรร', 'Province-year plan: appointments, exits, re-entries, transfers, closing stock, target and the reason for each allocation'],
   ['Province_Outcomes', 'ผลรายจังหวัด: อัตราส่วนต่อเป้าหมาย ปีที่ถึงเป้าหมาย สำหรับจัดลำดับความสำคัญ', 'Province outcomes: attainment and the year targets are reached, for prioritising'],
   ['National_Balance', 'ดุลระดับประเทศรายปี: ผู้เข้า–ออก ตำแหน่ง และผู้ที่ไม่มีตำแหน่งรองรับ', 'National balance by year: inflows, outflows, positions and graduates without a vacancy'],
   ['Comparison', 'ความต่างจากแผนหลักที่เผยแพร่ รายจังหวัด–ปี', 'Differences from the published principal plan by province and year'],
   ['Region_Summary', 'เมื่อวางแผนระดับเขต: แผนประเทศเทียบกับแผนเขต รายจังหวัดในเขต', 'Regional plans: national plan versus the regional re-plan for each province'],
   ['Data_Profile', 'เมื่อใช้ข้อมูลของคุณ: ชุดข้อมูลที่แทน จังหวัดที่เปลี่ยน และ checksum', 'With your data: the datasets replaced, provinces changed and checksums'],
+  ['Cumulative_Allocations', 'สรุป 15 ปีรายจังหวัด: แพทย์ใหม่สะสม ออก แพทย์ปลายแผน และอัตราส่วนต่อเป้าหมาย', 'Fifteen-year summary by province: cumulative new physicians, departures, closing stock and attainment'],
+  ['Definitions', 'พจนานุกรมของรหัสคอลัมน์: ชื่อไทย ชื่ออังกฤษ และหน่วย', 'Dictionary of column codes: Thai and English names and units'],
   ['Inputs · Readme', 'สมมติฐานทุกค่าที่ใช้จริง รุ่นตัวคำนวณ และวิธีอ่าน', 'Every assumption used, engine versions and how to read the file'],
 ];
 

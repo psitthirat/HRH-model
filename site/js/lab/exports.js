@@ -53,6 +53,72 @@ function profileSheets(run){
   }
   return out;
 }
+// ---------------------------------------------------------------- reading aids (v4.0, Lab manual feedback)
+// Thai names for columns that the metric registry does not define; header cells carry them as notes.
+const EXTRA_TH={year_be:'ปี พ.ศ.',province_en:'จังหวัด (อังกฤษ)',health_region:'เขตสุขภาพ',population_civil:'ประชากรทะเบียนราษฎร์',population_entitlement:'ประชากรทะเบียนสิทธิ',
+  expected_resignations:'ลาออกคาดหมาย',expected_retirements:'เกษียณคาดหมาย',expected_other_departures:'ออกด้วยเหตุอื่นคาดหมาย',transfers_in:'รับโอนเข้า',
+  national_attainment_own:'อัตราส่วนแพทย์ต่อเป้าหมายของแผน ทั้งระบบ (1 = ถึงเป้า)',plan_status:'สถานะของแผน',
+  unplaced_national:'แพทย์ใหม่ที่ยังไม่จัดสรรทั้งประเทศ (ค่าระดับประเทศซ้ำทุกแถว ห้ามรวมข้ามจังหวัด)',appointments:'แพทย์ใหม่สะสม',departures:'ออกสะสม',
+  attainment_population:'อัตราส่วนต่อเป้าหมายประชากร ปีสุดท้าย',last_year_ce:'ปีสุดท้าย (ค.ศ.)',period:'ช่วงเวลา',plan:'รหัสแผน',
+  provinces_meeting:'จำนวนจังหวัดที่ถึงเป้าหมาย',worst_attainment:'อัตราส่วนต่ำสุด',median_attainment:'อัตราส่วนมัธยฐาน',p10_attainment:'อัตราส่วนเปอร์เซ็นไทล์ที่ 10',
+  theil:'ดัชนี Theil',cumulative_shortfall:'ส่วนขาดสะสม',baseline_plan_id:'แผนอ้างอิง',eligible_existing_stock_expected:'แพทย์เดิมที่คาดว่ายังอยู่',
+  model_family:'เกณฑ์จัดสรร',min_appointments:'จำนวนรับใหม่ขั้นต่ำ',share_age_60plus:'สัดส่วนประชากรอายุ 60 ปีขึ้นไป',share_age_0_14:'สัดส่วนประชากรอายุ 0–14 ปี',
+  allocation_reason_th:'เหตุผลจากข้อจำกัด (ภาษาไทย)',label_th:'ชื่อไทย',label_en:'ชื่ออังกฤษ',unit:'หน่วย',evidence_status:'ประเภทของค่า',source:'ที่มา',item:'รายการ',value:'ค่า'};
+// Thai for the reasons written by the allocation engine (chapter5/allocation.py explanation()).
+const REASON_TH=[[/^positions frame binds/,'ตำแหน่งเต็ม ไม่มีตำแหน่งว่างที่มีงบสำหรับแพทย์ใหม่เพิ่ม'],[/^onboarding cap binds/,'ติดเพดานผู้มาใหม่หรือเพดานเพิ่มสุทธิ'],
+  [/^universal floor only/,'ได้เพียงจำนวนขั้นต่ำ เพราะจังหวัดอื่นขาดมากกว่า'],[/^no new appointment/,'ไม่ได้แพทย์ใหม่ เพราะจังหวัดอื่นขาดมากกว่า'],
+  [/^includes ([\d.]+) population-protected appointments/,'มีแพทย์ใหม่ $1 คนจากโควตาตามประชากร'],[/^remaining appointments follow/,'ส่วนที่เหลือจัดสรรตามเป้าหมายที่เลือก'],
+  [/^shortfall priority/,'จัดสรรตามลำดับความขาด (ได้มากกว่าขั้นต่ำเพื่อลดส่วนขาด)'],[/^donor of controlled transfers at the transfer cap/,'เป็นจังหวัดต้นทางของการโอนย้าย ถึงเพดานโอนออก'],
+  [/^donor of controlled transfers/,'เป็นจังหวัดต้นทางของการโอนย้าย'],[/^origin protection binds/,'ติดเกณฑ์คุ้มครองจังหวัดต้นทาง'],[/^receives controlled transfers/,'รับแพทย์โอนย้ายเข้า']];
+function reasonTh(text){return String(text).split('; ').map(part=>{for(const [re,th] of REASON_TH){const m=part.match(re);if(m)return th.replace('$1',m[1]??'');}return part;}).join('; ');}
+// Keep year_be next to year_ce and the Thai reason next to the English one.
+function orderColumns(header){const out=header.filter(k=>k!=='year_be'&&k!=='allocation_reason_th');
+  const at=(k,after)=>{if(!header.includes(k))return;const i=out.indexOf(after);i<0?out.push(k):out.splice(i+1,0,k);};
+  at('year_be','year_ce');at('allocation_reason_th','allocation_reason');return out;}
+function withThaiReason(rows){return rows.map(row=>row&&typeof row.allocation_reason==='string'?{...row,allocation_reason_th:reasonTh(row.allocation_reason)}:row);}
+const RATIO=/attainment|ratio|share|gini|theil|jaccard|probab|fraction|^D_|^scale_|j_short|p90_p10|percent/;
+const SHEET_TH={'Readme':'ข้อมูลของผลนี้ รุ่นข้อมูล และประโยคสรุป','Inputs':'สมมติฐานทุกค่าที่ใช้คำนวณจริง','Annual_Plan':'แผนรายจังหวัดรายปี (หนึ่งแถว = หนึ่งจังหวัดหนึ่งปี)',
+  'Transfers':'การโอนย้ายที่แผนเสนอ (ว่างถ้าไม่เปิดการโอนย้าย)','National_Balance':'ยอดรวมประเทศรายปี','National_Outcomes':'ตัวชี้วัดประเทศรายปี แยกตามเกณฑ์ประเมิน',
+  'Province_Outcomes':'ผลรายจังหวัดรายปี','Attainment_Years':'ปีแรกที่แต่ละจังหวัดถึงเป้าหมาย (ช่องว่าง = ยังไม่ถึง)','Comparison':'ความต่างจากแผนหลักที่เผยแพร่ รายจังหวัด–ปี',
+  'Destination_Changes':'จำนวนแพทย์ใหม่ที่เปลี่ยนจังหวัดปลายทางจากแผนหลัก','Constraints':'ข้อจำกัดและสถานะของตัวแก้ปัญหา','Figure_Data':'ตัวเลขเบื้องหลังทุกกราฟ',
+  'Definitions':'พจนานุกรมรหัสคอลัมน์','Methods':'นิยามตัวชี้วัด','Views':'นิยามมุมมองผล','Cumulative_Allocations':'สรุป 15 ปีรายจังหวัด','Service_Outcomes':'บริการที่ประมาณได้ภายใต้ทรัพยากรจริง',
+  'Pinned_Outcomes':'ตัวชี้วัดของทุกแผนที่เก็บไว้ ด้วยเป้าหมายเดียวกัน','Pinned_Differences':'ความต่างรายจังหวัดระหว่างแผนที่เก็บไว้','Pinned_Destinations':'จังหวัดปลายทางที่เปลี่ยนระหว่างแผน',
+  'Pinned_Priorities':'อันดับจังหวัดตามแพทย์ใหม่สะสมในแต่ละแผน','Pinned_Overlap':'กลุ่มจังหวัดที่ได้แพทย์ใหม่มากที่สุดซ้ำกันเพียงใด','Parameter_Differences':'แต่ละแผนเปลี่ยนค่าอะไร',
+  'Pinned_Plans':'แผนรายปีของทุกแผนที่เก็บไว้','Pinned_Inputs':'สมมติฐานของทุกแผนที่เก็บไว้','Experiment_Manifest':'รายการผลในไฟล์นี้','Context_Units':'หน่วยของข้อมูลบริบท','Long_Text':'ข้อความยาวที่ตัดออกจากแท็บอื่น'};
+function guideRows(run,options,tables,sheetNames){
+  const balance=tables.National_Balance||[],last=balance.at(-1)||{},years=yearsOf(run);
+  const unplaced=balance.reduce((a,r)=>a+(Number(r.unplaced_balance)||0),0),fmt=v=>Number.isFinite(v)?Math.round(v).toLocaleString('en-US'):'—';
+  const be=y=>Number(y)+543,first=years[0],end=years.at(-1);
+  return [
+    {หัวข้อ:'ชื่อผล',รายละเอียด:resultTitle(run,'th')},
+    {หัวข้อ:'สรุป',รายละเอียด:runSummary(run,'th')},
+    {หัวข้อ:'ไฟล์นี้คืออะไร',รายละเอียด:`แผนจัดสรรแพทย์ใหม่รายจังหวัดรายปี พ.ศ. ${be(first)}–${be(end)} จาก Workforce Lab เป็นผลภายใต้สมมติฐาน ไม่ใช่การพยากรณ์หรือคำสั่งจัดสรร`},
+    {หัวข้อ:'วิธีอ่าน',รายละเอียด:'หนึ่งแท็บคือหนึ่งตาราง หัวคอลัมน์เป็นรหัสภาษาอังกฤษ ชี้เมาส์ที่หัวคอลัมน์ (มุมสีแดง) เพื่อดูชื่อไทย หรือดูแท็บ Definitions ใช้ตัวกรองที่แถวแรกเพื่อเลือกจังหวัดหรือปี'},
+    {หัวข้อ:'',รายละเอียด:''},
+    {หัวข้อ:'อ่านห้าแท็บนี้ก่อน',รายละเอียด:''},
+    {หัวข้อ:'National_Balance',รายละเอียด:'ยอดรวมประเทศรายปี: แพทย์ต้นปี (opening_stock) แพทย์ใหม่ที่ลงจังหวัดได้ (new_appointments) ไม่มีตำแหน่งรองรับ (unplaced_balance) ออก (expected_departures) กลับเข้า (expected_reentries) และแพทย์ปลายปี (closing_stock)'},
+    {หัวข้อ:'Cumulative_Allocations',รายละเอียด:'สรุป 15 ปีรายจังหวัด: แพทย์ใหม่สะสม (appointments) ออกสะสม (departures) แพทย์ปลายแผน (closing_stock) และอัตราส่วนต่อเป้าหมาย'},
+    {หัวข้อ:'Annual_Plan',รายละเอียด:'แผนรายจังหวัดรายปี หนึ่งแถวคือหนึ่งจังหวัดหนึ่งปี เหตุผลของการจัดสรรภาษาไทยอยู่ในคอลัมน์ allocation_reason_th'},
+    {หัวข้อ:'Definitions',รายละเอียด:'ชื่อไทย ชื่ออังกฤษ และหน่วยของรหัสคอลัมน์'},
+    {หัวข้อ:'Inputs',รายละเอียด:'สมมติฐานทุกค่าที่ใช้คำนวณผลนี้ พร้อมชื่อไทย'},
+    {หัวข้อ:'',รายละเอียด:''},
+    {หัวข้อ:'คำตอบที่ใช้บ่อย',รายละเอียด:''},
+    {หัวข้อ:`แพทย์ปลายปี ${be(end)}`,รายละเอียด:`${fmt(Number(last.closing_stock))} คน (National_Balance คอลัมน์ closing_stock แถวปี ${be(end)})`},
+    {หัวข้อ:'แพทย์ใหม่ไม่มีตำแหน่งรองรับ',รายละเอียด:`รวม ${fmt(unplaced)} คนใน ${years.length} ปี (ผลรวมคอลัมน์ unplaced_balance ใน National_Balance)`},
+    {หัวข้อ:'จังหวัดหนึ่งได้แพทย์ใหม่กี่คน',รายละเอียด:'Cumulative_Allocations แถวของจังหวัดนั้น คอลัมน์ appointments'},
+    {หัวข้อ:'จังหวัดไหนถึงเป้าหมายปีไหน',รายละเอียด:'Attainment_Years เลือก criterion = P|common_total แล้วดู first_year_ce (ปี ค.ศ.) ช่องว่าง = ยังไม่ถึงภายในแผน'},
+    {หัวข้อ:'',รายละเอียด:''},
+    {หัวข้อ:'ข้อควรรู้',รายละเอียด:''},
+    {หัวข้อ:'ปี',รายละเอียด:'year_ce คือปี ค.ศ. และ year_be คือปี พ.ศ. (ค.ศ. + 543)'},
+    {หัวข้อ:'ทศนิยม',รายละเอียด:'จำนวนคนเป็นค่าคาดหมาย และแผนภายใต้กรอบตำแหน่งคำนวณด้วย linear programming จึงมีทศนิยมได้ ไฟล์เก็บค่าเต็มไว้ ปัดเมื่อนำไปรายงาน'},
+    {หัวข้อ:'ช่องว่าง',รายละเอียด:'แปลว่าไม่มีข้อมูล ไม่ใช่ศูนย์'},
+    {หัวข้อ:'อย่ารวมข้ามจังหวัด',รายละเอียด:'คอลัมน์ระดับประเทศที่ซ้ำในทุกแถว เช่น unplaced_national ให้ใช้ National_Balance แทน'},
+    {หัวข้อ:'หลายเกณฑ์ในตารางเดียว',รายละเอียด:'National_Outcomes และ Attainment_Years มีหลายแถวต่อปี แยกด้วยคอลัมน์ criterion (P ประชากร, S บริการ, N บริการมาตรฐาน, B ภาระโรค)'},
+    {หัวข้อ:'',รายละเอียด:''},
+    {หัวข้อ:'แท็บทั้งหมดในไฟล์นี้',รายละเอียด:''},
+    ...sheetNames.map(name=>({หัวข้อ:name,รายละเอียด:SHEET_TH[name]||(name.startsWith('Context_')?'ข้อมูลนำเข้ารายจังหวัด–ปีที่ใช้คำนวณ':'')})),
+  ];
+}
 function definitionsRows(registry){return Object.entries(registry.column_definitions||{}).map(([column,d])=>({column,...d}));}
 function addRun(rows,run){return rows.map(row=>({run_id:run.run_id,...Object.fromEntries(Object.entries(row).map(([k,v])=>[k,scalar(v)]))}));}
 function displayColumns(rows) {return [...new Set(rows.flatMap(row=>Object.keys(row)))];}
@@ -66,7 +132,7 @@ export async function workbookBytes(run,options) {
   const cumulative=built.R.labPlans.flatMap(p=>allocationFigureRows(built.R.rows('lab_alloc'),built.R.labPlans,p.key,'all'));
   const figureRows=[...allViews.flatMap(view=>view.rows.map(row=>({view_id:view.id,...row}))),...cumulative.map(row=>({view_id:'allocations_cumulative',...row}))];
   const sources=Object.fromEntries(allViews.map(view=>[view.id,{scope:view.scope,caption:view.caption,contract:view.contract}]));
-  const sheetTables={Readme:readmeRows(run,options),Inputs:inputRows(run,options.lab),Annual_Plan:addRun(tables.Annual_Plan,run),Transfers:addRun(tables.Transfers,run),National_Balance:addRun(tables.National_Balance,run),National_Outcomes:addRun(tables.National_Outcomes,run),Province_Outcomes:addRun(tables.Province_Outcomes,run),Attainment_Years:addRun(tables.Attainment_Years,run),Comparison:addRun(rowsOf(tables.Comparison),run),Destination_Changes:addRun(tables.Destination_Changes,run),Constraints:addRun(tables.Diagnostics,run),Figure_Data:addRun(figureRows,run),Definitions:definitionsRows(registry),Methods:registry.metrics.map(m=>Object.fromEntries(Object.entries(m).map(([k,v])=>[k,scalar(v)]))),Views:Object.entries(sources).map(([view_id,x])=>({view_id,scope:x.scope,caption:x.caption,contract:JSON.stringify(x.contract)}))};
+  const sheetTables={Readme:readmeRows(run,options),Inputs:inputRows(run,options.lab),Annual_Plan:addRun(withThaiReason(tables.Annual_Plan),run),Transfers:addRun(tables.Transfers,run),National_Balance:addRun(tables.National_Balance,run),National_Outcomes:addRun(tables.National_Outcomes,run),Province_Outcomes:addRun(withThaiReason(tables.Province_Outcomes),run),Attainment_Years:addRun(tables.Attainment_Years,run),Comparison:addRun(rowsOf(tables.Comparison),run),Destination_Changes:addRun(tables.Destination_Changes,run),Constraints:addRun(tables.Diagnostics,run),Figure_Data:addRun(figureRows,run),Definitions:definitionsRows(registry),Methods:registry.metrics.map(m=>Object.fromEntries(Object.entries(m).map(([k,v])=>[k,scalar(v)]))),Views:Object.entries(sources).map(([view_id,x])=>({view_id,scope:x.scope,caption:x.caption,contract:JSON.stringify(x.contract)}))};
   if(selectedRuns(run,options).length>1){for(const key of ['Pinned_Outcomes','Pinned_Differences','Pinned_Destinations','Pinned_Priorities','Pinned_Overlap','Parameter_Differences'])sheetTables[key]=tables[key];sheetTables.Pinned_Plans=selectedRuns(run,options).flatMap(r=>addRun(r.ledger,r));sheetTables.Pinned_Inputs=selectedRuns(run,options).flatMap(r=>addRun(inputRows(r,options.lab),r));sheetTables.Experiment_Manifest=selectedRuns(run,options).map(r=>({run_id:r.run_id,title:resultTitle(r,options.lang),source:r.source,status:r.status,versions:JSON.stringify(r.versions)}));}
   if(run.uncertainty?.enabled)for(const key of ['Uncertainty_Summary','Uncertainty_Bands','Province_Probabilities'])sheetTables[key]=addRun(tables[key],run);
   if(run.uncertainty?.enabled)sheetTables.Uncertainty_Diagnostics=rowsOf(run.uncertainty.diagnostics);
@@ -94,10 +160,18 @@ export async function workbookBytes(run,options) {
     row[column]=`Full text in Long_Text: ${sheet} row ${index+2}, column ${column} (${parts} parts)`;
   }
   if(longText.length)sheetTables.Long_Text=longText;
-  for(const[name,rows]of Object.entries(sheetTables)){
-    const header=displayColumns(rows);const ws=rows.length?XLSX.utils.json_to_sheet(rows,{header}):XLSX.utils.aoa_to_sheet([[L(options.lang,'ไม่มีรายการสำหรับผลนี้','No records for this result')]]);
+  const ordered={'อ่านก่อน':guideRows(run,options,tables,['อ่านก่อน',...Object.keys(sheetTables)]),...sheetTables};
+  const thai=col=>registry.column_definitions?.[col]?.label_th||EXTRA_TH[col]||'';
+  for(const[name,rows]of Object.entries(ordered)){
+    const header=orderColumns(displayColumns(rows));const ws=rows.length?XLSX.utils.json_to_sheet(rows,{header}):XLSX.utils.aoa_to_sheet([[L(options.lang,'ไม่มีรายการสำหรับผลนี้','No records for this result')]]);
     ws['!cols']=header.map(key=>({wch:Math.min(45,Math.max(15,key.length+2))}));
     if(rows.length)ws['!autofilter']={ref:XLSX.utils.encode_range({s:{r:0,c:0},e:{r:rows.length,c:header.length-1}})};
+    if(name==='อ่านก่อน')ws['!cols']=[{wch:30},{wch:120}];
+    // Thai column names as header notes; whole-number display formats without rounding the stored values.
+    header.forEach((col,c)=>{const label=thai(col),cell=ws[XLSX.utils.encode_cell({r:0,c})];if(label&&cell&&rows.length){cell.c=[{a:'Workforce Lab',t:label}];cell.c.hidden=true;}});
+    if(rows.length)for(let r=1;r<=rows.length;r++)header.forEach((col,c)=>{const cell=ws[XLSX.utils.encode_cell({r,c})];
+      if(!cell||cell.t!=='n')return;if(Math.abs(cell.v)<1e-9&&cell.v!==0)cell.v=0;
+      if(!Number.isInteger(cell.v))cell.z=RATIO.test(col)?'0.000':'#,##0.00';});
     // Text is stored as an explicit string cell; no formula is evaluated from user titles or labels.
     XLSX.utils.book_append_sheet(wb,ws,name);
   }

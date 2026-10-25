@@ -4,11 +4,11 @@
 import { same, registryEntries } from './fields.js';
 
 const LABELS = {
-  baseline: ['baseline · ค่าตามรายงาน', 'Baseline · study configuration',
+  baseline: ['ค่าตามรายงาน (baseline)', 'Baseline · study configuration',
     'ทุกค่าตรงกับชุดตั้งต้นของรายงานบทที่ 5', 'Every value equals the Chapter 5 study configuration.'],
-  sensitivity: ['sensitivity · ตัวเลือกที่เผยแพร่', 'Sensitivity · published options',
+  sensitivity: ['ตัวเลือกที่เผยแพร่ (sensitivity)', 'Sensitivity · published options',
     'ต่างจากชุดตั้งต้นเฉพาะตัวเลือกที่กำหนดไว้ล่วงหน้า หรือเป็นแผนที่เผยแพร่ในรายงาน', 'Differs from the study configuration only through predefined choices, or is a published plan.'],
-  user: ['user scenario · ค่าที่ผู้ใช้กำหนด', 'User scenario · user-defined values',
+  user: ['ค่าที่ผู้ใช้กำหนด (user scenario)', 'User scenario · user-defined values',
     'มีค่าที่ผู้ใช้กรอกเอง ผลขึ้นกับสมมติฐานนั้น ไม่ใช่ผลของรายงาน', 'Contains values entered by the user; results depend on them and are not study results.'],
 };
 

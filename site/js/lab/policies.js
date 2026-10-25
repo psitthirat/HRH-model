@@ -4,12 +4,15 @@ const COPY = {
   th: {
     select: 'นโยบายที่ต้องการทดลอง', own: 'กำหนดสมมติฐานเอง',
     ownHint: 'ปรับค่าตัวแปรในแบบฟอร์มด้านล่าง แล้วคำนวณผลภายใต้สมมติฐานของคุณ',
+    survey: 'ค่าจากผลสำรวจของโครงการ', cohort: 'ค่าจากงานวิจัยในไทย', study: 'ฉากทัศน์จากรายงานบทที่ 5',
+    applied: 'Lab ตั้งค่าเหล่านี้ให้แล้ว (ค่าอื่นกลับเป็นค่าตั้งต้น) แก้ได้ในแท็บ "นโยบายนี้" แล้วกดคำนวณแผน',
+    derivation: 'ค่าตั้งต้นมาจากไหน',
     disclaimer: 'ประสิทธิผล ประสิทธิภาพ และความคุ้มค่าในบริบทไทยยังต้องศึกษาเพิ่มเติม ผลจำลองเป็นผลภายใต้สมมติฐาน ไม่ใช่ผลของนโยบายที่ยืนยันแล้ว',
     assumption: 'ทดลองผลที่สมมติได้', extension: 'ยังไม่มีตัวควบคุมโดยตรง',
     extensionHint: 'นโยบายนี้ยังไม่มีตัวควบคุมที่แทนกลไกได้ตรง ต้องเพิ่มข้อมูลหรือโมดูลก่อนประเมินผลของนโยบาย',
     hoursHint: 'ชั่วโมงทำงานของแพทย์ไม่ใช่ค่านาทีที่ใช้เป็นน้ำหนักดัชนีบริการ จึงใช้แทนกันไม่ได้',
     details: 'เงื่อนไขและหลักฐานของนโยบาย',
-    design: 'สิ่งที่ควรกำหนดในการทดลอง', mapping: 'เชื่อมกับ Lab อย่างไร', limits: 'สิ่งที่ยังสรุปไม่ได้',
+    design: 'สิ่งที่ควรกำหนดในการทดลอง', mapping: 'Lab ตั้งค่าอะไร', limits: 'สิ่งที่ยังสรุปไม่ได้',
     evidence: n => `หลักฐานและแหล่งอ้างอิง · ${n} แหล่ง`, evidenceDesign: 'รูปแบบการศึกษา',
     evidenceFinding: 'สิ่งที่งานวิจัยรายงาน', evidenceCaution: 'ขอบเขตการนำไปใช้', source: 'อ่านต้นฉบับ',
     evidenceNote: 'OR ของการเลือกงาน HR ของการออก และผลต่อบริการต่อชั่วโมง เป็นคนละตัวชี้วัด และไม่ใช่ขนาดผลที่นำไปใส่แบบจำลองแทนกันได้โดยตรง',
@@ -18,12 +21,15 @@ const COPY = {
   en: {
     select: 'Policy to explore', own: 'Set your own assumptions',
     ownHint: 'Edit the controls below, then calculate outcomes under your assumptions.',
+    survey: 'Default from the project survey', cohort: 'Default from Thai studies', study: 'Chapter 5 scenario',
+    applied: 'The Lab has set these values (everything else back to the baseline). Edit them in the “This policy” tab, then calculate.',
+    derivation: 'Where the default comes from',
     disclaimer: 'Effectiveness, efficiency and cost-effectiveness in Thailand require further study. Simulations show outcomes under stated assumptions, not established policy effects.',
     assumption: 'Explore an assumed effect', extension: 'No direct model control yet',
     extensionHint: 'The Lab has no control that directly represents this policy mechanism yet. Further data or a model extension are needed to assess its effects.',
     hoursHint: 'Physician working hours are not the minute weights used in the service index; these quantities are not interchangeable.',
     details: 'Policy conditions and evidence',
-    design: 'What to specify in an experiment', mapping: 'How this connects to the Lab', limits: 'What cannot yet be concluded',
+    design: 'What to specify in an experiment', mapping: 'What the Lab sets', limits: 'What cannot yet be concluded',
     evidence: n => `Evidence and sources · ${n}`, evidenceDesign: 'Study design',
     evidenceFinding: 'What the study reported', evidenceCaution: 'Limits to application', source: 'Read the source',
     evidenceNote: 'Odds ratios for job choice, hazard ratios for leaving, and consultations per hour measure different outcomes. They are not interchangeable model inputs.',
@@ -39,7 +45,7 @@ function element(tag, className, text) {
 }
 
 /** Policy context only: the caller owns the controls, scenario and calculation. */
-export function renderPolicyLibrary(host, { lang = 'th', selectedId = null, onSelect = () => {} } = {}) {
+export function renderPolicyLibrary(host, { lang = 'th', selectedId = null, onSelect = () => {}, describe = () => [] } = {}) {
   const language = lang === 'en' ? 'en' : 'th';
   const copy = COPY[language];
   const localized = (item, key) => item?.[`${key}_${language}`] ?? item?.[`${key}_th`] ?? '';
@@ -131,7 +137,7 @@ export function renderPolicyLibrary(host, { lang = 'th', selectedId = null, onSe
     for (const variable of localized(policy, 'variables')) variables.append(element('li', '', variable));
     design.append(variables);
     const sections = element('div', 'lab-policy-detail__sections');
-    sections.append(design, section(copy.mapping, localized(policy, 'mapping')), section(copy.limits, localized(policy, 'limitation'), 'lab-policy-section--limits'));
+    sections.append(design, section(copy.derivation, localized(policy, 'derivation'), 'lab-policy-section--derivation'), section(copy.mapping, localized(policy, 'mapping')), section(copy.limits, localized(policy, 'limitation'), 'lab-policy-section--limits'));
     article.append(title, sections, evidenceFor(policy));
     detailsBody.append(article);
   }
@@ -147,7 +153,15 @@ export function renderPolicyLibrary(host, { lang = 'th', selectedId = null, onSe
       lead.append(badge, element('p', '', localized(policy, 'summary')));
       selectedSummary.append(lead);
       if (!policy.route) selectedSummary.append(element('p', 'lab-policy-picker__missing', copy.extensionHint));
-      if (['P01', 'P02'].includes(policy.id)) selectedSummary.append(element('p', 'lab-policy-picker__hint', copy.hoursHint));
+      const settings = describe(policy);
+      if (settings.length) {
+        const applied = element('div', 'lab-policy-picker__applied');
+        applied.dataset.policyApplied = policy.id;
+        const list = element('ul', '');
+        for (const line of settings) list.append(element('li', '', line));
+        applied.append(element('p', '', copy.applied), list);
+        selectedSummary.append(applied);
+      }
     } else {
       selectedSummary.append(element('p', 'lab-policy-picker__hint', copy.ownHint));
     }

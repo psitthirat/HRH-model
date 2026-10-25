@@ -103,7 +103,7 @@ const pairs = {
   reproduceSettings: ["ค่าหลักของชุดตั้งต้น", "Key baseline settings"],
   reproduceRun: ["คำนวณซ้ำและตรวจเทียบ", "Recalculate and check"],
   reproduceOpen: ["เปิดผลที่เผยแพร่", "Open the published result"],
-  exploreLead: ["ปรับสมมติฐานและนโยบาย ผลจะติดป้าย baseline, sensitivity หรือ user scenario ตามค่าที่เปลี่ยน", "Change assumptions and policies. Each result is labelled baseline, sensitivity or user scenario according to what changed."],
+  exploreLead: ["ปรับสมมติฐานหรือเลือกนโยบาย แล้วกดคำนวณแผน ผลจะติดป้ายว่าใช้ค่าตามรายงาน ตัวเลือกที่เผยแพร่ หรือค่าที่ผู้ใช้กำหนด", "Change assumptions and policies. Each result is labelled baseline, sensitivity or user scenario according to what changed."],
   draftClass: ["ฉบับร่างนี้จะได้ป้าย", "This draft will be labelled"],
   advancedFree: ["ขั้นสูง: ปรับความชุกโรคแบบอิสระ", "Advanced: free prevalence edits"],
   advancedFreeNote: ["ค่าที่ปรับอิสระในส่วนนี้ไม่ใช่ชุดค่าที่ใช้ในรายงาน ผลจะติดป้าย user scenario การปรับอิสระเต็มรูปแบบจะอยู่ใน Research Workspace (Tier 2) เมื่อเปิดให้บริการ", "Free values here are not the study's published settings; results are labelled user scenario. Full free editing will move to the Research Workspace (Tier 2) when it opens."],
