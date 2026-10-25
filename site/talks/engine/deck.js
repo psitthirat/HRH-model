@@ -10,8 +10,15 @@
   "use strict";
   var D = window.DECK, FIGS = window.FIGS || {};
   // Speaker notes live in notes.js (window.DECK_NOTES, keyed by slide id) so the
-  // public copy can leave them out; a deck without notes.js still runs.
-  var NOTES = window.DECK_NOTES || {};
+  // public copy can leave them out; a deck without notes.js still runs. The public copy
+  // may carry them encrypted instead (speaker.lock.js -> window.DECK_NOTES_LOCKED): the
+  // presenter types the internal passcode, the browser decrypts them (AES-GCM, key from
+  // PBKDF2) and keeps them for this tab in sessionStorage (owner request 25 Oct 2569).
+  var UNLOCK_KEY = "peitho:" + D.meta.id + ":notes-unlocked";
+  var NOTES = window.DECK_NOTES || (function () {
+    try { var t = sessionStorage.getItem(UNLOCK_KEY); return t ? JSON.parse(t) : {}; } catch (e) { return {}; }
+  })();
+  var LOCKED = !Object.keys(NOTES).length && !!window.DECK_NOTES_LOCKED;
   D.slides.forEach(function (s) {
     var n = s.id && NOTES[s.id];
     if (n) { if (!s.notes) s.notes = n.notes || n; if (!s.bridge && n.bridge) s.bridge = n.bridge; }
@@ -38,10 +45,14 @@
   var TH = /^th/i.test(document.documentElement.lang || "");
   var L = TH ? { step: "ขั้น", plan: "แผน", wait: "เริ่มจับเวลาเมื่อกดครั้งแรก", behind: "ช้ากว่าแผน", ahead: "เร็วกว่าแผน",
       slide: "สไลด์", of: "จาก", thisSlide: "สไลด์นี้", restart: "เริ่มจับเวลาใหม่", nextSlide: "สไลด์ถัดไป", lastSlide: "สไลด์สุดท้าย",
-      next: "ต่อไป", planned: "ตามแผน", notes: "บันทึกผู้บรรยาย", startsAt: "เริ่มนับเมื่อกดครั้งแรก" }
+      next: "ต่อไป", planned: "ตามแผน", notes: "บันทึกผู้บรรยาย", startsAt: "เริ่มนับเมื่อกดครั้งแรก",
+      askCode: "ใส่รหัสเพื่อเปิดบันทึกผู้บรรยาย", unlockBtn: "ใส่รหัสเพื่อดูบันทึกผู้บรรยาย", wrongCode: "รหัสไม่ถูกต้อง",
+      unlocked: "เปิดบันทึกผู้บรรยายแล้ว หน้าจะโหลดใหม่ แล้วกด N อีกครั้ง", noCrypto: "เบราว์เซอร์นี้เปิดบันทึกที่ล็อกไว้ไม่ได้ ใช้ไฟล์ offline แทน" }
     : { step: "step", plan: "plan", wait: "Timer starts at your first move", behind: "behind", ahead: "ahead",
       slide: "Slide", of: "of", thisSlide: "This slide", restart: "Restart timer", nextSlide: "Next slide", lastSlide: "Last slide",
-      next: "Next", planned: "planned", notes: "Notes", startsAt: "Starts at the first move" };
+      next: "Next", planned: "planned", notes: "Notes", startsAt: "Starts at the first move",
+      askCode: "Passcode for the speaker notes", unlockBtn: "Enter the passcode to see the notes", wrongCode: "Wrong passcode",
+      unlocked: "Notes unlocked. The page reloads; press N again.", noCrypto: "This browser cannot open locked notes; use the offline file" };
   var CLAIM = TH
     ? { reported: "ผลจากข้อมูล", model: "ผลจากแบบจำลอง", schematic: "แผนภาพเชิงแนวคิด", reading: "การตีความของคณะวิจัย" }
     : { reported: "Reported finding", model: "Model result", schematic: "Schematic", reading: "Our reading" };
@@ -182,6 +193,24 @@
     d.innerHTML = "<h3>" + L.notes + " · " + L.slide + " " + (state.i + 1) + " · " + fmt(S[state.i].seconds || 0) + " " + L.planned + "</h3>" + notesBlock(state.i, state.step);
   }
   function toggleDrawer() { var d = $("#notes-drawer"); d.hidden = !d.hidden; drawDrawer(); }
+  function b64bytes(s) { var b = atob(s), u = new Uint8Array(b.length); for (var i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return u; }
+  function unlockNotes() {
+    var box = window.DECK_NOTES_LOCKED, sub = window.crypto && window.crypto.subtle;
+    if (!box || !sub || !window.TextEncoder) { alert(L.noCrypto); return; }
+    var code = window.prompt(L.askCode); if (!code) return;
+    sub.importKey("raw", new TextEncoder().encode(code.trim()), "PBKDF2", false, ["deriveKey"])
+      .then(function (base) {
+        return sub.deriveKey({ name: "PBKDF2", salt: b64bytes(box.salt), iterations: box.iter, hash: "SHA-256" },
+          base, { name: "AES-GCM", length: 256 }, false, ["decrypt"]);
+      })
+      .then(function (key) { return sub.decrypt({ name: "AES-GCM", iv: b64bytes(box.iv) }, key, b64bytes(box.ct)); })
+      .then(function (buf) {
+        var text = new TextDecoder().decode(buf); JSON.parse(text);
+        try { sessionStorage.setItem(UNLOCK_KEY, text); } catch (e) { /* storage blocked */ }
+        alert(L.unlocked); location.reload();
+      }, function () { alert(L.wrongCode); });
+  }
+  function withNotes(fn) { return function () { if (LOCKED) unlockNotes(); else fn(); }; }
   function openNotes() {
     var url = location.href.split("#")[0] + "#notes", w = null;
     try { w = window.open(url, "peitho-notes", "width=980,height=720"); } catch (e) { w = null; }
@@ -220,7 +249,8 @@
       var slotEnd = plannedStart[st.i] + (s.seconds || 0);
       root.innerHTML =
         '<div class="nw__main"><div class="nw__meta">' + L.slide + " " + (st.i + 1) + " " + L.of + " " + S.length + " · " + chapterName(s) + " · " + L.step + " " + st.step + "/" + st.steps + "</div>" +
-        '<div class="nw__title">' + strip(s.title) + "</div>" + notesBlock(st.i, st.step) + "</div>" +
+        '<div class="nw__title">' + strip(s.title) + "</div>" +
+        (LOCKED ? '<p class="note-step is-now"><button class="btn" data-unlock>' + L.unlockBtn + "</button></p>" : notesBlock(st.i, st.step)) + "</div>" +
         '<div class="nw__side"><div class="nw__clock">' + (st.started ? fmt(el) : "0:00") + "</div>" +
         '<div class="nw__pace ' + (!st.started ? "" : d > 30 ? "late" : d < -30 ? "early" : "") + '">' + (st.started ? (d >= 0 ? "+" : "−") + fmt(Math.abs(d)) + " " + (d >= 0 ? L.behind : L.ahead) : L.startsAt) + "</div>" +
         '<div class="nw__meta">' + L.thisSlide + ": " + fmt(plannedStart[st.i]) + "–" + fmt(slotEnd) + " " + L.of + " " + fmt(total) + "</div>" +
@@ -230,6 +260,7 @@
     root.addEventListener("click", function (e) {
       var b = e.target.closest("[data-nav]"); if (b) send({ type: "nav", dir: +b.dataset.nav });
       if (e.target.closest("[data-reset]")) send({ type: "reset" });
+      if (e.target.closest("[data-unlock]")) unlockNotes();
     });
     document.addEventListener("keydown", function (e) {
       var k = e.key;
@@ -315,8 +346,8 @@
     else if (k === "ArrowLeft" || k === "PageUp") { e.preventDefault(); move(-1); }
     else if (k === "Home") { e.preventDefault(); go(0, 1); }
     else if (k === "End") { e.preventDefault(); go(S.length - 1, 1); }
-    else if (k === "N") toggleDrawer();
-    else if (k === "n") openNotes();
+    else if (k === "N") withNotes(toggleDrawer)();
+    else if (k === "n") withNotes(openNotes)();
     else if (k === "o" || k === "O") openDialog("#overview");
     else if (k === "f" || k === "F") fullscreen();
     else if (k === "t" || k === "T") setTheme(currentTheme() === "dark" ? "light" : "dark");
@@ -349,7 +380,7 @@
     document.addEventListener("keydown", onKey);
     $("#btn-prev").addEventListener("click", function () { move(-1); });
     $("#btn-next").addEventListener("click", function () { move(1); });
-    $("#btn-notes").addEventListener("click", openNotes);
+    $("#btn-notes").addEventListener("click", withNotes(openNotes));
     $("#btn-overview").addEventListener("click", function () { openDialog("#overview"); });
     $("#btn-help").addEventListener("click", function () { openDialog("#help"); });
     $("#btn-theme").addEventListener("click", function () { setTheme(currentTheme() === "dark" ? "light" : "dark"); });

@@ -43,7 +43,8 @@
       ".nx-note{min-height:calc(var(--u)*5.2);border:1px dashed var(--line-strong);border-radius:6px;padding:calc(var(--u)*.6) calc(var(--u)*.8);font-size:var(--fs-body);color:var(--text-1);line-height:1.5;outline:none;background:var(--accent-soft)}",
       ".nx-note:focus{border-color:var(--accent-text);background:var(--accent-soft)}",
       ".nx-note:empty::before{content:attr(data-ph);color:var(--muted)}",
-      ".nx-edit{font-size:calc(var(--fs-small)*.9);color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:1px 9px;margin-left:auto;white-space:nowrap}",
+      ".nx-edit{font:inherit;font-size:calc(var(--fs-small)*.9);color:var(--muted);background:none;border:1px solid var(--line);border-radius:999px;padding:1px 9px;margin-left:auto;white-space:nowrap}",
+      ".nx-edit.is-dirty{opacity:1 !important;color:var(--accent-text);border-color:var(--accent);cursor:pointer}",
       ".nx-col h5{margin:0 0 calc(var(--u)*.6);font-size:var(--fs-small);font-weight:500;color:var(--accent-text);letter-spacing:.02em}",
       ".nx-col ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:calc(var(--u)*.55)}",
       ".nx-col li{font-size:var(--fs-small);color:var(--text-1);line-height:1.45;padding:calc(var(--u)*.45) calc(var(--u)*.6);border:1px solid var(--line);border-radius:6px;background:var(--card);transition:opacity .4s var(--ease)}",
@@ -332,19 +333,73 @@
     grid.style.gridTemplateColumns = "repeat(2, minmax(0, 1fr))";
     grid.style.gridAutoRows = "1fr";
     function key(i) { return "peitho:" + DECK_ID + ":panel-note:" + i; }
-    var cards = debates.map(function (d, i) {
+    // Shared notes (owner request 25 Oct 2569): everyone who opens the deck sees what was saved last
+    // (Supabase table talk_notes, read with the public key); saving needs the internal passcode, checked
+    // in the database by save_talk_note. Without a connection the boxes work as before: this browser only.
+    var BK = (window.TALKDATA && window.TALKDATA.backend) || {}, ONLINE = !!(BK.url && BK.key);
+    var CODE_KEY = "peitho:" + DECK_ID + ":talk-code";
+    function hhmm(t) { var d = new Date(t); return isNaN(d) ? "" : ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2); }
+    function setChip(b, state, t) {
+      b.disabled = state !== "dirty";
+      b.textContent = state === "dirty" ? "บันทึก" : state === "saving" ? "กำลังบันทึก…" : state === "saved" ? "บันทึกแล้ว " + hhmm(t) : "พิมพ์ได้";
+      b.classList.toggle("is-dirty", state === "dirty");
+    }
+    function api(path, body) {
+      var h = { apikey: BK.key };
+      if (body) h["Content-Type"] = "application/json";
+      return fetch(BK.url + path, { method: body ? "POST" : "GET", headers: h, body: body ? JSON.stringify(body) : undefined })
+        .then(function (r) { return r.text().then(function (t) { if (!r.ok) throw new Error(t || String(r.status)); return t ? JSON.parse(t) : null; }); });
+    }
+    var boxes = debates.map(function (d, i) {
       var c = H("div", "nx-card hud-panel", null, grid);
       var head = H("div", "nx-head", '<span class="nx-num">' + (i + 1) + "</span><h4>" + d + "</h4>", c);
-      H("span", "nx-edit", "พิมพ์ได้", head);
+      var chip = H("button", "nx-edit", "พิมพ์ได้", head);
+      chip.type = "button"; chip.disabled = true;
       var note = H("div", "nx-note", null, c);
       note.style.flex = "1";
       note.setAttribute("contenteditable", "true");
       note.setAttribute("data-ph", "[จดสิ่งที่ได้ยินระหว่างวงเสวนา]");
       note.setAttribute("aria-label", "บันทึกข้อถกเถียงที่ " + (i + 1));
       try { var v = localStorage.getItem(key(i)); if (v) note.textContent = v; } catch (e) { /* storage blocked */ }
-      note.addEventListener("input", function () { try { localStorage.setItem(key(i), note.textContent); } catch (e) { /* storage blocked */ } });
-      return c;
+      note.addEventListener("input", function () {
+        try { localStorage.setItem(key(i), note.textContent); localStorage.setItem(key(i) + ":t", new Date().toISOString()); } catch (e) { /* storage blocked */ }
+        if (ONLINE) setChip(chip, "dirty");
+      });
+      chip.addEventListener("click", function () {
+        var code = null;
+        try { code = sessionStorage.getItem(CODE_KEY); } catch (e) { /* storage blocked */ }
+        if (!code) code = window.prompt("ใส่รหัสเพื่อบันทึก ข้อความที่บันทึกจะแสดงในทุกเครื่องที่เปิดสไลด์นี้");
+        if (!code) return;
+        setChip(chip, "saving");
+        api("/rest/v1/rpc/save_talk_note", { p_deck: DECK_ID, p_slot: i + 1, p_body: note.textContent, p_code: code.trim() })
+          .then(function (t) {
+            try { sessionStorage.setItem(CODE_KEY, code.trim()); localStorage.setItem(key(i) + ":t", String(t)); } catch (e) { /* storage blocked */ }
+            setChip(chip, "saved", t);
+          }, function (err) {
+            setChip(chip, "dirty");
+            if (/wrong passcode/.test(String(err && err.message))) {
+              try { sessionStorage.removeItem(CODE_KEY); } catch (e) { /* storage blocked */ }
+              alert("รหัสไม่ถูกต้อง");
+            } else alert("บันทึกไม่สำเร็จ ตรวจการเชื่อมต่ออินเทอร์เน็ต ข้อความยังเก็บไว้ในเครื่องนี้");
+          });
+      });
+      return { c: c, note: note, chip: chip };
     });
+    // Load what was saved for every device; a newer unsaved edit in this browser wins.
+    if (ONLINE) {
+      api("/rest/v1/talk_notes?deck=eq." + encodeURIComponent(DECK_ID) + "&select=slot,body,updated_at").then(function (rows) {
+        (rows || []).forEach(function (r) {
+          var x = boxes[r.slot - 1]; if (!x) return;
+          var lt = null; try { lt = localStorage.getItem(key(r.slot - 1) + ":t"); } catch (e) { /* storage blocked */ }
+          var localNewer = lt && new Date(lt) > new Date(r.updated_at) && x.note.textContent !== r.body;
+          if (localNewer) { setChip(x.chip, "dirty"); return; }
+          x.note.textContent = r.body;
+          try { localStorage.setItem(key(r.slot - 1), r.body); localStorage.setItem(key(r.slot - 1) + ":t", r.updated_at); } catch (e) { /* storage blocked */ }
+          setChip(x.chip, "saved", r.updated_at);
+        });
+      }, function () { /* offline or not set up yet: this browser's copy stays */ });
+    }
+    var cards = boxes.map(function (x) { return x.c; });
     return stepper(host, 1, function (k, anim, jobs) {
       cards.forEach(function (c, i) {
         if (!anim) { c.style.opacity = 1; c.style.transform = "none"; return; }
