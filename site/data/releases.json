@@ -1,16 +1,7 @@
 {
-  "current": "20261025T234025Z-611fb3bda722",
-  "latest": "20261025T234025Z-611fb3bda722",
+  "current": "20261120T075954Z-218e5f69fba9",
+  "latest": "20261120T075954Z-218e5f69fba9",
   "releases": [
-    {
-      "id": "20261025T164825Z-a55823b29461",
-      "generated_at": "2026-10-25T16:48:25+00:00",
-      "status": "promoted",
-      "freshness": "unknown",
-      "validation_ok": true,
-      "promoted_at": "2026-10-25T17:11:11+00:00",
-      "version": "4.0"
-    },
     {
       "id": "20261025T215033Z-ebb28a3a79a9",
       "generated_at": "2026-10-25T21:50:33+00:00",
@@ -28,6 +19,15 @@
       "validation_ok": true,
       "promoted_at": "2026-10-25T23:51:21+00:00",
       "version": "5.0"
+    },
+    {
+      "id": "20261120T075954Z-218e5f69fba9",
+      "generated_at": "2026-11-20T07:59:54+00:00",
+      "status": "promoted",
+      "freshness": "unknown",
+      "validation_ok": true,
+      "promoted_at": "2026-11-20T15:59:50+00:00",
+      "version": "6.0"
     }
   ]
 }

@@ -13,6 +13,10 @@
 .lab-policy-badge--survey { color: #a8d1ff; background: rgba(78, 165, 255, .07); border-color: rgba(78, 165, 255, .4); }
 .lab-policy-badge--cohort { color: #9fe3c9; background: rgba(66, 199, 151, .07); border-color: rgba(66, 199, 151, .4); }
 .lab-policy-badge--study { color: #f6d58a; background: rgba(240, 190, 80, .07); border-color: rgba(240, 190, 80, .4); }
+.lab-policy-badge--uncertain { color: #ffc9a8; background: rgba(255, 140, 80, .08); border-color: rgba(255, 140, 80, .45); }
+.lab-policy-picker__uncertain, .lab-policy-picker__shared, .lab-policy-picker__notice { margin: 6px 0 0; font-size: .81rem; line-height: 1.8; color: var(--text-secondary); overflow-wrap: anywhere; }
+.lab-policy-picker__uncertain { color: #ffc9a8; }
+.lab-policy-picker__notice { padding: 6px 12px; border-left: 3px solid rgba(255, 140, 80, .55); background: rgba(255, 140, 80, .05); border-radius: 0 8px 8px 0; color: var(--text-primary); }
 .lab-policy-picker__applied { margin: 8px 0 0; padding: 8px 12px; border-left: 3px solid rgba(78, 165, 255, .55); background: rgba(78, 165, 255, .05); border-radius: 0 8px 8px 0; font-size: .84rem; line-height: 1.7; }
 .lab-policy-picker__applied p { margin: 0 0 2px; color: var(--text-muted); }
 .lab-policy-picker__applied ul { margin: 0; padding-left: 18px; }
@@ -20,6 +24,11 @@
 .lab-policy-picker__hint, .lab-policy-picker__missing { margin: 6px 0 0; font-size: .81rem; line-height: 1.8; color: var(--text-muted); overflow-wrap: anywhere; }
 .lab-policy-picker__missing { color: #e0c6ab; }
 .lab-policy-picker__disclaimer { margin: 13px 0 0; max-width: 1280px; border-left: 2px solid var(--accent-soft); padding: 7px 12px; font-size: .8rem; line-height: 1.8; color: var(--text-secondary); background: var(--surface-2); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+.lab-cabinet { margin: 12px 0 0; border: 1px solid var(--border-hairline); border-radius: var(--radius-md); background: var(--surface); }
+.lab .lab-cabinet > summary, .lab-cabinet > summary { padding: 6px 18px; color: var(--accent); font-size: .87rem; line-height: 1.6; cursor: pointer; }
+.lab-cabinet > p { margin: 0; padding: 4px 18px 0; }
+.lab-cabinet__list { list-style: none; margin: 0; padding: 8px 18px 14px; display: flex; flex-wrap: wrap; gap: 8px; }
+.lab-cabinet__list .btn { white-space: normal; text-align: left; font-size: .82rem; line-height: 1.5; }
 .lab-policy-details { margin: 20px 0; border: 1px solid var(--border-hairline); border-radius: var(--radius-md); background: var(--surface); }
 .lab-policy-details[hidden] { display: none !important; }
 .lab .lab-policy-details > summary, .lab-policy-details > summary { padding: 6px 18px; color: var(--accent); font-size: .87rem; line-height: 1.6; cursor: pointer; }

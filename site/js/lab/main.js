@@ -44,9 +44,23 @@ async function json(url,hash) {
 const PRESET_TH={'P-R':'แผนหลัก: จัดสรรตามประชากร','S-R':'จัดสรรตามบริการที่เกิดขึ้น','N-R':'จัดสรรตามบริการมาตรฐาน (M5)','B-R':'จัดสรรตามภาระโรค (DALY)',
   'SQ-C':'คงสัดส่วนรับใหม่เดิม','NFB0.5-R':'ปรับตามทรัพยากรปีก่อน ครึ่งหนึ่ง','NFB1-R':'ปรับตามทรัพยากรปีก่อน เต็มที่',
   'P-RT':'แผนหลัก และเปิดให้โอนย้าย','S-RT':'ตามบริการ และเปิดให้โอนย้าย','N-RT':'ตามบริการมาตรฐาน และเปิดให้โอนย้าย','B-RT':'ตามภาระโรค และเปิดให้โอนย้าย',
-  'P-R|g10':'เพิ่มตำแหน่งร้อยละ 10 ต่อรอบ','P-R|F0':'กรอบตำแหน่งคงที่','P-R|F1':'เพิ่มตำแหน่งตามสัดส่วนเดิม','P-R|need':'ไม่จำกัดงบตำแหน่ง',
+  'P-R|g10':'เพิ่มตำแหน่งร้อยละ 10 ต่อรอบ','P-R|F0':'กรอบตำแหน่งคงที่ (ตรึงกรอบตามมติ ครม. 11 ส.ค. 2569)',
+  'P-R|F3g0':'ตรึงกรอบ + ย้ายตำแหน่งว่าง (รับข้อผูกพันก่อน)','P-R|F3g0|nocommit':'ความไว: ตรึงกรอบ + ย้ายตำแหน่งว่าง ทุนไม่ผูกจังหวัด',
+  'P-R|F0|nocommit':'ความไว: ตรึงกรอบ ทุนไม่ผูกจังหวัด','P-R|KFh5':'ตรึงกรอบ + ลูกจ้าง รพ. ตามบริการ (ขีดรับ +5% ต่อรอบ)',
+  'P-R|KFc5':'ตรึงกรอบ + ลูกจ้างส่วนกลาง ตามความจำเป็น (ขีดรับ +5% ต่อรอบ)','P-R|KFh5|exit':'ความไว: ลูกจ้าง รพ. ลาออกเร็ว 1.5 เท่า',
+  'P-R|KFc5|exit':'ความไว: ลูกจ้างส่วนกลาง ลาออกเร็ว 1.5 เท่า','P-R|F1':'เพิ่มตำแหน่งตามสัดส่วนเดิม','P-R|need':'ไม่จำกัดงบตำแหน่ง',
   'P-R|GDh5':'ลดข้าราชการ เพิ่มลูกจ้างที่โรงพยาบาลจ้าง','P-R|GDc5':'ลดข้าราชการ เพิ่มลูกจ้างจากงบส่วนกลาง','P-R|resp_all':'เป้าหมายคิดจากประชากรทั้งหมด',
   'P-R|pool1500':'แพทย์ใหม่ 1,500 คนต่อปี','P-R|pool2150':'แพทย์ใหม่ 2,150 คนต่อปี','P-R|noframe':'ไม่มีกรอบตำแหน่ง (เพดานผู้มาใหม่)','P-RT|noframe':'ไม่มีกรอบตำแหน่ง และเปิดให้โอนย้าย'};
+// Cabinet resolution of 11 Aug 2569 (Lab v6.0; research stage 5_cabinet, decision F-D24): the preset scenarios offered as
+// one group above the controls, in reading order (baseline, the openings the resolution leaves, sensitivities).
+const CABINET=[['P-R|F0','ตรึงกรอบ จ.18 ปี 2569 (ฐานของนโยบายปัจจุบัน)','Frame held at 2569 (current-policy baseline)'],
+  ['P-R|F3g0','ตรึงกรอบ + ย้ายตำแหน่งว่าง (รับข้อผูกพันก่อน)','Frame held + vacant posts moved (commitments first)'],
+  ['P-R|KFh5','ตรึงกรอบ + ลูกจ้างที่ รพ. จ้างเอง ตามบริการ','Frame held + hospital-funded employees, by services'],
+  ['P-R|KFc5','ตรึงกรอบ + ลูกจ้างงบส่วนกลาง ตามความจำเป็น','Frame held + centrally funded employees, by need'],
+  ['P-R|F3g0|nocommit','ความไว: ย้ายตำแหน่งว่าง ทุนไม่ผูกจังหวัด','Sensitivity: vacant posts moved, bonds not tied to a province'],
+  ['P-R|KFh5|exit','ความไว: ลูกจ้าง รพ. ลาออกเร็ว 1.5 เท่า','Sensitivity: hospital employees leave 1.5 times as fast'],
+  ['P-R|KFc5|exit','ความไว: ลูกจ้างส่วนกลาง ลาออกเร็ว 1.5 เท่า','Sensitivity: central employees leave 1.5 times as fast'],
+  ['P-R','อ้างอิง: แผนหลักของการศึกษา (เพิ่มตำแหน่งตามความจำเป็น 5% ต่อรอบ)','Reference: the study\'s principal plan (positions added by need, 5% a frame)']];
 // Thai for the hindcast consequences written by src/chapter5/hindcast.py (English in the release data).
 const CONSEQUENCE_TH={
   'describe the engine as a forecaster':'ทำนายได้ดีกว่าวิธีง่าย ใช้คาดการณ์ระยะสั้นได้',
@@ -212,6 +226,7 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
     form=h('form',{class:'lab-form lab-control-board',onsubmit:e=>{e.preventDefault();runDraft();}});root.append(form);
     const picker=h('div',{class:'lab-policy-picker-host'});form.append(picker);
     policyController=renderPolicyLibrary(picker,{lang,selectedId:selectedPolicyId,onSelect:selectPolicy,describe:policySettings});
+    const cabinet=cabinetBox();if(cabinet)form.append(cabinet);
     const metadata=h('div',{class:'lab-scenario-meta'});
     metadata.append(h('label',{},h('span',{text:T('name')}),h('input',{type:'text',value:draft.name||draft.title||'',maxLength:120,oninput:e=>{draft.name=e.target.value;saveSoon();}})));
     const select=h('select',{'aria-label':T('preset'),onchange:e=>{
@@ -255,6 +270,16 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
     for(const [id,label] of [['reproduce',T('modeReproduce')],['explore',T('modeExplore')]])
       nav.append(button(label,()=>{if(busy||labMode===id||(labMode==='explore'&&!validateForm()))return;labMode=id;render();saveSoon();},{'data-lab-mode':id,'aria-pressed':String(labMode===id)}));
     return h('div',{class:'lab-mode'},nav,labMode==='explore'?h('p',{class:'lab-help',text:T('exploreLead')}):'');
+  }
+  // the cabinet-resolution presets of this release (absent from releases before v6.0: then no box)
+  function cabinetBox(){
+    const items=CABINET.filter(([id])=>presets.some(p=>p.id===id));
+    if(!items.some(([id])=>id.includes('KF')))return null;
+    const box=h('details',{class:'lab-cabinet','data-cabinet-presets':''},h('summary',{text:T('cabinetTitle')}),h('p',{class:'lab-help',text:T('cabinetLead')}));
+    const list=h('ul',{class:'lab-cabinet__list'});
+    for(const [id,th,en] of items)list.append(h('li',{},h('button',{type:'button',class:'btn','data-cabinet-preset':id,text:`${id} · ${lang==='en'?en:th}`,
+      onclick:()=>{if(busy||!validateForm())return;loadEntry(id).catch(showError);}})));
+    box.append(list);return box;
   }
   function reproducePanel(){
     const box=h('section',{class:'lab-reproduce','data-mode-panel':'reproduce'},h('h2',{text:T('modeReproduce')}),h('p',{class:'lab-help',text:T('reproduceLead')}));
@@ -516,7 +541,8 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
   }
   function methodsPanel(){
     const details=h('details',{class:'lab-methods'},h('summary',{text:T('methods')}));
-    details.append(h('p',{text:T('provisional')}),h('p',{text:T('experimentLabel')}),h('p',{text:T('network')}));
+    details.append(h('p',{text:T('provisional')}),h('p',{text:T('experimentLabel')}),h('p',{text:T('network')}),
+      h('p',{'data-method':'retention',text:T('methodRetention')}),h('p',{'data-method':'p06',text:T('methodP06')}),h('p',{'data-method':'cabinet',text:T('methodCabinet')}));
     const table=h('table',{},h('thead',{},h('tr',{},...['parameter','value','units'].map(k=>h('th',{text:T(k)}))))),body=h('tbody');table.append(body);
     for(const p of entries)body.append(h('tr',{},h('td',{text:localized(p,'label',lang)}),h('td',{text:localized(p,'help',lang)}),h('td',{text:localized(p,'unit',lang)||p.unit||''})));
     const reg=lab.parameter_registry||{};

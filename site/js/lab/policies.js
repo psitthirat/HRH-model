@@ -17,6 +17,12 @@ const COPY = {
     evidenceFinding: 'สิ่งที่งานวิจัยรายงาน', evidenceCaution: 'ขอบเขตการนำไปใช้', source: 'อ่านต้นฉบับ',
     evidenceNote: 'OR ของการเลือกงาน HR ของการออก และผลต่อบริการต่อชั่วโมง เป็นคนละตัวชี้วัด และไม่ใช่ขนาดผลที่นำไปใส่แบบจำลองแทนกันได้โดยตรง',
     noEvidence: 'ยังไม่มีค่าประมาณที่ตรงกับนโยบายและกลุ่มเป้าหมายจากแหล่งที่ตรวจในรอบนี้',
+    uncertain: 'หลักฐานไม่แน่นอน',
+    uncertainHint: o => `OR ${o.value.toFixed(2)} (ช่วงความเชื่อมั่นร้อยละ 95 ${o.lo.toFixed(2)}–${o.hi.toFixed(2)}) คร่อม 1 ผลจริงอาจเป็นศูนย์หรือกลับทิศ ค่าตั้งต้นจึงเป็นการทดลองว่า "ถ้ามีผลขนาดนี้" ไม่ใช่ขนาดผลที่ยืนยันแล้ว`,
+    shared: (others, value) => `ใช้ค่าเดียวกับ ${others} (สัดส่วนลดอัตราเสี่ยงลาออก ${value}) เพราะผลสำรวจวัดความพึงพอใจเป็นรายด้าน ไม่แยกตามมาตรการ ผลที่คำนวณได้จึงเท่ากัน และการเลือกนโยบายใหม่แทนที่ค่าเดิม ไม่บวกผลซ้อนกัน`,
+    assumptionTitle: 'ข้อสมมติของ Lab',
+    assumptionOR: 'Lab ถือว่า odds ratio (OR) ของความตั้งใจลาออกภายในสามปีจากผลสำรวจใกล้เคียง hazard ratio (HR) ของการลาออกจริง แล้วใช้ 1 − OR เป็นสัดส่วนลดอัตราเสี่ยงลาออก โดยไม่แปลง การประมาณนี้ทำให้ผลดูมากกว่าความเป็นจริง เพราะผู้ตอบราวร้อยละ 15 คิดลาออก ซึ่งไม่ใช่เหตุการณ์หายาก OR จึงห่างจาก 1 มากกว่าอัตราส่วนความเสี่ยง นอกจากนี้ ความตั้งใจกับการลาออกในทะเบียนต่างกัน 0.2–2.2 เท่าตามวิชาชีพ และค่าต่อ 1 ส่วนเบี่ยงเบนมาตรฐานสมมติว่านโยบายยกความพึงพอใจได้หนึ่งส่วนเบี่ยงเบนมาตรฐาน ซึ่งการศึกษาไม่ได้วัด',
+    assumptionRR: 'ตั้งแต่ v6.0 นโยบายนี้แปลง OR เป็นอัตราส่วนความเสี่ยง (RR) ก่อน ด้วยสูตรของ Zhang และ Yu (1998) RR = OR ÷ ((1 − P0) + P0 × OR) เมื่อ P0 คือสัดส่วนผู้คิดลาออกในกลุ่มที่ไม่ได้รับผล แล้วจึงถือว่า RR ใกล้เคียง hazard ratio และนับความครอบคลุมตามส่วนของการลาออก ไม่ใช่ส่วนของจำนวนคน ความตั้งใจลาออกยังไม่ใช่การลาออกจริง (ต่างกัน 0.2–2.2 เท่าตามวิชาชีพ) และสูตรนี้เป็นการประมาณเมื่อ OR ปรับตัวแปรอื่นแล้ว',
   },
   en: {
     select: 'Policy to explore', own: 'Set your own assumptions',
@@ -34,6 +40,12 @@ const COPY = {
     evidenceFinding: 'What the study reported', evidenceCaution: 'Limits to application', source: 'Read the source',
     evidenceNote: 'Odds ratios for job choice, hazard ratios for leaving, and consultations per hour measure different outcomes. They are not interchangeable model inputs.',
     noEvidence: 'The sources reviewed so far do not provide an estimate that directly matches this policy and target population.',
+    uncertain: 'Uncertain evidence',
+    uncertainHint: o => `OR ${o.value.toFixed(2)} (95% confidence interval ${o.lo.toFixed(2)}–${o.hi.toFixed(2)}) includes 1: the true effect may be zero or reversed. The default explores “if the effect were this large”; it is not an established effect size.`,
+    shared: (others, value) => `Uses the same value as ${others} (resignation-hazard reduction ${value}): the survey measures satisfaction by domain, not by measure, so their results are equal; choosing another policy replaces the value, it does not add to it.`,
+    assumptionTitle: 'The Lab’s assumption',
+    assumptionOR: 'The Lab treats the survey odds ratio (OR) of intending to leave within three years as approximately the hazard ratio (HR) of actual resignation and uses 1 − OR as the resignation-hazard reduction, without conversion. This overstates effects: about 15% of respondents intend to leave, not a rare outcome, so the OR lies further from 1 than the risk ratio. Intention and registered resignation also differ 0.2–2.2-fold by profession, and a per-standard-deviation value assumes the policy raises satisfaction by one standard deviation, which the study did not measure.',
+    assumptionRR: 'From v6.0 this policy first converts the OR to a risk ratio (RR) with the formula of Zhang and Yu (1998), RR = OR ÷ ((1 − P0) + P0 × OR), where P0 is the share intending to leave among those not covered; it then treats the RR as approximately a hazard ratio and counts coverage in resignations, not in people. Intention to leave is still not resignation (0.2–2.2-fold apart by profession), and the formula is an approximation for an adjusted OR.',
   },
 };
 
@@ -138,6 +150,11 @@ export function renderPolicyLibrary(host, { lang = 'th', selectedId = null, onSe
     design.append(variables);
     const sections = element('div', 'lab-policy-detail__sections');
     sections.append(design, section(copy.derivation, localized(policy, 'derivation'), 'lab-policy-section--derivation'), section(copy.mapping, localized(policy, 'mapping')), section(copy.limits, localized(policy, 'limitation'), 'lab-policy-section--limits'));
+    if (policy.conversion) {
+      const assumption = section(copy.assumptionTitle, policy.conversion === 'rr' ? copy.assumptionRR : copy.assumptionOR, 'lab-policy-section--assumption');
+      assumption.dataset.policyAssumption = policy.conversion;
+      sections.append(assumption);
+    }
     article.append(title, sections, evidenceFor(policy));
     detailsBody.append(article);
   }
@@ -150,8 +167,31 @@ export function renderPolicyLibrary(host, { lang = 'th', selectedId = null, onSe
     if (policy) {
       const badge = element('span', `lab-policy-badge lab-policy-badge--${policy.readiness}`, copy[policy.readiness] ?? copy.extension);
       const lead = element('div', 'lab-policy-picker__lead');
-      lead.append(badge, element('p', '', localized(policy, 'summary')));
+      lead.append(badge);
+      const or = policy.survey_or;
+      if (or && or.lo < 1 && or.hi > 1) {
+        // v6.0: a survey odds ratio whose 95% interval crosses 1 is uncertain evidence (D1 review board, methods 9)
+        const flag = element('span', 'lab-policy-badge lab-policy-badge--uncertain', copy.uncertain);
+        flag.dataset.policyUncertain = policy.id;
+        flag.title = copy.uncertainHint(or);
+        lead.append(flag);
+      }
+      lead.append(element('p', '', localized(policy, 'summary')));
       selectedSummary.append(lead);
+      if (or && or.lo < 1 && or.hi > 1) selectedSummary.append(element('p', 'lab-policy-picker__uncertain', copy.uncertainHint(or)));
+      const others = (policy.shared_with ?? []).filter(id => id !== policy.id);
+      if (others.length) {
+        const value = policy.defaults?.['retention.resignation_reduction'];
+        const note = element('p', 'lab-policy-picker__shared', copy.shared(others.join(', '), value));
+        note.dataset.policyShared = others.join(' ');
+        selectedSummary.append(note);
+      }
+      const notice = localized(policy, 'notice');
+      if (notice) {
+        const node = element('p', 'lab-policy-picker__notice', notice);
+        node.dataset.policyNotice = policy.id;
+        selectedSummary.append(node);
+      }
       if (!policy.route) selectedSummary.append(element('p', 'lab-policy-picker__missing', copy.extensionHint));
       const settings = describe(policy);
       if (settings.length) {

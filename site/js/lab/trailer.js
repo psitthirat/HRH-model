@@ -48,8 +48,11 @@ export function maybeShowTrailer(lang = 'th') {
 // The Thai user guide (PDF built from the Lab manual source in the HRH project folder); opens in a new tab.
 export const MANUAL = 'downloads/workforce-lab-manual-th.pdf';
 export function manualLink(lang = 'th', cls = 'btn btn--ghost lab-hub__manual') {
-  return h('a', { class: cls, href: MANUAL, target: '_blank', rel: 'noopener', 'data-lab-manual': '' },
-    L(lang, '📘 คู่มือการใช้ Lab (PDF)', '📘 User guide (PDF, Thai)'));
+  // the PDF is still the v5.0 guide: it does not yet describe the v6.0 cabinet scenarios or the new P06 method
+  return h('a', { class: cls, href: MANUAL, target: '_blank', rel: 'noopener', 'data-lab-manual': '',
+    title: L(lang, 'คู่มือฉบับ v5.0 ยังไม่รวมฉากทัศน์มติ ครม. 11 ส.ค. 2569 และวิธีคำนวณใหม่ของ P06 ใน v6.0',
+      'The v5.0 guide does not yet cover the v6.0 cabinet-resolution scenarios or the new P06 method') },
+    L(lang, '📘 คู่มือการใช้ Lab (PDF ฉบับ v5.0)', '📘 User guide (PDF, Thai, v5.0)'));
 }
 
 export function trailerButton(lang = 'th') {
