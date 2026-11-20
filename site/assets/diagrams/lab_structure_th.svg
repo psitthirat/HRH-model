@@ -170,7 +170,7 @@
 <rect class="ls-under" x="904" y="132" width="312" height="72" rx="6" fill="#101722"/>
 <rect class="ls-box" x="904" y="132" width="312" height="72" rx="6" fill="#151e2b" stroke="rgba(255,255,255,0.40)" stroke-width="1"/>
 <text class="ls-name" x="1060" y="163" text-anchor="middle" font-size="18" font-weight="600" fill="#ffffff">ผลพร้อมป้ายที่มา</text>
-<text class="ls-sub" x="1060" y="187" text-anchor="middle" font-size="14" font-weight="400" fill="#9a988f">Excel · รายงาน · แพ็กเกจ</text>
+<text class="ls-sub" x="1060" y="187" text-anchor="middle" font-size="14" font-weight="400" fill="#9a988f">Excel · รายงาน · ชุดส่งงาน</text>
 </g>
 <g class="ls-node is-box" id="ls-workspace" data-node="workspace" data-routes="explore modules mydata" data-stage="keep">
 <rect class="ls-under" x="904" y="284" width="312" height="72" rx="6" fill="#101722"/>

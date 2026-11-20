@@ -171,7 +171,7 @@ export function buildOutcomeViews(run,options,state={}) {
   if(runs.length>1){
     for(const other of runs)assertResult(other,lab);
     const runMap=new Map(runs.map(r=>[r.run_id,r]));
-    add('parameter_differences',null,parameterDifferences(run,options),L(lang,'แสดงเฉพาะค่าที่ต่างกันของผลที่ตรึงไว้ ไม่มีการนำค่าในแบบฟอร์มที่ยังไม่คำนวณมาแทนผลเดิม','Differences among pinned, completed runs only. Unexecuted draft edits never replace these results.'),{columns:['scenario','parameter_id','value','run_id']});
+    add('parameter_differences',null,parameterDifferences(run,options),L(lang,'แสดงเฉพาะค่าที่ต่างกันของผลที่เก็บไว้เปรียบเทียบ ไม่มีการนำค่าในแบบฟอร์มที่ยังไม่คำนวณมาแทนผลเดิม','Differences among pinned, completed runs only. Unexecuted draft edits never replace these results.'),{columns:['scenario','parameter_id','value','run_id']});
     const aligned=analysis?.metrics||[];
     const comparisonMetrics=aligned.map(r=>({...r,scenario:resultTitle(runMap.get(r.run_id)||{title:r.run_id},lang)}));
     const comparisonNotice=L(lang,'ทุกผลประเมินซ้ำด้วยเป้าหมายของผลอ้างอิงเดียวกัน ความต่างของสมมติฐานอยู่ในตารางค่าตั้งต้น','All results are re-evaluated against the same reference run’s targets. Assumption differences are listed separately.');

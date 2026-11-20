@@ -33,7 +33,7 @@ export function renderReview(host, { lang = 'th', account }) {
   }
   async function submissions() {
     const rows = await account.listSubmissions({ all: true });
-    root.append(h('p', { class: 'lab-help' }, L(lang, 'ตรวจแพ็กเกจซ้ำด้วยตัวคำนวณเดียวกันใน research tree: ', 'Re-check a package with the same engine in the research tree: '), h('code', { text: CHECK })));
+    root.append(h('p', { class: 'lab-help' }, L(lang, 'ตรวจชุดส่งงานซ้ำด้วยตัวคำนวณเดียวกันใน research tree: ', 'Re-check a package with the same engine in the research tree: '), h('code', { text: CHECK })));
     if (!rows.length) { root.append(h('p', { class: 'lab-help', text: L(lang, 'ยังไม่มีงานที่ส่งมา', 'No submissions yet') })); return; }
     const list = h('div', { class: 'lab-review__list' });
     for (const s of rows) {
@@ -49,7 +49,7 @@ export function renderReview(host, { lang = 'th', account }) {
         h('p', { class: 'lab-help', text: `SHA-256 ${s.package_sha256 || '—'}` }),
         h('div', { class: 'lab-review__controls' }, h('label', {}, h('span', { text: L(lang, 'สถานะ', 'Status') }), pick), h('label', {}, h('span', { text: L(lang, 'ความเห็นถึงผู้ส่ง', 'Note to the submitter') }), note)),
         h('div', { class: 'lab-actions' },
-          h('button', { type: 'button', class: 'btn', 'data-action': 'download-package', text: L(lang, 'ดาวน์โหลดแพ็กเกจ', 'Download package'),
+          h('button', { type: 'button', class: 'btn', 'data-action': 'download-package', text: L(lang, 'ดาวน์โหลดชุดส่งงาน', 'Download package'),
             onclick: async () => { try { saveBlob(`hrh-lab-submission-${s.id.slice(0, 8)}.zip`, await account.submissionPackage(s)); } catch (error) { say(error.message, true); } } }),
           h('button', { type: 'button', class: 'btn btn--primary', 'data-action': 'save-review', text: L(lang, 'บันทึก', 'Save'),
             onclick: async () => { try { await account.updateSubmission(s.id, { status: pick.value, reviewer_note: note.value }); say(L(lang, 'บันทึกแล้ว', 'Saved')); render(); } catch (error) { say(error.message, true); } } }),

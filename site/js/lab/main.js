@@ -44,19 +44,19 @@ async function json(url,hash) {
 const PRESET_TH={'P-R':'แผนหลัก: จัดสรรตามประชากร','S-R':'จัดสรรตามบริการที่เกิดขึ้น','N-R':'จัดสรรตามบริการมาตรฐาน (M5)','B-R':'จัดสรรตามภาระโรค (DALY)',
   'SQ-C':'คงสัดส่วนรับใหม่เดิม','NFB0.5-R':'ปรับตามทรัพยากรปีก่อน ครึ่งหนึ่ง','NFB1-R':'ปรับตามทรัพยากรปีก่อน เต็มที่',
   'P-RT':'แผนหลัก และเปิดให้โอนย้าย','S-RT':'ตามบริการ และเปิดให้โอนย้าย','N-RT':'ตามบริการมาตรฐาน และเปิดให้โอนย้าย','B-RT':'ตามภาระโรค และเปิดให้โอนย้าย',
-  'P-R|g10':'เพิ่มตำแหน่งร้อยละ 10 ต่อรอบ','P-R|F0':'กรอบตำแหน่งคงที่ (ตรึงกรอบตามมติ ครม. 11 ส.ค. 2569)',
-  'P-R|F3g0':'ตรึงกรอบ + ย้ายตำแหน่งว่าง (รับข้อผูกพันก่อน)','P-R|F3g0|nocommit':'ความไว: ตรึงกรอบ + ย้ายตำแหน่งว่าง ทุนไม่ผูกจังหวัด',
-  'P-R|F0|nocommit':'ความไว: ตรึงกรอบ ทุนไม่ผูกจังหวัด','P-R|KFh5':'ตรึงกรอบ + ลูกจ้าง รพ. ตามบริการ (ขีดรับ +5% ต่อรอบ)',
-  'P-R|KFc5':'ตรึงกรอบ + ลูกจ้างส่วนกลาง ตามความจำเป็น (ขีดรับ +5% ต่อรอบ)','P-R|KFh5|exit':'ความไว: ลูกจ้าง รพ. ลาออกเร็ว 1.5 เท่า',
+  'P-R|g10':'เพิ่มตำแหน่งร้อยละ 10 ต่อรอบ','P-R|F0':'กรอบตำแหน่งคงที่ (ฐานของนโยบายปัจจุบันตามมติ ครม. 11 ส.ค. 2569 เป็นขอบบน)',
+  'P-R|F3g0':'กรอบคงที่ + ย้ายตำแหน่งว่าง (รับข้อผูกพันก่อน)','P-R|F3g0|nocommit':'ความไว: กรอบคงที่ + ย้ายตำแหน่งว่าง ทุนไม่ผูกจังหวัด',
+  'P-R|F0|nocommit':'ความไว: กรอบคงที่ ทุนไม่ผูกจังหวัด','P-R|KFh5':'กรอบคงที่ + ลูกจ้าง รพ. ตามบริการ (ขีดรับ +5% ต่อรอบ)',
+  'P-R|KFc5':'กรอบคงที่ + ลูกจ้างส่วนกลาง ตามความจำเป็น (ขีดรับ +5% ต่อรอบ)','P-R|KFh5|exit':'ความไว: ลูกจ้าง รพ. ลาออกเร็ว 1.5 เท่า',
   'P-R|KFc5|exit':'ความไว: ลูกจ้างส่วนกลาง ลาออกเร็ว 1.5 เท่า','P-R|F1':'เพิ่มตำแหน่งตามสัดส่วนเดิม','P-R|need':'ไม่จำกัดงบตำแหน่ง',
   'P-R|GDh5':'ลดข้าราชการ เพิ่มลูกจ้างที่โรงพยาบาลจ้าง','P-R|GDc5':'ลดข้าราชการ เพิ่มลูกจ้างจากงบส่วนกลาง','P-R|resp_all':'เป้าหมายคิดจากประชากรทั้งหมด',
   'P-R|pool1500':'แพทย์ใหม่ 1,500 คนต่อปี','P-R|pool2150':'แพทย์ใหม่ 2,150 คนต่อปี','P-R|noframe':'ไม่มีกรอบตำแหน่ง (เพดานผู้มาใหม่)','P-RT|noframe':'ไม่มีกรอบตำแหน่ง และเปิดให้โอนย้าย'};
 // Cabinet resolution of 11 Aug 2569 (Lab v6.0; research stage 5_cabinet, decision F-D24): the preset scenarios offered as
 // one group above the controls, in reading order (baseline, the openings the resolution leaves, sensitivities).
-const CABINET=[['P-R|F0','ตรึงกรอบ จ.18 ปี 2569 (ฐานของนโยบายปัจจุบัน)','Frame held at 2569 (current-policy baseline)'],
-  ['P-R|F3g0','ตรึงกรอบ + ย้ายตำแหน่งว่าง (รับข้อผูกพันก่อน)','Frame held + vacant posts moved (commitments first)'],
-  ['P-R|KFh5','ตรึงกรอบ + ลูกจ้างที่ รพ. จ้างเอง ตามบริการ','Frame held + hospital-funded employees, by services'],
-  ['P-R|KFc5','ตรึงกรอบ + ลูกจ้างงบส่วนกลาง ตามความจำเป็น','Frame held + centrally funded employees, by need'],
+const CABINET=[['P-R|F0','กรอบ จ.18 คงที่ ณ ปี 2569 (ฐานของนโยบายปัจจุบัน เป็นขอบบน)','Frame held at 2569 (current-policy baseline; an upper bound)'],
+  ['P-R|F3g0','กรอบคงที่ + ย้ายตำแหน่งว่าง (รับข้อผูกพันก่อน)','Frame held + vacant posts moved (commitments first)'],
+  ['P-R|KFh5','กรอบคงที่ + ลูกจ้างที่ รพ. จ้างเอง ตามบริการ','Frame held + hospital-funded employees, by services'],
+  ['P-R|KFc5','กรอบคงที่ + ลูกจ้างงบส่วนกลาง ตามความจำเป็น','Frame held + centrally funded employees, by need'],
   ['P-R|F3g0|nocommit','ความไว: ย้ายตำแหน่งว่าง ทุนไม่ผูกจังหวัด','Sensitivity: vacant posts moved, bonds not tied to a province'],
   ['P-R|KFh5|exit','ความไว: ลูกจ้าง รพ. ลาออกเร็ว 1.5 เท่า','Sensitivity: hospital employees leave 1.5 times as fast'],
   ['P-R|KFc5|exit','ความไว: ลูกจ้างส่วนกลาง ลาออกเร็ว 1.5 เท่า','Sensitivity: central employees leave 1.5 times as fast'],
@@ -470,7 +470,7 @@ export async function initLab(app,{isCurrent=()=>true}={}) {
     if(Number.isFinite(+done)&&Number.isFinite(+total))out.push(en?`${done} of ${total} simulations`:`จำลองแล้ว ${done} จาก ${total} ครั้ง`);
     return out.join(' · ');
   }
-  function stageLabel(stage){const labels={loading_runtime:['กำลังดาวน์โหลด Python','Downloading Python runtime'],loading_packages:['กำลังโหลดแพ็กเกจวิเคราะห์','Loading analysis packages'],loading_model:['กำลังตรวจไฟล์แบบจำลอง','Verifying model files'],validating:[T('validating'),T('validating')],preparing:['กำลังเตรียมข้อมูลและเป้าหมาย','Preparing inputs and targets'],solving:['กำลังจัดสรรตามข้อกำหนด','Solving the allocation problem'],evaluating:['กำลังคำนวณผลลัพธ์','Evaluating outcomes'],simulating_adaptive:['กำลังจำลองอนาคตหลายชุด','Simulating futures']};return labels[stage]?.[lang==='en'?1:0]||stage;}
+  function stageLabel(stage){const labels={loading_runtime:['กำลังดาวน์โหลด Python','Downloading Python runtime'],loading_packages:['กำลังโหลดไลบรารีวิเคราะห์','Loading analysis packages'],loading_model:['กำลังตรวจไฟล์แบบจำลอง','Verifying model files'],validating:[T('validating'),T('validating')],preparing:['กำลังเตรียมข้อมูลและเป้าหมาย','Preparing inputs and targets'],solving:['กำลังจัดสรรตามข้อกำหนด','Solving the allocation problem'],evaluating:['กำลังคำนวณผลลัพธ์','Evaluating outcomes'],simulating_adaptive:['กำลังจำลองอนาคตหลายชุด','Simulating futures']};return labels[stage]?.[lang==='en'?1:0]||stage;}
   function showError(error){status='failed';statusDetail=String(error.message||error);showStatus();}
   function validateForm(extra){
     const invalid=[...(form?.isConnected?form.querySelectorAll('input,select,textarea'):[]),...(extra?.querySelectorAll('input,select,textarea')||[])].find(el=>!el.checkValidity());

@@ -123,7 +123,7 @@ export function renderHub(host, { lang = 'th', account, release, onOpen }) {
     h('div', { class: 'lab-hub__privacy' },
       h('article', {}, h('h3', { text: L(lang, 'คำนวณในเบราว์เซอร์ของคุณ', 'Computed in your browser') }), h('p', { text: L(lang, 'ตัวคำนวณ Python ทำงานในแท็บนี้ ไฟล์ที่คุณเลือกไม่ถูกส่งไปคำนวณที่ใด', 'The Python engine runs in this tab; files you choose are not sent anywhere for computation.') })),
       h('article', {}, h('h3', { text: L(lang, 'บันทึกในบัญชีของคุณ', 'Saved in your account') }), h('p', { text: L(lang, 'เมื่อกดบันทึก ผลและชุดข้อมูลเก็บในพื้นที่ส่วนตัวที่เห็นได้เฉพาะคุณ (ต้องเข้าสู่ระบบ)', 'When you save, results and datasets go to a private workspace only you can see (sign-in required).') })),
-      h('article', {}, h('h3', { text: L(lang, 'ส่งให้ทีมเมื่อคุณกดส่ง', 'Shared when you submit') }), h('p', { text: L(lang, `ทีมวิจัยเห็นเฉพาะแพ็กเกจที่คุณกดส่ง พร้อมอีเมลแจ้ง ${LAB_SYSTEM.submission?.recipient || ''}`, `The team sees only packages you submit, with an email to ${LAB_SYSTEM.submission?.recipient || ''}.`) }))));
+      h('article', {}, h('h3', { text: L(lang, 'ส่งให้ทีมเมื่อคุณกดส่ง', 'Shared when you submit') }), h('p', { text: L(lang, `ทีมวิจัยเห็นเฉพาะชุดส่งงานที่คุณกดส่ง พร้อมอีเมลแจ้ง ${LAB_SYSTEM.submission?.recipient || ''}`, `The team sees only packages you submit, with an email to ${LAB_SYSTEM.submission?.recipient || ''}.`) }))));
 
   root.append(h('h2', { class: 'lab-hub__heading', text: L(lang, 'วางแผนระดับประเทศหรือระดับเขต', 'National or regional planning') }),
     h('div', { class: 'lab-hub__scope' },

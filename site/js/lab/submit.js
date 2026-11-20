@@ -42,7 +42,7 @@ export async function buildPackage(run, { lang = 'th', lab, release, form, accou
     files['allocation.xlsx'] = run.cadre ? await cadreWorkbookBytes(run) : await workbookBytes(run, { lab, lang, release });
   } catch { /* an incomplete run has no plan workbook; the scenario and data still travel */ }
   files['README.txt'] = strToU8([
-    'HRH Workforce Lab — submission package / แพ็กเกจส่งงาน',
+    'HRH Workforce Lab — submission package / ชุดส่งงาน',
     '',
     'submission.json   who, why, versions and the SHA-256 of every file / ผู้ส่ง วัตถุประสงค์ รุ่น และ checksum',
     'scenario.json     the assumptions used / สมมติฐานที่ใช้จริง',
@@ -80,7 +80,7 @@ export function emailDraft({ lang = 'th', run, manifest, sub, account, hash }) {
     `ผู้ส่ง: ${me?.profile?.full_name || ''} (${manifest.submitter.organization}${me?.profile?.position ? `, ${me.profile.position}` : ''}) อีเมลบัญชี: ${me?.user?.email || ''}`,
     `ขอบเขต: ${scopeName(run, 'th')} · วิชาชีพ: ${cadreName(cadreOf(run), 'th')} · ข้อมูล: ${data}`,
     manifest.data_source ? `ที่มาของข้อมูล: ${manifest.data_source}` : '', manifest.message ? `ข้อความเพิ่มเติม: ${manifest.message}` : '', '',
-    sub ? `แพ็กเกจบันทึกในระบบ Lab แล้ว (SHA-256 ${hash.slice(0, 16)}…)` : 'แนบไฟล์แพ็กเกจ .zip ที่ดาวน์โหลดไว้',
+    sub ? `ชุดส่งงานบันทึกในระบบ Lab แล้ว (SHA-256 ${hash.slice(0, 16)}…)` : 'แนบไฟล์ชุดส่งงาน .zip ที่ดาวน์โหลดไว้',
     'ข้าพเจ้ายืนยันว่าข้อมูลเป็นข้อมูลรวมระดับจังหวัด ไม่มีข้อมูลรายบุคคล และยินยอมให้ทีมวิจัยใช้ตามวัตถุประสงค์ข้างต้น', '',
     'ขอบคุณ', me?.profile?.full_name || ''].filter(x => x !== '').join('\n'), [
     'Dear HRH research team,', '',
@@ -115,14 +115,14 @@ export async function openSubmitDialog({ lang = 'th', account, run, lab, release
       h('label', {}, h('span', { text: L(lang, 'ข้อความถึงทีม', 'Message to the team') }), h('textarea', { name: 'message', rows: 3, maxlength: 2000 })),
       h('label', { class: 'lab-auth__consent' }, h('input', { type: 'checkbox', name: 'consent', value: 'yes', required: true }),
         h('span', { text: L(lang, 'ยืนยันว่าเป็นข้อมูลรวมระดับจังหวัด ไม่มีข้อมูลรายบุคคล และยินยอมให้ทีมใช้ตามวัตถุประสงค์ที่เลือก', 'The data are aggregate province-level figures without individual records; the team may use them for the purposes chosen') })),
-      h('div', { class: 'lab-actions' }, h('button', { type: 'submit', class: 'btn btn--primary', 'data-action': 'send-submission', text: L(lang, 'สร้างแพ็กเกจและส่ง', 'Create the package and submit') }),
+      h('div', { class: 'lab-actions' }, h('button', { type: 'submit', class: 'btn btn--primary', 'data-action': 'send-submission', text: L(lang, 'สร้างชุดส่งงานและส่ง', 'Create the package and submit') }),
         h('button', { type: 'button', class: 'btn', text: L(lang, 'ยกเลิก', 'Cancel'), onclick: () => close(null) })));
     form.onsubmit = async e => {
       e.preventDefault();
       const fd = new FormData(form), purposes = fd.getAll('purpose');
       if (!purposes.length) { status.textContent = L(lang, 'เลือกอย่างน้อยหนึ่งข้อ', 'Choose at least one'); return; }
       const values = { title: fd.get('title'), organization: fd.get('organization'), data_source: fd.get('data_source') || '', message: fd.get('message') || '', purposes };
-      status.textContent = L(lang, 'กำลังสร้างแพ็กเกจ…', 'Building the package…');
+      status.textContent = L(lang, 'กำลังสร้างชุดส่งงาน…', 'Building the package…');
       form.querySelectorAll('button,input,textarea').forEach(n => { n.disabled = true; });
       try {
         const pkg = await buildPackage(run, { lang, lab, release, form: values, account });
@@ -146,13 +146,13 @@ export async function openSubmitDialog({ lang = 'th', account, run, lab, release
           h('a', { class: 'btn', href: draft.gmail, target: '_blank', rel: 'noopener', 'data-email-draft': 'gmail', text: L(lang, 'เปิดใน Gmail', 'Open in Gmail') }),
           h('button', { type: 'button', class: 'btn', 'data-email-draft': 'copy', text: L(lang, 'คัดลอกข้อความ', 'Copy the text'),
             onclick: e => navigator.clipboard?.writeText(`${draft.subject}\n\n${draft.body}`).then(() => { e.target.textContent = L(lang, 'คัดลอกแล้ว', 'Copied'); }) }),
-          h('button', { type: 'button', class: 'btn', text: L(lang, 'ดาวน์โหลดแพ็กเกจ', 'Download the package'),
+          h('button', { type: 'button', class: 'btn', text: L(lang, 'ดาวน์โหลดชุดส่งงาน', 'Download the package'),
             onclick: () => saveBlob(`hrh-lab-submission-${sub.id.slice(0, 8)}.zip`, new Blob([pkg.bytes], { type: 'application/zip' })) })),
         h('details', {}, h('summary', { text: L(lang, 'ดูข้อความอีเมล', 'Show the email text') }), h('pre', { class: 'lab-submit__email', text: `${draft.subject}\n\n${draft.body}` })),
         h('div', { class: 'lab-actions' }, h('button', { type: 'button', class: 'btn', text: L(lang, 'ปิด', 'Close'), onclick: () => close(sub) })));
     }
     dialog.append(h('h2', { id: 'lab-submit-title', text: L(lang, 'ส่งผลนี้ให้ทีมวิจัย', 'Submit this result to the research team') }),
-      h('p', { class: 'lab-help', text: L(lang, 'ระบบจะสร้างแพ็กเกจ (สมมติฐาน ข้อมูลของคุณ แผนจัดสรร และ checksum) บันทึกในระบบให้ทีมผู้ทบทวนเห็น แล้วร่างอีเมลแจ้งทีมให้', 'The Lab builds a package (assumptions, your data, the plan and checksums), stores it for the reviewers and drafts an email to the team.') }),
+      h('p', { class: 'lab-help', text: L(lang, 'ระบบจะสร้างชุดส่งงาน (สมมติฐาน ข้อมูลของคุณ แผนจัดสรร และ checksum) บันทึกในระบบให้ทีมผู้ทบทวนเห็น แล้วร่างอีเมลแจ้งทีมให้', 'The Lab builds a package (assumptions, your data, the plan and checksums), stores it for the reviewers and drafts an email to the team.') }),
       form, status);
     document.body.append(dialog); dialog.showModal();
   });
